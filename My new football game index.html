@@ -1,0 +1,762 @@
+<!DOCTYPE: html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>11 Personnel Mobile</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap');
+
+        :root {
+            --green-field: #1b5e20;
+            --dark-green: #0c330e;
+            --white: #ffffff;
+            --yellow-line: #ffc107;
+            --grey: #424242;
+            --button-blue: #1976d2;
+            --button-red: #d32f2f;
+            --button-shadow: rgba(0, 0, 0, 0.4);
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--dark-green);
+            color: var(--white);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            text-align: center;
+            touch-action: manipulation;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 600px;
+            padding: 16px;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        h1 {
+            color: var(--white);
+            font-size: 2.5rem;
+            margin-bottom: 0;
+        }
+
+        h2 {
+            color: var(--white);
+            font-size: 1.5rem;
+            margin-top: 0;
+            margin-bottom: 8px;
+        }
+        
+        .section {
+            background-color: rgba(0, 0, 0, 0.6);
+            border-radius: 16px;
+            padding: 16px;
+            box-shadow: 0 4px 10px var(--button-shadow);
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .hud {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            grid-gap: 8px;
+            text-align: left;
+        }
+
+        .hud-item {
+            background-color: var(--grey);
+            border-radius: 8px;
+            padding: 8px;
+            font-size: 1.2rem;
+            line-height: 1.4;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .hud-item .label {
+            font-size: 0.8rem;
+            color: rgba(255, 255, 255, 0.7);
+        }
+        
+        .team-hud-item {
+             grid-column: span 2;
+             text-align: center;
+             display: flex;
+             flex-direction: row;
+             justify-content: space-between;
+             align-items: center;
+        }
+        
+        .team-hud-item .score-label {
+            font-size: 0.8rem;
+            color: rgba(255, 255, 255, 0.7);
+        }
+        
+        .team-hud-item .score-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+
+        .messages {
+            min-height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .messages p {
+            margin: 0;
+            font-size: 1.1rem;
+            line-height: 1.5;
+        }
+
+        .controls, .playbook-selector {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        
+        .team-list-container {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .button, .play-button {
+            padding: 18px 24px;
+            border-radius: 12px;
+            border: none;
+            cursor: pointer;
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: var(--white);
+            transition: transform 0.1s, box-shadow 0.1s;
+            box-shadow: 0 4px 8px var(--button-shadow);
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .button-snap {
+            background-color: var(--button-blue);
+        }
+
+        .button-playbook {
+            background-color: var(--dark-green);
+            border: 2px solid var(--white);
+        }
+
+        .play-button {
+            background-color: var(--grey);
+            font-size: 1rem;
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .play-button p {
+            margin: 0;
+            font-size: 0.8rem;
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .button:active, .play-button:active {
+            transform: translateY(2px);
+            box-shadow: 0 2px 4px var(--button-shadow);
+        }
+        
+        .row-controls {
+            display: flex;
+            gap: 12px;
+        }
+
+        .audio-toggle {
+            background-color: var(--button-red);
+            padding: 12px;
+            border-radius: 12px;
+            border: none;
+            cursor: pointer;
+            color: var(--white);
+            font-weight: bold;
+            box-shadow: 0 4px 8px var(--button-shadow);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- New Main Menu Screen -->
+        <div id="main-menu-screen">
+            <h1>11 Personnel</h1>
+            <div class="section">
+                <h2>Main Menu</h2>
+                <div class="team-list-container">
+                    <button class="button" id="quick-play-button">Quick Play</button>
+                    <button class="button" id="franchise-button">Franchise</button>
+                    <button class="button" id="ultimate-team-button">Ultimate Team</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Existing Team Selection Screen -->
+        <div id="team-selection-screen" style="display: none;">
+            <h1>11 Personnel</h1>
+            <div class="section">
+                <h2>Choose Your Team</h2>
+                <div class="team-list-container" id="team-list"></div>
+            </div>
+        </div>
+
+        <!-- Existing Game Screen -->
+        <div id="game-screen" style="display: none;">
+            <h1>11 Personnel</h1>
+            <div class="section">
+                <h2>Game State</h2>
+                <div class="hud" role="status" aria-live="polite">
+                    <div id="homeTeam" class="hud-item team-hud-item">
+                        <span id="homeName" class="label">HOME</span>
+                        <span id="homeScoreValue" class="score-value">0</span>
+                    </div>
+                    <div id="awayTeam" class="hud-item team-hud-item">
+                        <span id="awayName" class="label">AWAY</span>
+                        <span id="awayScoreValue" class="score-value">0</span>
+                    </div>
+                    <div id="down" class="hud-item">
+                        <span class="label">DOWN</span>
+                        <span id="downValue">1st</span>
+                    </div>
+                    <div id="togo" class="hud-item">
+                        <span class="label">TO GO</span>
+                        <span id="togoValue">10</span>
+                    </div>
+                    <div id="ballSpot" class="hud-item">
+                        <span class="label">BALL ON</span>
+                        <span id="ballSpotValue">20</span>
+                    </div>
+                    <div id="clock" class="hud-item">
+                        <span class="label">TIME</span>
+                        <span id="clockValue">15:00</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2>Commentary</h2>
+                <div class="messages" aria-live="polite">
+                    <p id="message">Welcome to 11 Personnel! Call a play to begin.</p>
+                </div>
+            </div>
+
+            <div class="section" id="main-controls">
+                <h2>Game Controls</h2>
+                <button class="button button-snap" id="snap-button" disabled aria-label="Snap the ball">Snap Ball</button>
+                <div class="row-controls">
+                    <button class="button button-playbook" id="call-play-button" aria-label="Open the playbook to call a play">Call a Play</button>
+                    <button class="audio-toggle" id="audio-toggle-button" aria-label="Toggle audio-only mode">Audio Off</button>
+                </div>
+            </div>
+
+            <div class="section playbook-selector" id="playbook-selector" style="display: none;">
+                <h2>Choose an Offensive Play</h2>
+                <div id="offense-plays-container"></div>
+                <h2>Choose a Defensive Play</h2>
+                <div id="defense-plays-container"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- Core Data Models and Playbook JSON ---
+        const PLAYBOOK_JSON = {
+            "offense": [
+                {
+                    "name": "Inside Zone",
+                    "description": "Standard run play, focuses on gap integrity and one-cut reads.",
+                    "formations": ["Singleback", "I-Form"],
+                    "type": "run"
+                },
+                {
+                    "name": "Slants",
+                    "description": "Quick pass to beat man-to-man coverage.",
+                    "formations": ["Shotgun"],
+                    "type": "pass"
+                },
+                {
+                    "name": "Power O",
+                    "description": "Physical run play with a pulling guard.",
+                    "formations": ["I-Form"],
+                    "type": "run"
+                },
+                {
+                    "name": "PA Crossers",
+                    "description": "Play action deep pass.",
+                    "formations": ["Shotgun"],
+                    "type": "pass"
+                },
+                {
+                    "name": "Four Verts",
+                    "description": "A deep pass with four vertical routes.",
+                    "formations": ["Shotgun"],
+                    "type": "pass"
+                }
+            ],
+            "defense": [
+                {
+                    "name": "4-3 Cover 3",
+                    "description": "Standard zone defense, stops deep passes.",
+                    "formations": ["4-3 Base"],
+                    "type": "zone"
+                },
+                {
+                    "name": "Nickel Blitz",
+                    "description": "Aggressive blitz from the nickel formation.",
+                    "formations": ["Nickel"],
+                    "type": "blitz"
+                },
+                {
+                    "name": "Man Under",
+                    "description": "Man-to-man coverage with a safety underneath.",
+                    "formations": ["4-3 Base"],
+                    "type": "man"
+                },
+                {
+                    "name": "Tampa 2",
+                    "description": "Zone defense with a deep safety over the middle.",
+                    "formations": ["4-3 Base"],
+                    "type": "zone"
+                }
+            ]
+        };
+
+        const TEAMS = [
+            { name: "San Francisco 49ers", short: "49ERS" },
+            { name: "Kansas City Chiefs", short: "CHIEFS" },
+            { name: "New Orleans Saints", short: "SAINTS" },
+            { name: "Green Bay Packers", short: "PACKERS" },
+            { name: "Dallas Cowboys", short: "COWBOYS" },
+            { name: "New York Jets", short: "JETS" }
+        ];
+
+        // --- Game State and UI References ---
+        let gameState = {
+            homeScore: 0,
+            awayScore: 0,
+            homeTeam: null,
+            awayTeam: null,
+            currentDown: 1,
+            yardsToGo: 10,
+            ballSpot: 20, // Yards from goal line
+            quarter: 1,
+            clock: 900, // 15 minutes in seconds
+            isOffenseHome: true,
+            selectedOffensivePlay: null,
+            selectedDefensivePlay: null,
+            audioOnly: false
+        };
+
+        const elements = {
+            mainMenuScreen: document.getElementById('main-menu-screen'),
+            quickPlayButton: document.getElementById('quick-play-button'),
+            franchiseButton: document.getElementById('franchise-button'),
+            ultimateTeamButton: document.getElementById('ultimate-team-button'),
+            teamSelectionScreen: document.getElementById('team-selection-screen'),
+            gameScreen: document.getElementById('game-screen'),
+            message: document.getElementById('message'),
+            snapButton: document.getElementById('snap-button'),
+            callPlayButton: document.getElementById('call-play-button'),
+            mainControls: document.getElementById('main-controls'),
+            playbookSelector: document.getElementById('playbook-selector'),
+            offensePlaysContainer: document.getElementById('offense-plays-container'),
+            defensePlaysContainer: document.getElementById('defense-plays-container'),
+            audioToggleButton: document.getElementById('audio-toggle-button'),
+            teamListContainer: document.getElementById('team-list'),
+            // HUD values
+            homeName: document.getElementById('homeName'),
+            awayName: document.getElementById('awayName'),
+            downValue: document.getElementById('downValue'),
+            togoValue: document.getElementById('togoValue'),
+            ballSpotValue: document.getElementById('ballSpotValue'),
+            clockValue: document.getElementById('clockValue'),
+            homeScoreValue: document.getElementById('homeScoreValue'),
+            awayScoreValue: document.getElementById('awayScoreValue')
+        };
+
+        // --- TTS and Audio System ---
+        const synth = window.speechSynthesis;
+        const utteranceQueue = [];
+        let isSpeaking = false;
+        
+        // Web Audio API context
+        let audioContext;
+        
+        function initAudio() {
+            try {
+                // Creates a new AudioContext and makes it active on a user gesture
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                console.log("AudioContext created.");
+            } catch (e) {
+                console.error('Web Audio API is not supported in this browser.', e);
+            }
+        }
+        
+        function playSfx(sfxName) {
+            if (!gameState.audioOnly && audioContext) {
+                switch (sfxName) {
+                    case 'tackle':
+                        playTackleSfx();
+                        break;
+                    case 'snap':
+                        playSnapSfx();
+                        break;
+                    case 'whistle':
+                        playWhistleSfx();
+                        break;
+                    case 'crowd_roar':
+                        playCrowdRoarSfx();
+                        break;
+                    default:
+                        console.log(`Playing SFX: ${sfxName}`);
+                }
+            }
+        }
+
+        // Creates a short, percussive sound
+        function playTackleSfx() {
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+
+            const frequency = 80 + Math.random() * 40;
+            oscillator.type = 'sawtooth';
+            oscillator.frequency.value = frequency;
+
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+
+            const now = audioContext.currentTime;
+            gainNode.gain.setValueAtTime(1, now);
+            gainNode.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
+
+            oscillator.start(now);
+            oscillator.stop(now + 0.1);
+        }
+        
+        // Creates a quick pop sound for the ball snap
+        function playSnapSfx() {
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            
+            oscillator.type = 'sine';
+            oscillator.frequency.value = 800;
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            
+            const now = audioContext.currentTime;
+            gainNode.gain.setValueAtTime(0.5, now);
+            gainNode.gain.exponentialRampToValueAtTime(0.001, now + 0.05);
+
+            oscillator.start(now);
+            oscillator.stop(now + 0.05);
+        }
+        
+        // Creates a high-pitched whistle sound
+        function playWhistleSfx() {
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            
+            oscillator.type = 'sine';
+            oscillator.frequency.value = 1200;
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+
+            const now = audioContext.currentTime;
+            gainNode.gain.setValueAtTime(0, now);
+            gainNode.gain.linearRampToValueAtTime(1, now + 0.05);
+            gainNode.gain.setValueAtTime(1, now + 0.3);
+            gainNode.gain.linearRampToValueAtTime(0, now + 0.4);
+
+            oscillator.start(now);
+            oscillator.stop(now + 0.4);
+        }
+
+        // Simulates a crowd roar using white noise
+        function playCrowdRoarSfx() {
+            const bufferSize = audioContext.sampleRate * 2; // 2 seconds of noise
+            const buffer = audioContext.createBuffer(1, bufferSize, audioContext.sampleRate);
+            const output = buffer.getChannelData(0);
+            for (let i = 0; i < bufferSize; i++) {
+                output[i] = (Math.random() * 2 - 1) * 0.2; // Add a bit of volume control
+            }
+            
+            const noise = audioContext.createBufferSource();
+            noise.buffer = buffer;
+            
+            const gainNode = audioContext.createGain();
+            noise.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            
+            const now = audioContext.currentTime;
+            gainNode.gain.setValueAtTime(0.001, now);
+            gainNode.gain.linearRampToValueAtTime(1, now + 0.5);
+            gainNode.gain.linearRampToValueAtTime(0.001, now + 2);
+
+            noise.start(now);
+        }
+
+        function speak(text) {
+            if (!gameState.audioOnly) {
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.pitch = 1.0;
+                utterance.rate = 1.0;
+                utterance.onend = () => {
+                    isSpeaking = false;
+                    processQueue();
+                };
+                utterance.onerror = (event) => console.error('TTS error:', event.error);
+                utteranceQueue.push(utterance);
+                processQueue();
+            }
+        }
+
+        function processQueue() {
+            if (!isSpeaking && utteranceQueue.length > 0) {
+                isSpeaking = true;
+                const utterance = utteranceQueue.shift();
+                synth.speak(utterance);
+            }
+        }
+
+        // --- Game Logic and Simulation ---
+        function updateHud() {
+            elements.homeName.textContent = gameState.homeTeam.short;
+            elements.awayName.textContent = gameState.awayTeam.short;
+            elements.downValue.textContent = `${gameState.currentDown}${getSuffix(gameState.currentDown)}`;
+            elements.togoValue.textContent = gameState.yardsToGo;
+            elements.ballSpotValue.textContent = gameState.ballSpot;
+            elements.clockValue.textContent = `${Math.floor(gameState.clock / 60)}:${(gameState.clock % 60).toString().padStart(2, '0')}`;
+            elements.homeScoreValue.textContent = gameState.homeScore;
+            elements.awayScoreValue.textContent = gameState.awayScore;
+        }
+
+        function getSuffix(n) {
+            if (n > 3) return "th";
+            if (n === 3) return "rd";
+            if (n === 2) return "nd";
+            return "st";
+        }
+
+        function sendMessage(text) {
+            elements.message.textContent = text;
+            speak(text);
+        }
+
+        function simulatePlay() {
+            if (!gameState.selectedOffensivePlay || !gameState.selectedDefensivePlay) {
+                sendMessage("Please select an offensive and defensive play first.");
+                return;
+            }
+            
+            elements.snapButton.disabled = true; // Disable button during play
+
+            sendMessage("Hut! Hut! Hike!");
+            playSfx('snap');
+
+            // Simplified simulation logic based on play types
+            const offType = gameState.selectedOffensivePlay.type;
+            const defType = gameState.selectedDefensivePlay.type;
+
+            let yardsGained;
+            if (offType === "run" && defType === "blitz") {
+                yardsGained = Math.floor(Math.random() * 5) + 3; // Good run vs blitz
+            } else if (offType === "pass" && defType === "blitz") {
+                yardsGained = Math.floor(Math.random() * 15) + 5; // Blitz gives up big plays
+            } else if (offType === "pass" && defType === "zone") {
+                yardsGained = Math.floor(Math.random() * 8) + 2; // Pass vs zone
+            } else {
+                yardsGained = Math.floor(Math.random() * 6) + 1; // Default gain
+            }
+
+            // Announce gain, play tackle SFX, then update state after a short delay
+            setTimeout(() => {
+                sendMessage(`Ball carrier tackled for a gain of ${yardsGained} yards.`);
+                playSfx("tackle"); // Calling the tackle SFX
+                // Add a small delay for the whistle and game state update
+                setTimeout(() => {
+                    playSfx("whistle");
+                    updateGameState(yardsGained);
+                }, 500);
+            }, 1500);
+        }
+
+        function updateGameState(yardsGained) {
+            gameState.yardsToGo -= yardsGained;
+            gameState.ballSpot += yardsGained;
+            gameState.clock -= Math.floor(Math.random() * 20) + 15; // Time runs off the clock
+
+            // Check for first down
+            if (gameState.yardsToGo <= 0) {
+                gameState.currentDown = 1;
+                gameState.yardsToGo = 10;
+                sendMessage("First down!");
+                speak("First down!");
+            } else {
+                gameState.currentDown++;
+                if (gameState.currentDown > 4) {
+                    // Turn over on downs
+                    sendMessage("Turnover on downs. The defense takes over.");
+                    speak("Turnover on downs. The defense takes over.");
+                    gameState.isOffenseHome = !gameState.isOffenseHome;
+                    gameState.currentDown = 1;
+                    gameState.yardsToGo = 10;
+                    gameState.ballSpot = 100 - gameState.ballSpot; // Ball goes to other team
+                }
+            }
+
+            // Check for touchdown (ball past the 100-yard line)
+            if (gameState.ballSpot >= 100) {
+                sendMessage("Touchdown!");
+                playSfx("crowd_roar");
+                speak("Touchdown!");
+                if (gameState.isOffenseHome) {
+                    gameState.homeScore += 7;
+                } else {
+                    gameState.awayScore += 7;
+                }
+                resetPlay();
+            }
+
+            // Update clock and quarter
+            if (gameState.clock <= 0) {
+                gameState.quarter++;
+                if (gameState.quarter <= 4) {
+                    sendMessage(`End of Quarter ${gameState.quarter - 1}. Starting Quarter ${gameState.quarter}.`);
+                    speak(`End of Quarter ${gameState.quarter - 1}. Starting Quarter ${gameState.quarter}.`);
+                    gameState.clock = 900;
+                } else {
+                    sendMessage("Game Over!");
+                    speak("Game Over!");
+                }
+            }
+
+            // Enable snap button and update HUD
+            elements.snapButton.disabled = false;
+            updateHud();
+        }
+
+        function resetPlay() {
+            gameState.ballSpot = 20;
+            gameState.currentDown = 1;
+            gameState.yardsToGo = 10;
+            gameState.selectedOffensivePlay = null;
+            gameState.selectedDefensivePlay = null;
+        }
+
+        // --- Screen and UI Management ---
+        function showScreen(screenId) {
+            elements.mainMenuScreen.style.display = 'none';
+            elements.teamSelectionScreen.style.display = 'none';
+            elements.gameScreen.style.display = 'none';
+            document.getElementById(screenId).style.display = 'flex';
+        }
+
+        function showPlaybook() {
+            elements.mainControls.style.display = 'none';
+            elements.playbookSelector.style.display = 'flex';
+            sendMessage("Choose a play from the playbook.");
+        }
+
+        function hidePlaybook() {
+            elements.playbookSelector.style.display = 'none';
+            elements.mainControls.style.display = 'flex';
+        }
+
+        function renderTeamList() {
+            elements.teamListContainer.innerHTML = '';
+            TEAMS.forEach(team => {
+                const button = document.createElement('button');
+                button.className = 'button';
+                button.textContent = team.name;
+                button.onclick = () => {
+                    selectTeam(team);
+                };
+                elements.teamListContainer.appendChild(button);
+            });
+        }
+        
+        function selectTeam(team) {
+            gameState.homeTeam = team;
+            // The opponent is a random team that isn't the one you picked
+            const opponentList = TEAMS.filter(t => t.name !== team.name);
+            gameState.awayTeam = opponentList[Math.floor(Math.random() * opponentList.length)];
+            
+            sendMessage(`You have selected the ${gameState.homeTeam.name}. You are playing against the ${gameState.awayTeam.name}.`);
+            
+            updateHud();
+            showScreen('game-screen');
+        }
+
+        function renderPlaybook() {
+            PLAYBOOK_JSON.offense.forEach(play => {
+                const button = document.createElement('button');
+                button.className = 'play-button';
+                button.textContent = play.name;
+                button.setAttribute('aria-label', `Choose offensive play: ${play.name}. ${play.description}`);
+                button.onclick = () => {
+                    gameState.selectedOffensivePlay = play;
+                    // For this simple demo, we also select a random defensive play
+                    const defensePlays = PLAYBOOK_JSON.defense;
+                    gameState.selectedDefensivePlay = defensePlays[Math.floor(Math.random() * defensePlays.length)];
+                    sendMessage(`Selected offensive play: ${play.name}. The defense has selected: ${gameState.selectedDefensivePlay.name}.`);
+                    elements.snapButton.disabled = false;
+                    hidePlaybook();
+                };
+                elements.offensePlaysContainer.appendChild(button);
+            });
+            // We'll skip defensive playbook for simplicity, as it's auto-selected.
+            // A full version would have a defensive selector as well.
+        }
+        
+        function setupEventListeners() {
+            elements.quickPlayButton.addEventListener('click', () => {
+                showScreen('team-selection-screen');
+                sendMessage("Choose a team to play a quick game.");
+            });
+            elements.franchiseButton.addEventListener('click', () => {
+                sendMessage("Franchise mode is not yet implemented. Check back later!");
+            });
+            elements.ultimateTeamButton.addEventListener('click', () => {
+                sendMessage("Ultimate Team mode coming soon!");
+            });
+            elements.callPlayButton.addEventListener('click', showPlaybook);
+            elements.snapButton.addEventListener('click', simulatePlay);
+            elements.audioToggleButton.addEventListener('click', () => {
+                gameState.audioOnly = !gameState.audioOnly;
+                const buttonText = gameState.audioOnly ? "Audio On" : "Audio Off";
+                elements.audioToggleButton.textContent = buttonText;
+                elements.audioToggleButton.setAttribute('aria-label', `Toggle audio mode. Audio is currently ${gameState.audioOnly ? 'off' : 'on'}.`);
+                sendMessage(`Audio-only mode is now ${gameState.audioOnly ? 'on' : 'off'}.`);
+            });
+        }
+
+        // --- Game Initialization ---
+        window.onload = function() {
+            initAudio();
+            renderTeamList();
+            renderPlaybook();
+            setupEventListeners();
+            showScreen('main-menu-screen');
+        };
+    </script>
+</body>
+</html>
+
+index.html
