@@ -718,9 +718,17 @@
                 if (gameState.down === 4) {
                     puntPlayBtn.classList.remove('hidden');
                     fieldGoalBtn.classList.remove('hidden');
+                    // Hide other buttons on 4th down
+                    runPlayBtn.classList.add('hidden');
+                    shortPassBtn.classList.add('hidden');
+                    longPassBtn.classList.add('hidden');
                 } else {
                     puntPlayBtn.classList.add('hidden');
                     fieldGoalBtn.classList.add('hidden');
+                    // Show normal playbook buttons
+                    runPlayBtn.classList.remove('hidden');
+                    shortPassBtn.classList.remove('hidden');
+                    longPassBtn.classList.remove('hidden');
                 }
             };
 
@@ -998,6 +1006,8 @@
 
             /**
              * Starts a new game.
+             * @param {string} homeTeam The name of the home team.
+             * @param {string} awayTeam The name of the away team.
              */
             const newGame = (homeTeam, awayTeam) => {
                 gameState = {
@@ -1018,6 +1028,17 @@
                 };
                 
                 showScreen(gameScreen);
+
+                // --- FIX: Ensure playbook buttons are visible at the start of a new game ---
+                runPlayBtn.classList.remove('hidden');
+                shortPassBtn.classList.remove('hidden');
+                longPassBtn.classList.remove('hidden');
+                puntPlayBtn.classList.add('hidden');
+                fieldGoalBtn.classList.add('hidden');
+                extraPointBtn.classList.add('hidden');
+                twoPointConversionBtn.classList.add('hidden');
+                // ------------------------------------------------------------------------
+
                 updateGameUI();
                 announcePlay(`Welcome to the game! The ${gameState.offense} have the ball on their own 50 yard line.`);
             };
