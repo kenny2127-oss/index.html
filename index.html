@@ -3,327 +3,36 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Madden-Style: Accessible Single Player</title>
-<style>
-  :root { --field:#0b8f49; --line:#e5e5e5; --home:#1e3a8a; --away:#b91c1c; --ball:#f59e0b; --ui:#111827; --uiText:#f9fafb; }
-  html,body{margin:0;height:100%;font-family:system-ui,Segoe UI,Arial}
-  .app{display:grid;grid-template-columns:1fr;grid-template-rows:auto 1fr auto;min-height:100vh}
-  header,footer{background:var(--ui);color:var(--uiText);padding:12px}
-  header h1{margin:0;font-size:1.1rem}
-  main{display:grid;grid-template-columns:1fr;gap:10px;padding:10px}
-  .topbar{display:flex;flex-wrap:wrap;gap:8px}
-  .topbar button,.topbar select{font-size:1rem;padding:10px 12px;border-radius:12px;border:2px solid #0002;background:#fff}
-  .hud{display:flex;gap:12px;flex-wrap:wrap}
-  .hud .card{background:#fff;border-radius:12px;box-shadow:0 2px 8px #0002;padding:8px 12px}
-  #fieldWrap{position:relative;display:grid;place-items:center}
-  #field{width:100%;max-width:800px;aspect-ratio: 100 / 53; background:var(--field); border:6px solid #0b6f3a; border-radius:12px; box-shadow: inset 0 0 0 3px #064e2e}
-  .sr-only{position:absolute;left:-10000px;top:auto;width:1px;height:1px;overflow:hidden}
-  #livePolite{position:absolute;left:-10000px;top:auto;width:1px;height:1px;overflow:hidden}
-  #liveAssertive{position:absolute;left:-10000px;top:auto;width:1px;height:1px;overflow:hidden}
-  .controls{display:grid;grid-template-columns:repeat(3,minmax(84px,1fr));gap:8px;max-width:420px;margin:0 auto}
-  .controls button{padding:14px;border-radius:14px;border:2px solid #0002;background:#fff;font-size:1.1rem}
-  .controls .wide{grid-column:1 / -1}
-  .score{font-weight:700}
-  /* Yard lines */
-  .hash{position:absolute;inset:0;pointer-events:none}
-  .hash canvas{width:100%;height:100%}
-</style>
+<title>Accessible Football Test</title>
 </head>
 <body>
-<div class="app">
-  <header>
-    <h1 aria-label="Madden style accessible football, single player">Madden-Style: Accessible Single Player</h1>
-  </header>
+<h1>Accessible Football Test</h1>
 
-  <main>
-    <div class="topbar" role="group" aria-label="Game controls">
-      <button id="btnNewDrive">Start New Drive / Kickoff</button>
-      <button id="btnSnap" aria-describedby="snapHelp">Snap (Space)</button>
-      <button id="btnHelp">Help</button>
-      <label>
-        Speech:
-        <select id="speechMode" aria-label="Speech mode">
-          <option value="on" selected>On</option>
-          <option value="off">Off</option>
-        </select>
-      </label>
-    </div>
+<button id="btnNewDrive">Start New Drive</button>
+<button id="btnSnap">Snap</button>
 
-    <div class="hud" aria-live="polite">
-      <div class="card"><span class="score" id="scoreText">Home 0 — 0 Away</span></div>
-      <div class="card"><span id="downDist">1st & 10 on Home 25</span></div>
-      <div class="card"><span id="clockText">Q1 15:00</span></div>
-    </div>
-
-    <div id="fieldWrap" aria-label="Football field visual">
-      <canvas id="field" width="1000" height="530" role="img" aria-label="Top down football field with moving players"></canvas>
-      <div class="hash"><canvas id="hashmarks" width="1000" height="530" aria-hidden="true"></canvas></div>
-      <div id="livePolite" aria-live="polite"></div>
-      <div id="liveAssertive" aria-live="assertive"></div>
-    </div>
-
-    <div class="controls" role="group" aria-label="Touch controls">
-      <button id="btnUp" aria-label="Move up">↑ Up</button>
-      <button id="btnSnap2" class="wide" aria-label="Snap the ball">⏱️ Snap</button>
-      <button id="btnLeft" aria-label="Move left">← Left</button>
-      <button id="btnDown" aria-label="Move down">↓ Down</button>
-      <button id="btnRight" aria-label="Move right">→ Right</button>
-      <button id="btnSprint" class="wide" aria-label="Hold to sprint">⚡ Hold to Sprint</button>
-    </div>
-
-    <p id="snapHelp" class="sr-only">Press Space or tap Snap to start the play. Use arrow keys or on-screen arrows to move the ball carrier. Hold Shift or the Sprint button to run faster. Reach the far end zone to score a touchdown.</p>
-  </main>
-
-  <footer>
-    <div>Keyboard: Space = Snap, Arrows = Move, Shift = Sprint, H = Help. Touch: use on-screen controls.</div>
-  </footer>
-</div>
+<div id="livePolite" aria-live="polite"></div>
 
 <script>
-(function(){
-  // ------- Accessibility helpers -------
-  const livePolite = document.getElementById('livePolite');
-  const liveAssertive = document.getElementById('liveAssertive');
-  const speechMode = document.getElementById('speechMode');
+const livePolite = document.getElementById('livePolite');
 
-  function speak(text, {priority='polite'} = {}) {
-    // Always update the live region for screen readers
-    if (priority === 'assertive') { liveAssertive.textContent = ''; liveAssertive.textContent = text; }
-    else { livePolite.textContent = ''; livePolite.textContent = text; }
-
-    if (speechMode.value !== 'on') return;
-
-    try {
-      const u = new SpeechSynthesisUtterance(text);
-      u.rate = 1.05; u.pitch = 1; u.volume = 1;
-      // Prefer an English voice if available
-      const voices = speechSynthesis.getVoices();
-      const en = voices.find(v => /en/i.test(v.lang));
-      if (en) u.voice = en;
-      window.speechSynthesis.cancel(); // coalesce messages
-      window.speechSynthesis.speak(u);
-    } catch(e) { /* ignore if not supported */ }
+function speak(text) {
+  livePolite.textContent = text; // screen reader announcement
+  if ('speechSynthesis' in window) {
+    let u = new SpeechSynthesisUtterance(text);
+    speechSynthesis.speak(u);
   }
+}
 
-  // ------- Game state -------
-  const canvas = document.getElementById('field');
-  const ctx = canvas.getContext('2d');
-  const hm = document.getElementById('hashmarks').getContext('2d');
+document.getElementById('btnNewDrive').addEventListener('click', () => {
+  console.log("New Drive button clicked");
+  speak("New drive started");
+});
 
-  const scoreText = document.getElementById('scoreText');
-  const downDist = document.getElementById('downDist');
-  const clockText = document.getElementById('clockText');
-
-  const W = canvas.width, H = canvas.height;
-  const ENDZONE = 80; // px depth for each endzone
-  const FIELD_LEFT = ENDZONE, FIELD_RIGHT = W - ENDZONE, FIELD_TOP = 40, FIELD_BOTTOM = H - 40;
-
-  const YARDS_PER_PX = 100 / (FIELD_RIGHT - FIELD_LEFT); // rough scale, 100 yards between goal lines
-
-  const KEYS = { ArrowUp:false, ArrowDown:false, ArrowLeft:false, ArrowRight:false, Shift:false };
-
-  const game = {
-    quarter: 1, clockSec: 15*60,
-    home: 0, away: 0,
-    offense: 'home',
-    ball: { x: FIELD_LEFT + 25/YARDS_PER_PX, y: H/2, vx:0, vy:0, r:8 },
-    snapped: false,
-    down: 1, toGo: 10, losX: null, // line of scrimmage x
-    yardlineText: 'Home 25',
-    defenders: [],
-    blockers: [],
-    carrierSpeed: 2.2, sprintBonus: 1.6,
-    playOver: true,
-    lastAnnouncement: ''
-  };
-
-  function resetHashmarks(){
-    hm.clearRect(0,0,W,H);
-    // end zones
-    hm.fillStyle = '#074c2b';
-    hm.fillRect(0,0,ENDZONE,H);
-    hm.fillRect(W-ENDZONE,0,ENDZONE,H);
-    // goal lines
-    hm.fillStyle = 'rgba(255,255,255,.9)';
-    hm.fillRect(FIELD_LEFT, FIELD_TOP, 2, FIELD_BOTTOM - FIELD_TOP);
-    hm.fillRect(FIELD_RIGHT, FIELD_TOP, 2, FIELD_BOTTOM - FIELD_TOP);
-    // Yard lines every 10 yards
-    hm.globalAlpha = 0.8;
-    for (let i=10;i<100;i+=10){
-      const x = FIELD_LEFT + (i / YARDS_PER_PX);
-      hm.fillRect(x, FIELD_TOP, 2, FIELD_BOTTOM - FIELD_TOP);
-    }
-    hm.globalAlpha = 1;
-    // sidelines
-    hm.fillRect(FIELD_LEFT, FIELD_TOP, FIELD_RIGHT-FIELD_LEFT, 2);
-    hm.fillRect(FIELD_LEFT, FIELD_BOTTOM-2, FIELD_RIGHT-FIELD_LEFT, 2);
-  }
-
-  function yardTextFromX(x){
-    const yardsFromHomeGL = Math.max(0, Math.min(100, Math.round((x - FIELD_LEFT) * YARDS_PER_PX)));
-    if (yardsFromHomeGL < 50) return `Home ${50 - yardsFromHomeGL}`;
-    if (yardsFromHomeGL === 50) return 'Midfield';
-    return `Away ${yardsFromHomeGL - 50}`;
-  }
-
-  function placeTeams(){
-    // Simple formation: 1 carrier (QB/RB), a few blockers, a few defenders
-    game.blockers = [];
-    game.defenders = [];
-    const baseX = game.ball.x, baseY = game.ball.y;
-    for (let i=0;i<4;i++){
-      game.blockers.push({x: baseX - 12 - i*10, y: baseY - 30 + i*15, r:7});
-    }
-    for (let i=0;i<5;i++){
-      // defenders lined up across
-      game.defenders.push({x: baseX + 30 + i*10, y: baseY - 40 + i*16, r:7, speed: 1.7});
-    }
-  }
-
-  function newDrive(){
-    game.playOver = true;
-    game.snapped = false;
-    const startX = FIELD_LEFT + 25 / YARDS_PER_PX;
-    game.ball.x = startX;
-    game.ball.y = H/2;
-    game.down = 1; game.toGo = 10; game.losX = startX;
-    placeTeams();
-    updateDownDist();
-    draw();
-    announce(`New drive. First and 10 on ${yardTextFromX(game.losX)}.`);
-  }
-
-  function updateDownDist(){
-    downDist.textContent = `${ordinal(game.down)} & ${game.toGo} on ${yardTextFromX(game.losX)}`;
-  }
-
-  function ordinal(n){ return ['0th','1st','2nd','3rd','4th'][Math.min(n,4)] || n+'th'; }
-
-  function announcePlayStart(){
-    const yt = yardTextFromX(game.losX);
-    announce(`Ball snapped. ${ordinal(game.down)} and ${game.toGo} on ${yt}.`);
-  }
-
-  function announce(s, forceAssertive=false){
-    if (s === game.lastAnnouncement) return;
-    game.lastAnnouncement = s;
-    speak(s, {priority: forceAssertive ? 'assertive' : 'polite'});
-  }
-
-  function addScore(team, points){
-    if (team === 'home') game.home += points; else game.away += points;
-    scoreText.textContent = `Home ${game.home} — ${game.away} Away`;
-    announce(`Score update. Home ${game.home}, Away ${game.away}.`, true);
-  }
-
-  function spotBallAndAdvanceDown(){
-    const gained = Math.round((game.ball.x - game.losX) * YARDS_PER_PX);
-    const gainedText = gained >= 0 ? `gain of ${gained} yard${gained===1?'':'s'}` : `loss of ${Math.abs(gained)} yard${gained===-1?'':'s'}`;
-    announce(`Tackle. ${gainedText} at ${yardTextFromX(game.ball.x)}.`);
-    const firstDownX = game.losX + (game.toGo / YARDS_PER_PX);
-    if (game.ball.x >= firstDownX){
-      announce(`First down achieved!`);
-      game.down = 1; game.toGo = 10; game.losX = game.ball.x;
-    } else {
-      game.down++;
-      if (game.down > 4){
-        announce(`Turnover on downs. New drive for the other team at ${yardTextFromX(game.ball.x)}.`, true);
-        // flip field direction just for flavor
-        game.offense = (game.offense === 'home') ? 'away' : 'home';
-        game.down = 1; game.toGo = 10; game.losX = game.ball.x;
-      } else {
-        const yardsLeft = Math.max(1, Math.round((firstDownX - game.ball.x) * YARDS_PER_PX));
-        announce(`${ordinal(game.down)} down, ${yardsLeft} to go.`);
-        game.toGo = yardsLeft; game.losX = game.ball.x;
-      }
-    }
-    updateDownDist();
-  }
-
-  // ------- Rendering -------
-  function draw(){
-    ctx.clearRect(0,0,W,H);
-    // Field base
-    ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--field');
-    ctx.fillRect(0,0,W,H);
-
-    // Draw players
-    drawCircle(game.ball.x, game.ball.y, game.ball.r, getVar('--ball')); // ball carrier
-    game.blockers.forEach(b => drawCircle(b.x,b.y,b.r,getVar('--home')));
-    game.defenders.forEach(d => drawCircle(d.x,d.y,d.r,getVar('--away')));
-
-    // LOS and first down line
-    if (!game.playOver){
-      ctx.globalAlpha = 0.6;
-      ctx.fillStyle = 'rgba(30,58,138,.7)';
-      ctx.fillRect(game.losX, FIELD_TOP, 2, FIELD_BOTTOM-FIELD_TOP);
-      const fdX = game.losX + game.toGo / YARDS_PER_PX;
-      ctx.fillStyle = 'rgba(249,115,22,.7)';
-      ctx.fillRect(fdX, FIELD_TOP, 2, FIELD_BOTTOM-FIELD_TOP);
-      ctx.globalAlpha = 1;
-    }
-  }
-  function drawCircle(x,y,r,color){
-    ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2);
-    ctx.fillStyle = color; ctx.fill(); ctx.closePath();
-    ctx.strokeStyle = '#0008'; ctx.lineWidth = 1.5; ctx.stroke();
-  }
-  function getVar(name){ return getComputedStyle(document.documentElement).getPropertyValue(name).trim(); }
-
-  // ------- Gameplay loop -------
-  let lastTs = 0;
-  function step(ts){
-    const dt = Math.min(32, ts - lastTs); // ms
-    lastTs = ts;
-    if (!game.playOver && game.snapped){
-      // Move carrier by input
-      const sp = game.carrierSpeed * (KEYS.Shift || touchSprintHeld ? game.sprintBonus : 1);
-      let dx = 0, dy = 0;
-      if (KEYS.ArrowLeft || touchLeft) dx -= sp;
-      if (KEYS.ArrowRight || touchRight) dx += sp;
-      if (KEYS.ArrowUp || touchUp) dy -= sp;
-      if (KEYS.ArrowDown || touchDown) dy += sp;
-
-      game.ball.x = clamp(game.ball.x + dx, FIELD_LEFT, FIELD_RIGHT);
-      game.ball.y = clamp(game.ball.y + dy, FIELD_TOP, FIELD_BOTTOM);
-
-      // AI defenders pursue
-      game.defenders.forEach(d=>{
-        const ang = Math.atan2(game.ball.y - d.y, game.ball.x - d.x);
-        d.x += Math.cos(ang) * d.speed;
-        d.y += Math.sin(ang) * d.speed;
-      });
-
-      // Check tackle (defender within reach)
-      const tackled = game.defenders.some(d => dist(d.x,d.y,game.ball.x,game.ball.y) < (d.r + game.ball.r + 2));
-      // Check touchdown
-      const td = game.ball.x >= FIELD_RIGHT - 2;
-
-      if (td){
-        game.playOver = true; game.snapped = false;
-        addScore(game.offense, 6);
-        announce(`Touchdown ${game.offense === 'home' ? 'Home' : 'Away'}!`, true);
-        // Simple extra point auto good
-        addScore(game.offense, 1);
-        announce(`Extra point is good.`, false);
-        // New drive from 25
-        setTimeout(newDrive, 600);
-      } else if (tackled){
-        game.playOver = true; game.snapped = false;
-        spotBallAndAdvanceDown();
-      }
-    }
-    draw();
-    requestAnimationFrame(step);
-  }
-
-  function clamp(v,min,max){ return Math.max(min, Math.min(max, v)); }
-  function dist(x1,y1,x2,y2){ const dx=x2-x1, dy=y2-y1; return Math.hypot(dx,dy); }
-
-  // ------- Input -------
-  window.addEventListener('keydown', e=>{
-    if (e.code in KEYS){ KEYS[e.code] = true; }
-    if (e.code === 'Space'){ e.preventDefault(); doSnap(); }
-    if (e.key.toLowerCase() === 'h'){ showHelp(); }
-  });
-  window.addEventListener('keyup', e=>{
+document.getElementById('btnSnap').addEventListener('click', () => {
+  console.log("Snap button clicked");
+  speak("Ball snapped!");
+});
+</script>
+</body>
+</html>
