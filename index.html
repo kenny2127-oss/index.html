@@ -68,7 +68,7 @@
             </h1>
 
             <div class="w-full flex flex-col gap-4">
-                <!-- Main "Football" game button -->
+                <!-- Main "Quick Play" game button -->
                 <button
                     id="play-football-btn"
                     class="py-4 px-6 bg-gray-600 hover:bg-gray-700 text-white font-bold rounded-lg shadow-md transition duration-200"
@@ -82,25 +82,6 @@
                     class="py-4 px-6 bg-yellow-600 hover:bg-yellow-700 text-white font-bold rounded-lg shadow-md transition duration-200 hidden"
                 >
                     Load Last Game
-                </button>
-
-                <!-- This section holds the saved games dropdown -->
-                <div class="w-full flex flex-col gap-2">
-                    <label for="saved-games-select" class="text-lg text-gray-400">Play Custom Games</label>
-                    <select
-                        id="saved-games-select"
-                        class="w-full py-3 px-4 bg-gray-700 rounded-lg border border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
-                    >
-                        <!-- Options will be dynamically added here by JavaScript -->
-                    </select>
-                </div>
-
-                <!-- The button to create a new game -->
-                <button
-                    id="new-game-btn"
-                    class="py-4 px-6 bg-green-600 hover:bg-green-700 text-white font-bold rounded-lg shadow-md transition duration-200"
-                >
-                    New Game
                 </button>
             </div>
         </div>
@@ -192,41 +173,6 @@
             </button>
         </div>
         
-        <!-- Create Game Screen (Hidden by default) -->
-        <div id="create-game-menu" class="w-full text-center hidden">
-            <h2 class="text-4xl md:text-5xl font-bold text-white text-center mb-6">
-                Describe Your Game
-            </h2>
-
-            <div class="w-full flex flex-col gap-4 mb-4">
-                <textarea
-                    id="game-description-input"
-                    class="w-full h-32 p-4 bg-gray-700 rounded-lg border border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none text-sm placeholder-gray-400"
-                    placeholder="e.g., A game where you have to throw the ball to a receiver while avoiding defenders."
-                ></textarea>
-
-                <input
-                    type="text"
-                    id="game-title-input"
-                    class="w-full p-4 bg-gray-700 rounded-lg border border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm placeholder-gray-400"
-                    placeholder="Enter a title for your game"
-                />
-
-                <button
-                    id="create-button"
-                    class="py-4 px-6 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-lg shadow-md transition duration-200"
-                >
-                    Create Game
-                </button>
-                <button
-                    id="back-button"
-                    class="py-4 px-6 bg-gray-600 hover:bg-gray-700 text-white font-bold rounded-lg shadow-md transition duration-200"
-                >
-                    Back to Menu
-                </button>
-            </div>
-        </div>
-
         <!-- Game Screen (Hidden by default) -->
         <div id="game-screen" class="w-full text-center hidden">
             <div class="game-display bg-gray-800 rounded-xl shadow-lg mb-4">
@@ -258,18 +204,11 @@
             const mainMenu = document.getElementById('main-menu');
             const quickPlayMenu = document.getElementById('quick-play-menu');
             const gameSettingsMenu = document.getElementById('game-settings-menu');
-            const createGameMenu = document.getElementById('create-game-menu');
             const gameScreen = document.getElementById('game-screen');
             const playFootballBtn = document.getElementById('play-football-btn');
             const loadGameBtn = document.getElementById('load-game-btn');
-            const newGameBtn = document.getElementById('new-game-btn');
             const backToMenuFromQuickPlayBtn = document.getElementById('back-to-menu-from-quick-play-btn');
             const teamsList = document.getElementById('teams-list');
-            const savedGamesSelect = document.getElementById('saved-games-select');
-            const gameDescriptionInput = document.getElementById('game-description-input');
-            const gameTitleInput = document.getElementById('game-title-input');
-            const createButton = document.getElementById('create-button');
-            const backButton = document.getElementById('back-button');
             const backToMenuFromGameBtn = document.getElementById('back-to-menu-from-game-btn');
             const gameIframe = document.getElementById('game-iframe');
             const saveGameBtn = document.getElementById('save-game-btn');
@@ -279,8 +218,7 @@
             const gameTimeInput = document.getElementById('game-time');
             const gameTimeValue = document.getElementById('game-time-value');
             
-            // A list to hold the saved custom games and the last saved game
-            let savedGames = [];
+            // A list to hold the last saved game
             let lastSavedGame = null;
             let currentGameCode = ''; // Store the currently playing game code for saving
 
@@ -347,21 +285,6 @@
             };
 
             /**
-             * Renders all game options in the dropdown.
-             */
-            const renderGameOptions = () => {
-                savedGamesSelect.innerHTML = '<option value="" disabled selected>Select a game to play</option>';
-                
-                // Add all the saved games
-                savedGames.forEach(game => {
-                    const option = document.createElement('option');
-                    option.value = game.id;
-                    option.textContent = game.title;
-                    savedGamesSelect.appendChild(option);
-                });
-            };
-            
-            /**
              * Renders the NFL teams list.
              */
             const renderTeamsList = () => {
@@ -381,12 +304,10 @@
             };
 
             /**
-             * Loads saved games from the browser's local storage.
+             * Loads last saved game from the browser's local storage.
              */
-            const loadGames = () => {
-                savedGames = JSON.parse(localStorage.getItem('savedGames') || '[]');
+            const loadLastGameData = () => {
                 lastSavedGame = localStorage.getItem('lastSavedGame');
-                renderGameOptions();
                 
                 // Show/hide the "Load Last Game" button
                 if (lastSavedGame) {
@@ -397,126 +318,22 @@
             };
 
             /**
-             * Saves the custom games and last saved game to the browser's local storage.
+             * Saves the last saved game to the browser's local storage.
              */
-            const saveGames = () => {
-                localStorage.setItem('savedGames', JSON.stringify(savedGames));
+            const saveGameData = () => {
                 if (lastSavedGame) {
                     localStorage.setItem('lastSavedGame', lastSavedGame);
                     showMessage('Game saved!', 'success');
+                    // Update the "Load Last Game" button visibility
+                    loadLastGameData();
                 }
             };
             
             /**
-             * Generates the game code using the LLM API.
-             * @param {string} title The title of the game.
-             * @param {string} description The user's description of the game.
-             * @returns {Promise<string|null>} A promise that resolves with the generated game code or null if it fails.
-             */
-            const generateGameCode = async (title, description) => {
-                const prompt = `You are a professional game developer. Your task is to generate the complete, self-contained HTML/CSS/JS code for a simple web-based game. The game must be a single HTML file with all CSS in a <style> tag and all JavaScript in a <script> tag. The game must be fully contained within the <body> tag. Do not use any external files, libraries, or CDNs. Ensure the game is responsive and playable on a mobile phone. Do not include any placeholder text or external image links. Use only basic colors and shapes to create the game. The game should be directly playable when the HTML file is opened.
-
-                Here is the user's game idea:
-                Title: ${title}
-                Description: ${description}
-                
-                Please provide ONLY the HTML code. Do not include any conversational text or explanations.`;
-                
-                const chatHistory = [{ role: "user", parts: [{ text: prompt }] }];
-                const payload = { contents: chatHistory };
-                
-                const apiKey = "";
-                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
-                
-                try {
-                    let response = await fetch(apiUrl, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(payload),
-                    });
-                    
-                    let retries = 0;
-                    while (!response.ok && retries < 5) {
-                        await new Promise(res => setTimeout(res, Math.pow(2, retries) * 1000));
-                        response = await fetch(apiUrl, {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify(payload),
-                        });
-                        retries++;
-                    }
-                    
-                    if (!response.ok) {
-                        throw new Error(`API call failed with status: ${response.status}`);
-                    }
-                    
-                    const result = await response.json();
-                    
-                    if (!result.candidates || result.candidates.length === 0 || !result.candidates[0].content || !result.candidates[0].content.parts || result.candidates[0].content.parts.length === 0) {
-                        throw new Error("Invalid API response format.");
-                    }
-
-                    const generatedText = result.candidates[0].content.parts[0].text;
-                    
-                    // Extract the code block from the response
-                    const htmlMatch = generatedText.match(/```html\n([\s\S]*?)```/);
-                    return htmlMatch ? htmlMatch[1] : generatedText;
-                    
-                } catch (e) {
-                    console.error("Failed to generate game code:", e);
-                    return null;
-                }
-            };
-
-            /**
-             * Creates a new game and adds it to the menu, then starts the game.
-             */
-            const createNewGame = async () => {
-                const description = gameDescriptionInput.value.trim();
-                const title = gameTitleInput.value.trim();
-
-                if (!title) {
-                    showMessage('Please enter a title for your game.', 'error');
-                    return;
-                }
-
-                // Show loading state
-                createButton.textContent = 'Generating...';
-                createButton.disabled = true;
-                backButton.disabled = true;
-
-                const generatedCode = await generateGameCode(title, description);
-
-                if (generatedCode) {
-                    const newGame = {
-                        id: `game-${Date.now()}`,
-                        title: title,
-                        description: description,
-                        code: generatedCode
-                    };
-
-                    // Add the new game to our list and save it
-                    savedGames.push(newGame);
-                    saveGames();
-
-                    // Start the new game immediately, as requested
-                    startGame(newGame.id, generatedCode);
-                } else {
-                    showMessage('Sorry, I could not create that game. Please try a different description.', 'error');
-                }
-
-                // Reset loading state
-                createButton.textContent = 'Create Game';
-                createButton.disabled = false;
-                backButton.disabled = false;
-            };
-
-            /**
              * Starts a game by displaying it in the iframe.
-             * @param {string} gameId The ID of the game to start.
              * @param {string} code The code to load into the iframe.
              */
-            const startGame = (gameId, code) => {
+            const startGame = (code) => {
                 // Set the current game code for saving
                 currentGameCode = code;
 
@@ -524,7 +341,6 @@
                 mainMenu.classList.add('hidden');
                 quickPlayMenu.classList.add('hidden');
                 gameSettingsMenu.classList.add('hidden');
-                createGameMenu.classList.add('hidden');
                 gameScreen.classList.remove('hidden');
 
                 // Load the game code into the iframe
@@ -537,7 +353,7 @@
             const saveCurrentGame = () => {
                 if (currentGameCode) {
                     lastSavedGame = currentGameCode;
-                    saveGames();
+                    saveGameData();
                 } else {
                     showMessage('No game to save!', 'error');
                 }
@@ -548,8 +364,7 @@
              */
             const loadLastGame = () => {
                 if (lastSavedGame) {
-                    // We don't need a gameId for a generic last saved game
-                    startGame('last-saved', lastSavedGame);
+                    startGame(lastSavedGame);
                     showMessage('Loaded last saved game!', 'success');
                 } else {
                     showMessage('No saved game found!', 'error');
@@ -585,30 +400,19 @@
             };
 
             /**
-             * Displays the create game menu and hides the main menu.
-             */
-            const showCreateGameMenu = () => {
-                mainMenu.classList.add('hidden');
-                createGameMenu.classList.remove('hidden');
-            };
-
-            /**
              * Hides all menus and displays the main menu.
              */
             const showMainMenu = () => {
                 quickPlayMenu.classList.add('hidden');
-                createGameMenu.classList.add('hidden');
                 gameSettingsMenu.classList.add('hidden');
                 gameScreen.classList.add('hidden');
                 mainMenu.classList.remove('hidden');
-                // Ensure the game options are up to date when returning
-                loadGames();
+                loadLastGameData();
             };
 
             // Event listeners
             playFootballBtn.addEventListener('click', showQuickPlayMenu);
             loadGameBtn.addEventListener('click', loadLastGame);
-            newGameBtn.addEventListener('click', showCreateGameMenu);
             
             backToMenuFromQuickPlayBtn.addEventListener('click', showMainMenu);
             
@@ -625,26 +429,15 @@
             document.getElementById('start-quick-play-btn').addEventListener('click', () => {
                 // This is where you would build the game based on the selected settings
                 // For now, we'll just start the placeholder football game
-                startGame('quick-play-default', footballGameCode);
+                startGame(footballGameCode);
             });
             
             document.getElementById('back-to-quick-play-btn').addEventListener('click', showQuickPlayMenu);
-            
-            savedGamesSelect.addEventListener('change', (event) => {
-                const selectedGameId = event.target.value;
-                if (selectedGameId) {
-                    const game = savedGames.find(g => g.id === selectedGameId);
-                    startGame(selectedGameId, game.code);
-                }
-            });
-            
-            createButton.addEventListener('click', createNewGame);
-            backButton.addEventListener('click', showMainMenu);
             backToMenuFromGameBtn.addEventListener('click', backToMenuFromGame);
             saveGameBtn.addEventListener('click', saveCurrentGame);
 
             // Initial setup
-            loadGames();
+            loadLastGameData();
             renderTeamsList();
         });
     </script>
