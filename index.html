@@ -129,7 +129,9 @@
     </div>
 
     <script>
-        window.onload = function() {
+        // Ensure the script runs after the document is fully loaded
+        document.addEventListener('DOMContentLoaded', () => {
+
             // Get references to the HTML elements
             const mainMenu = document.getElementById('main-menu');
             const createGameMenu = document.getElementById('create-game-menu');
@@ -274,14 +276,19 @@
             };
 
             /**
-             * Creates a new game and adds it to the menu.
+             * Creates a new game and adds it to the menu, then starts the game.
              */
             const createNewGame = async () => {
                 const description = gameDescriptionInput.value.trim();
                 const title = gameTitleInput.value.trim();
 
                 if (!title) {
-                    alert('Please enter a title for your game.');
+                    // Replaced alert with a simple message for better user experience
+                    const msgBox = document.createElement('div');
+                    msgBox.textContent = 'Please enter a title for your game.';
+                    msgBox.className = 'absolute top-0 left-1/2 -translate-x-1/2 mt-4 px-4 py-2 bg-red-500 text-white rounded-lg shadow-lg animate-fade-in';
+                    document.body.appendChild(msgBox);
+                    setTimeout(() => msgBox.remove(), 3000);
                     return;
                 }
 
@@ -300,19 +307,18 @@
                         code: generatedCode
                     };
 
-                    // Add the new game to our list
+                    // Add the new game to our list and save it
                     savedGames.push(newGame);
-
-                    // Save the updated list to local storage
                     saveGames();
 
-                    // Clear inputs and go back to main menu
-                    gameDescriptionInput.value = '';
-                    gameTitleInput.value = '';
-                    renderGameOptions();
-                    showMainMenu();
+                    // Start the new game immediately, as requested
+                    startGame(newGame.id);
                 } else {
-                    alert('Sorry, I could not create that game. Please try a different description.');
+                    const msgBox = document.createElement('div');
+                    msgBox.textContent = 'Sorry, I could not create that game. Please try a different description.';
+                    msgBox.className = 'absolute top-0 left-1/2 -translate-x-1/2 mt-4 px-4 py-2 bg-red-500 text-white rounded-lg shadow-lg animate-fade-in';
+                    document.body.appendChild(msgBox);
+                    setTimeout(() => msgBox.remove(), 3000);
                 }
 
                 // Reset loading state
@@ -335,7 +341,12 @@
                     if (game) {
                         gameCode = game.code;
                     } else {
-                        alert('Game not found!');
+                         // Replaced alert with a simple message for better user experience
+                        const msgBox = document.createElement('div');
+                        msgBox.textContent = 'Game not found!';
+                        msgBox.className = 'absolute top-0 left-1/2 -translate-x-1/2 mt-4 px-4 py-2 bg-red-500 text-white rounded-lg shadow-lg animate-fade-in';
+                        document.body.appendChild(msgBox);
+                        setTimeout(() => msgBox.remove(), 3000);
                         return;
                     }
                 }
@@ -373,6 +384,8 @@
             const showMainMenu = () => {
                 createGameMenu.classList.add('hidden');
                 mainMenu.classList.remove('hidden');
+                // Ensure the game options are up to date when returning
+                renderGameOptions();
             };
 
             // Event listeners
@@ -390,7 +403,7 @@
 
             // Initial setup
             loadGames();
-        };
+        });
     </script>
 
 </body>
