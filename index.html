@@ -411,4 +411,29 @@ updateUI("Welcome to Madden Text Adventure. Choose a play to begin.");
   button{background:#0f172a;border:1px solid #344155;color:var(--text);padding:10px 12px;border-radius:12px;font-size:1rem}
   button:disabled{opacity:.5}
   #field{width:100%;height:220px;background:#115e3b;border-radius:12px;border:2px solid #0b3a24}
-  .sectionTitle
+  .sectionTitlelet quarter = 1;
+let clock = 900; // 900 seconds = 15:00
+
+function advanceClock() {
+  let elapsed = rand(20,40); 
+  clock -= elapsed;
+  if (clock <= 0) {
+    nextQuarter();
+  }
+}
+
+function nextQuarter() {
+  if (quarter === 1) {
+    updateUI("End of the 1st Quarter.");
+    quarter = 2; clock = 900;
+  } else if (quarter === 2) {
+    updateUI("Halftime Show! Marching band plays. Fans are cheering!");
+    playSound("cheer");
+    quarter = 3; clock = 900;
+  } else if (quarter === 3) {
+    updateUI("End of the 3rd Quarter.");
+    quarter = 4; clock = 900;
+  } else if (quarter === 4) {
+    endGame();
+  }
+}
