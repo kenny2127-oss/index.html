@@ -71,6 +71,13 @@
                 Stop Reading
             </button>
         </div>
+        
+        <button
+            id="download-btn"
+            class="w-full py-3 px-4 bg-gray-600 hover:bg-gray-700 text-white font-bold rounded-lg transition duration-200 mt-2"
+        >
+            Download App
+        </button>
 
         <div id="status-message" class="mt-4 p-3 text-sm rounded-lg text-center hidden"></div>
     </div>
@@ -98,6 +105,7 @@
         const textInput = document.getElementById('text-input');
         const startBtn = document.getElementById('start-btn');
         const stopBtn = document.getElementById('stop-btn');
+        const downloadBtn = document.getElementById('download-btn');
         const statusMessage = document.getElementById('status-message');
         const errorModal = document.getElementById('error-modal');
         const closeModalBtn = document.getElementById('close-modal-btn');
@@ -189,10 +197,30 @@
             resetSpeech();
             showStatusMessage("Reading stopped.", 'bg-yellow-800 text-yellow-200');
         };
+        
+        /**
+         * Handles the download functionality.
+         */
+        const downloadApp = () => {
+            const htmlContent = document.documentElement.outerHTML;
+            const blob = new Blob([htmlContent], {type: 'text/html'});
+            const url = URL.createObjectURL(blob);
+            
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'screen-reader-prototype.html';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            showStatusMessage("Download started!", 'bg-green-800 text-green-200');
+        };
 
         // Event listeners
         startBtn.addEventListener('click', startReading);
         stopBtn.addEventListener('click', stopReading);
+        downloadBtn.addEventListener('click', downloadApp);
         closeModalBtn.addEventListener('click', () => {
             errorModal.classList.add('hidden');
         });
