@@ -1575,3 +1575,194 @@ const nflRosters2024 = {
 </body>
 </html>
 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Football Game State Demo</title>
+  <!-- Load Tailwind CSS for simple, responsive styling -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Use Inter font for a clean look -->
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap">
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+    }
+  </style>
+</head>
+<body class="bg-gray-900 text-white min-h-screen flex items-center justify-center p-4">
+
+  <!-- Main Game Container -->
+  <div class="bg-gray-800 p-8 md:p-12 rounded-3xl shadow-2xl w-full max-w-2xl">
+    <h1 class="text-3xl md:text-4xl font-bold text-center mb-6">Football Game</h1>
+    <p class="text-center text-gray-400 mb-8">This example shows how to save and load your game state.</p>
+
+    <!-- Game Information Display -->
+    <div class="flex justify-around items-center mb-8">
+      <div class="text-center">
+        <h2 class="text-xl font-medium text-gray-300">Score</h2>
+        <p id="score-display" class="text-5xl md:text-6xl font-extrabold text-green-400 mt-2">0</p>
+      </div>
+      <div class="text-center">
+        <h2 class="text-xl font-medium text-gray-300">Quarter Length</h2>
+        <p id="quarter-length-display" class="text-5xl md:text-6xl font-extrabold text-green-400 mt-2">15 min</p>
+      </div>
+    </div>
+
+    <!-- Controls Container -->
+    <div class="space-y-6">
+
+      <!-- Score Controls -->
+      <div class="flex flex-col sm:flex-row gap-4">
+        <button id="add-score-btn" class="flex-1 bg-green-600 hover:bg-green-500 transition-all text-white font-bold py-4 rounded-xl shadow-lg">
+          Add Touchdown (6 pts)
+        </button>
+      </div>
+
+      <!-- Quarter Length Controls -->
+      <div class="flex items-center gap-4">
+        <label for="quarter-length-input" class="text-gray-300 whitespace-nowrap">Set Quarter Length (min):</label>
+        <input type="number" id="quarter-length-input" value="15" min="1" max="60"
+               class="flex-grow bg-gray-700 text-white px-4 py-2 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500">
+      </div>
+
+      <!-- Save/Load Controls -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <button id="save-btn" class="bg-blue-600 hover:bg-blue-500 transition-all text-white font-bold py-4 rounded-xl shadow-lg">
+          Save Game
+        </button>
+        <button id="load-btn" class="bg-purple-600 hover:bg-purple-500 transition-all text-white font-bold py-4 rounded-xl shadow-lg">
+          Load Game
+        </button>
+      </div>
+    </div>
+
+    <!-- Status/Message Box -->
+    <div id="status-box" class="mt-8 p-4 rounded-xl text-center font-medium transition-all duration-300"></div>
+  </div>
+
+  <script>
+    // Get all the necessary HTML elements
+    const scoreDisplay = document.getElementById('score-display');
+    const quarterLengthDisplay = document.getElementById('quarter-length-display');
+    const quarterLengthInput = document.getElementById('quarter-length-input');
+    const addScoreBtn = document.getElementById('add-score-btn');
+    const saveBtn = document.getElementById('save-btn');
+    const loadBtn = document.getElementById('load-btn');
+    const statusBox = document.getElementById('status-box');
+
+    // Initialize game state variables
+    let score = 0;
+    let quarterLength = 15;
+
+    /**
+     * Updates the UI to show the current score and quarter length.
+     */
+    function updateUI() {
+      scoreDisplay.textContent = score;
+      quarterLengthDisplay.textContent = `${quarterLength} min`;
+      quarterLengthInput.value = quarterLength;
+    }
+
+    /**
+     * Displays a message in the status box with a specific style.
+     * @param {string} message - The message to display.
+     * @param {string} type - The type of message ('success', 'error', 'info').
+     */
+    function showStatus(message, type) {
+      statusBox.textContent = message;
+      statusBox.className = 'mt-8 p-4 rounded-xl text-center font-medium transition-all duration-300'; // Reset classes
+      if (type === 'success') {
+        statusBox.classList.add('bg-green-800', 'text-green-200', 'opacity-100');
+      } else if (type === 'info') {
+        statusBox.classList.add('bg-blue-800', 'text-blue-200', 'opacity-100');
+      } else {
+        statusBox.classList.add('bg-red-800', 'text-red-200', 'opacity-100');
+      }
+
+      // Hide the message after a few seconds
+      setTimeout(() => {
+        statusBox.classList.remove('opacity-100');
+        statusBox.classList.add('opacity-0');
+      }, 3000);
+    }
+
+    /**
+     * Saves the current game state to localStorage.
+     * This is the key to preventing the score and quarter length from resetting.
+     */
+    function saveGameState() {
+      try {
+        // Create an object to hold all the state variables
+        const gameState = {
+          score: score,
+          quarterLength: quarterLength,
+        };
+        // Convert the object to a JSON string and save it with a key
+        localStorage.setItem('footballGameState', JSON.stringify(gameState));
+        showStatus('Game saved successfully!', 'success');
+      } catch (error) {
+        showStatus('Failed to save game.', 'error');
+        console.error("Error saving game state:", error);
+      }
+    }
+
+    /**
+     * Loads the game state from localStorage.
+     * This is what happens when you "load" a game.
+     */
+    function loadGameState() {
+      try {
+        const savedData = localStorage.getItem('footballGameState');
+        if (savedData) {
+          // Parse the JSON string back into a JavaScript object
+          const gameState = JSON.parse(savedData);
+          score = gameState.score;
+          quarterLength = gameState.quarterLength;
+          updateUI();
+          showStatus('Game loaded successfully!', 'info');
+        } else {
+          showStatus('No saved game found.', 'error');
+        }
+      } catch (error) {
+        showStatus('Failed to load game.', 'error');
+        console.error("Error loading game state:", error);
+      }
+    }
+
+    // --- Event Listeners ---
+    
+    // Listen for the "Add Touchdown" button click
+    addScoreBtn.addEventListener('click', () => {
+      score += 6;
+      updateUI();
+    });
+
+    // Listen for the quarter length input change
+    quarterLengthInput.addEventListener('input', (event) => {
+      const newLength = parseInt(event.target.value, 10);
+      if (!isNaN(newLength) && newLength > 0 && newLength <= 60) {
+        quarterLength = newLength;
+        updateUI();
+      }
+    });
+
+    // Listen for the "Save Game" button click
+    saveBtn.addEventListener('click', saveGameState);
+
+    // Listen for the "Load Game" button click
+    loadBtn.addEventListener('click', loadGameState);
+
+    // --- Initial Load Logic ---
+
+    // When the page first loads, check if there is a saved game to load automatically.
+    // This solves the problem of the game resetting to 0 every time.
+    document.addEventListener('DOMContentLoaded', () => {
+      loadGameState();
+    });
+
+  </script>
+</body>
+</html>
+
