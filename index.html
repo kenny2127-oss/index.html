@@ -35,6 +35,25 @@
             height: 100%;
             border: none;
         }
+        /* Style for the simple modal message box */
+        .message-box {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1000;
+            padding: 1rem 2rem;
+            border-radius: 0.5rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            animation: fadeInOut 3s forwards;
+        }
+
+        @keyframes fadeInOut {
+            0% { opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { opacity: 0; }
+        }
     </style>
 </head>
 <body class="bg-gray-900">
@@ -54,12 +73,20 @@
                     id="play-football-btn"
                     class="py-4 px-6 bg-gray-600 hover:bg-gray-700 text-white font-bold rounded-lg shadow-md transition duration-200"
                 >
-                    Football
+                    Quick Play
+                </button>
+                
+                <!-- This button will be shown only if a game is saved -->
+                <button
+                    id="load-game-btn"
+                    class="py-4 px-6 bg-yellow-600 hover:bg-yellow-700 text-white font-bold rounded-lg shadow-md transition duration-200 hidden"
+                >
+                    Load Last Game
                 </button>
 
                 <!-- This section holds the saved games dropdown -->
                 <div class="w-full flex flex-col gap-2">
-                    <label for="saved-games-select" class="text-lg text-gray-400">Play Saved Games</label>
+                    <label for="saved-games-select" class="text-lg text-gray-400">Play Custom Games</label>
                     <select
                         id="saved-games-select"
                         class="w-full py-3 px-4 bg-gray-700 rounded-lg border border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
@@ -77,7 +104,94 @@
                 </button>
             </div>
         </div>
+        
+        <!-- Quick Play Screen (Hidden by default) -->
+        <div id="quick-play-menu" class="w-full text-center hidden">
+             <h2 class="text-4xl md:text-5xl font-bold text-white text-center mb-6">
+                Choose Your Team
+            </h2>
+            
+            <!-- Back to Menu button for the Quick Play screen -->
+            <button
+                id="back-to-menu-from-quick-play-btn"
+                class="py-4 px-6 bg-gray-600 hover:bg-gray-700 text-white font-bold rounded-lg shadow-md transition duration-200"
+            >
+                Back to Main Menu
+            </button>
+            
+            <!-- Teams list (for TalkBack accessibility) -->
+            <ul id="teams-list" class="mt-8 grid grid-cols-2 gap-4">
+                <!-- Teams will be populated here -->
+            </ul>
+        </div>
+        
+        <!-- Game Settings Screen (Hidden by default) -->
+        <div id="game-settings-menu" class="w-full text-center hidden">
+            <h2 class="text-4xl md:text-5xl font-bold text-white text-center mb-6">
+                Game Settings
+            </h2>
+            
+            <div class="w-full flex flex-col gap-6 p-4 bg-gray-800 rounded-lg shadow-md">
+                <!-- Quarter Length Slider -->
+                <div class="flex flex-col">
+                    <label for="quarter-length" class="text-lg text-gray-400 text-left">Quarter Length: <span id="quarter-length-value">15</span> min</label>
+                    <input type="range" id="quarter-length" min="1" max="60" value="15" class="w-full h-2 rounded-lg appearance-none cursor-pointer bg-gray-700">
+                </div>
 
+                <!-- Game Time Slider -->
+                <div class="flex flex-col">
+                    <label for="game-time" class="text-lg text-gray-400 text-left">Game Time: <span id="game-time-value">12:00</span></label>
+                    <input type="range" id="game-time" min="0" max="720" value="720" class="w-full h-2 rounded-lg appearance-none cursor-pointer bg-gray-700">
+                </div>
+
+                <!-- Weather Options Dropdown -->
+                <div class="flex flex-col">
+                    <label for="weather-select" class="text-lg text-gray-400 text-left">Weather Options</label>
+                    <select id="weather-select" class="w-full py-3 px-4 bg-gray-700 rounded-lg border border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
+                        <option value="clear">Clear</option>
+                        <option value="cloudy">Cloudy</option>
+                        <option value="partly-cloudy">Partly Cloudy</option>
+                        <option value="overcast">Overcast</option>
+                        <option value="sunny">Sunny</option>
+                        <option value="rain">Rain</option>
+                        <option value="heavy-rain">Heavy Rain</option>
+                        <option value="snow">Snow</option>
+                        <option value="heavy-snow">Heavy Snow</option>
+                    </select>
+                </div>
+
+                <!-- Event Type Dropdown -->
+                <div class="flex flex-col">
+                    <label for="event-type-select" class="text-lg text-gray-400 text-left">Event Type</label>
+                    <select id="event-type-select" class="w-full py-3 px-4 bg-gray-700 rounded-lg border border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
+                        <option value="preseason">Preseason</option>
+                        <option value="regular">Regular Season</option>
+                        <option value="playoffs">Playoffs</option>
+                        <option value="superbowl">Super Bowl</option>
+                    </select>
+                </div>
+                
+                <!-- Placeholder for Game Style Options -->
+                <div class="flex flex-col">
+                    <label class="text-lg text-gray-400 text-left">Game Style Options</label>
+                    <p class="text-sm text-gray-500 text-left">We'll add options here later!</p>
+                </div>
+            </div>
+            
+            <button
+                id="start-quick-play-btn"
+                class="mt-6 py-4 px-6 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-lg shadow-md transition duration-200"
+            >
+                Start Game
+            </button>
+            <button
+                id="back-to-quick-play-btn"
+                class="mt-4 py-4 px-6 bg-gray-600 hover:bg-gray-700 text-white font-bold rounded-lg shadow-md transition duration-200"
+            >
+                Back to Team Select
+            </button>
+        </div>
+        
         <!-- Create Game Screen (Hidden by default) -->
         <div id="create-game-menu" class="w-full text-center hidden">
             <h2 class="text-4xl md:text-5xl font-bold text-white text-center mb-6">
@@ -118,12 +232,20 @@
             <div class="game-display bg-gray-800 rounded-xl shadow-lg mb-4">
                 <iframe id="game-iframe" title="Generated Game" sandbox="allow-scripts"></iframe>
             </div>
-            <button
-                id="back-to-menu-from-game-btn"
-                class="py-4 px-6 bg-gray-600 hover:bg-gray-700 text-white font-bold rounded-lg shadow-md transition duration-200"
-            >
-                Back to Menu
-            </button>
+            <div class="flex flex-row justify-between w-full">
+                <button
+                    id="back-to-menu-from-game-btn"
+                    class="py-4 px-6 bg-gray-600 hover:bg-gray-700 text-white font-bold rounded-lg shadow-md transition duration-200"
+                >
+                    Back to Menu
+                </button>
+                <button
+                    id="save-game-btn"
+                    class="py-4 px-6 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg shadow-md transition duration-200"
+                >
+                    Save Game
+                </button>
+            </div>
         </div>
 
     </div>
@@ -134,10 +256,15 @@
 
             // Get references to the HTML elements
             const mainMenu = document.getElementById('main-menu');
+            const quickPlayMenu = document.getElementById('quick-play-menu');
+            const gameSettingsMenu = document.getElementById('game-settings-menu');
             const createGameMenu = document.getElementById('create-game-menu');
             const gameScreen = document.getElementById('game-screen');
             const playFootballBtn = document.getElementById('play-football-btn');
+            const loadGameBtn = document.getElementById('load-game-btn');
             const newGameBtn = document.getElementById('new-game-btn');
+            const backToMenuFromQuickPlayBtn = document.getElementById('back-to-menu-from-quick-play-btn');
+            const teamsList = document.getElementById('teams-list');
             const savedGamesSelect = document.getElementById('saved-games-select');
             const gameDescriptionInput = document.getElementById('game-description-input');
             const gameTitleInput = document.getElementById('game-title-input');
@@ -145,9 +272,17 @@
             const backButton = document.getElementById('back-button');
             const backToMenuFromGameBtn = document.getElementById('back-to-menu-from-game-btn');
             const gameIframe = document.getElementById('game-iframe');
-
-            // A list to hold the saved custom games
+            const saveGameBtn = document.getElementById('save-game-btn');
+            
+            const quarterLengthInput = document.getElementById('quarter-length');
+            const quarterLengthValue = document.getElementById('quarter-length-value');
+            const gameTimeInput = document.getElementById('game-time');
+            const gameTimeValue = document.getElementById('game-time-value');
+            
+            // A list to hold the saved custom games and the last saved game
             let savedGames = [];
+            let lastSavedGame = null;
+            let currentGameCode = ''; // Store the currently playing game code for saving
 
             // Simple placeholder HTML for the default "Football" game
             const footballGameCode = `
@@ -179,10 +314,37 @@
                 <body>
                     <h1 class="game-title">🏈 Football Game 🏈</h1>
                     <p class="mt-4 text-lg">This is a placeholder for your game logic.</p>
-                    <p class="mt-2 text-sm">Return to the menu to create your own game!</p>
+                    <p class="mt-2 text-sm">Use the "Save Game" button to save your progress!</p>
                 </body>
                 </html>
             `;
+
+            // List of all 32 NFL teams
+            const nflTeams = [
+                'San Francisco 49ers', 'Arizona Cardinals', 'Atlanta Falcons', 'Baltimore Ravens', 'Buffalo Bills', 'Carolina Panthers',
+                'Chicago Bears', 'Cincinnati Bengals', 'Cleveland Browns', 'Dallas Cowboys', 'Denver Broncos', 'Detroit Lions',
+                'Green Bay Packers', 'Houston Texans', 'Indianapolis Colts', 'Jacksonville Jaguars', 'Kansas City Chiefs', 'Los Angeles Chargers',
+                'Los Angeles Rams', 'Las Vegas Raiders', 'Miami Dolphins', 'Minnesota Vikings', 'New England Patriots', 'New Orleans Saints',
+                'New York Giants', 'New York Jets', 'Philadelphia Eagles', 'Pittsburgh Steelers', 'Seattle Seahawks', 'Tampa Bay Buccaneers',
+                'Tennessee Titans', 'Washington Commanders'
+            ];
+            
+            // Helper function to show messages
+            const showMessage = (message, type = 'success') => {
+                const msgBox = document.createElement('div');
+                msgBox.textContent = message;
+                let bgColor = '';
+                if (type === 'success') {
+                    bgColor = 'bg-green-500';
+                } else if (type === 'error') {
+                    bgColor = 'bg-red-500';
+                } else {
+                    bgColor = 'bg-blue-500';
+                }
+                msgBox.className = `message-box ${bgColor} text-white`;
+                document.body.appendChild(msgBox);
+                setTimeout(() => msgBox.remove(), 3000);
+            };
 
             /**
              * Renders all game options in the dropdown.
@@ -198,20 +360,51 @@
                     savedGamesSelect.appendChild(option);
                 });
             };
+            
+            /**
+             * Renders the NFL teams list.
+             */
+            const renderTeamsList = () => {
+                teamsList.innerHTML = '';
+                nflTeams.forEach(team => {
+                    const li = document.createElement('li');
+                    const button = document.createElement('button');
+                    button.textContent = team;
+                    button.className = 'py-2 px-4 bg-gray-700 hover:bg-gray-600 text-white font-bold rounded-lg w-full text-center transition duration-200';
+                    button.setAttribute('data-team', team);
+                    button.addEventListener('click', () => {
+                        showGameSettingsMenu(team);
+                    });
+                    li.appendChild(button);
+                    teamsList.appendChild(li);
+                });
+            };
 
             /**
              * Loads saved games from the browser's local storage.
              */
             const loadGames = () => {
                 savedGames = JSON.parse(localStorage.getItem('savedGames') || '[]');
+                lastSavedGame = localStorage.getItem('lastSavedGame');
                 renderGameOptions();
+                
+                // Show/hide the "Load Last Game" button
+                if (lastSavedGame) {
+                    loadGameBtn.classList.remove('hidden');
+                } else {
+                    loadGameBtn.classList.add('hidden');
+                }
             };
 
             /**
-             * Saves the custom games to the browser's local storage.
+             * Saves the custom games and last saved game to the browser's local storage.
              */
             const saveGames = () => {
                 localStorage.setItem('savedGames', JSON.stringify(savedGames));
+                if (lastSavedGame) {
+                    localStorage.setItem('lastSavedGame', lastSavedGame);
+                    showMessage('Game saved!', 'success');
+                }
             };
             
             /**
@@ -283,12 +476,7 @@
                 const title = gameTitleInput.value.trim();
 
                 if (!title) {
-                    // Replaced alert with a simple message for better user experience
-                    const msgBox = document.createElement('div');
-                    msgBox.textContent = 'Please enter a title for your game.';
-                    msgBox.className = 'absolute top-0 left-1/2 -translate-x-1/2 mt-4 px-4 py-2 bg-red-500 text-white rounded-lg shadow-lg animate-fade-in';
-                    document.body.appendChild(msgBox);
-                    setTimeout(() => msgBox.remove(), 3000);
+                    showMessage('Please enter a title for your game.', 'error');
                     return;
                 }
 
@@ -312,13 +500,9 @@
                     saveGames();
 
                     // Start the new game immediately, as requested
-                    startGame(newGame.id);
+                    startGame(newGame.id, generatedCode);
                 } else {
-                    const msgBox = document.createElement('div');
-                    msgBox.textContent = 'Sorry, I could not create that game. Please try a different description.';
-                    msgBox.className = 'absolute top-0 left-1/2 -translate-x-1/2 mt-4 px-4 py-2 bg-red-500 text-white rounded-lg shadow-lg animate-fade-in';
-                    document.body.appendChild(msgBox);
-                    setTimeout(() => msgBox.remove(), 3000);
+                    showMessage('Sorry, I could not create that game. Please try a different description.', 'error');
                 }
 
                 // Reset loading state
@@ -330,36 +514,48 @@
             /**
              * Starts a game by displaying it in the iframe.
              * @param {string} gameId The ID of the game to start.
+             * @param {string} code The code to load into the iframe.
              */
-            const startGame = (gameId) => {
-                let gameCode;
-
-                if (gameId === 'football') {
-                    gameCode = footballGameCode;
-                } else {
-                    const game = savedGames.find(g => g.id === gameId);
-                    if (game) {
-                        gameCode = game.code;
-                    } else {
-                         // Replaced alert with a simple message for better user experience
-                        const msgBox = document.createElement('div');
-                        msgBox.textContent = 'Game not found!';
-                        msgBox.className = 'absolute top-0 left-1/2 -translate-x-1/2 mt-4 px-4 py-2 bg-red-500 text-white rounded-lg shadow-lg animate-fade-in';
-                        document.body.appendChild(msgBox);
-                        setTimeout(() => msgBox.remove(), 3000);
-                        return;
-                    }
-                }
+            const startGame = (gameId, code) => {
+                // Set the current game code for saving
+                currentGameCode = code;
 
                 // Hide menus and show the game screen
                 mainMenu.classList.add('hidden');
+                quickPlayMenu.classList.add('hidden');
+                gameSettingsMenu.classList.add('hidden');
                 createGameMenu.classList.add('hidden');
                 gameScreen.classList.remove('hidden');
 
                 // Load the game code into the iframe
-                gameIframe.srcdoc = gameCode;
+                gameIframe.srcdoc = code;
             };
             
+            /**
+             * Handles saving the currently playing game.
+             */
+            const saveCurrentGame = () => {
+                if (currentGameCode) {
+                    lastSavedGame = currentGameCode;
+                    saveGames();
+                } else {
+                    showMessage('No game to save!', 'error');
+                }
+            };
+            
+            /**
+             * Handles loading the last saved game.
+             */
+            const loadLastGame = () => {
+                if (lastSavedGame) {
+                    // We don't need a gameId for a generic last saved game
+                    startGame('last-saved', lastSavedGame);
+                    showMessage('Loaded last saved game!', 'success');
+                } else {
+                    showMessage('No saved game found!', 'error');
+                }
+            };
+
             /**
              * Handles the back button on the game screen.
              */
@@ -368,6 +564,24 @@
                 mainMenu.classList.remove('hidden');
                 // Stop the game and clear the iframe
                 gameIframe.srcdoc = '';
+                currentGameCode = '';
+            };
+
+            /**
+             * Displays the quick play menu and hides the main menu.
+             */
+            const showQuickPlayMenu = () => {
+                mainMenu.classList.add('hidden');
+                quickPlayMenu.classList.remove('hidden');
+            };
+            
+            /**
+             * Displays the game settings menu and hides the quick play menu.
+             */
+            const showGameSettingsMenu = (teamName) => {
+                quickPlayMenu.classList.add('hidden');
+                gameSettingsMenu.classList.remove('hidden');
+                // Optional: set a title for the settings screen based on the team
             };
 
             /**
@@ -379,30 +593,59 @@
             };
 
             /**
-             * Hides the create game menu and displays the main menu.
+             * Hides all menus and displays the main menu.
              */
             const showMainMenu = () => {
+                quickPlayMenu.classList.add('hidden');
                 createGameMenu.classList.add('hidden');
+                gameSettingsMenu.classList.add('hidden');
+                gameScreen.classList.add('hidden');
                 mainMenu.classList.remove('hidden');
                 // Ensure the game options are up to date when returning
-                renderGameOptions();
+                loadGames();
             };
 
             // Event listeners
-            playFootballBtn.addEventListener('click', () => startGame('football'));
+            playFootballBtn.addEventListener('click', showQuickPlayMenu);
+            loadGameBtn.addEventListener('click', loadLastGame);
             newGameBtn.addEventListener('click', showCreateGameMenu);
+            
+            backToMenuFromQuickPlayBtn.addEventListener('click', showMainMenu);
+            
+            // Sliders for game settings
+            quarterLengthInput.addEventListener('input', (event) => {
+                quarterLengthValue.textContent = event.target.value;
+            });
+            gameTimeInput.addEventListener('input', (event) => {
+                const minutes = Math.floor(event.target.value / 60);
+                const seconds = event.target.value % 60;
+                gameTimeValue.textContent = `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+            });
+            
+            document.getElementById('start-quick-play-btn').addEventListener('click', () => {
+                // This is where you would build the game based on the selected settings
+                // For now, we'll just start the placeholder football game
+                startGame('quick-play-default', footballGameCode);
+            });
+            
+            document.getElementById('back-to-quick-play-btn').addEventListener('click', showQuickPlayMenu);
+            
             savedGamesSelect.addEventListener('change', (event) => {
                 const selectedGameId = event.target.value;
                 if (selectedGameId) {
-                    startGame(selectedGameId);
+                    const game = savedGames.find(g => g.id === selectedGameId);
+                    startGame(selectedGameId, game.code);
                 }
             });
+            
             createButton.addEventListener('click', createNewGame);
             backButton.addEventListener('click', showMainMenu);
             backToMenuFromGameBtn.addEventListener('click', backToMenuFromGame);
+            saveGameBtn.addEventListener('click', saveCurrentGame);
 
             // Initial setup
             loadGames();
+            renderTeamsList();
         });
     </script>
 
