@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Accessible Hunter</title>
+    <!-- Using a custom font for better readability -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
+    <!-- Tone.js for sound effects -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+    <style>
+        :root {
+            --primary-color: #4CAF50;
+            --secondary-color: #8BC34A;
+            --background-color: #2c3e50;
+            --text-color: #ecf0f1;
+            --panel-color: #34495e;
+            --border-radius: 12px;
+            --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+            line-height: 1.6;
+        }
+
+        .game-container {
+            width: 100%;
+            max-width: 600px;
+            background-color: var(--panel-color);
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            border: 2px solid var(--secondary-color);
+        }
+
+        h1 {
+            text-align: center;
+            margin: 0;
+            font-size: 2.2rem;
+            color: var(--primary-color);
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+        }
+
+        .status-area {
+            background-color: #2c3e50;
+            border: 1px solid #7f8c8d;
+            border-radius: var(--border-radius);
+            padding: 16px;
+            min-height: 80px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .info-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            border-top: 2px solid #34495e;
+            padding-top: 16px;
+        }
+
+        .info-panel p {
+            margin: 0;
+            padding: 0;
+            font-size: 1rem;
+        }
+
+        .info-panel .money, .info-panel .inventory {
+            font-weight: bold;
+            color: var(--secondary-color);
+        }
+
+        .actions, .map {
+            display: grid;
+            gap: 12px;
+            width: 100%;
+        }
+
+        .actions {
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        }
+
+        .map {
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+        }
+
+        button, select {
+            padding: 14px;
+            border-radius: var(--border-radius);
+            border: none;
+            font-weight: bold;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: transform 0.1s ease-in-out, box-shadow 0.1s ease-in-out;
+            box-shadow: var(--shadow);
+            text-align: center;
+        }
+
+        button:hover, button:focus {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 10px rgba(0, 0, 0, 0.15);
+        }
+
+        .hunt-button {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 20px;
+            font-size: 1.2rem;
+        }
+
+        .map-button {
+            background-color: #2980b9;
+            color: white;
+        }
+
+        .market-button {
+            background-color: #c0392b;
+            color: white;
+        }
+
+        .farmer-market-button {
+            background-color: #f39c12;
+            color: white;
+        }
+
+        .house-button {
+            background-color: #7f8c8d;
+            color: white;
+        }
+
+        .sell-button {
+            background-color: #27ae60;
+            color: white;
+        }
+
+        .buy-button {
+            background-color: #e74c3c;
+            color: white;
+        }
+
+        select {
+            background-color: #34495e;
+            color: var(--text-color);
+            appearance: none;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            background-image: url('data:image/svg+xml;utf8,<svg fill="%23ecf0f1" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/><path d="M0 0h24v24H0z" fill="none"/></svg>');
+            background-repeat: no-repeat;
+            background-position: right 10px center;
+            padding-right: 30px;
+        }
+
+        .message-box {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: var(--panel-color);
+            border-radius: var(--border-radius);
+            padding: 24px;
+            max-width: 90%;
+            width: 400px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+            z-index: 1000;
+            display: none;
+            text-align: center;
+            border: 2px solid var(--primary-color);
+        }
+
+        .message-box-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            z-index: 999;
+            display: none;
+        }
+
+        .message-box button {
+            margin-top: 15px;
+            width: 100%;
+        }
+
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <h1>Accessible Hunter</h1>
+
+        <!-- Status and TalkBack Live Region -->
+        <div id="status-area" class="status-area" role="status" aria-live="polite" aria-atomic="true">
+            <p id="location-status">You are at your house. What would you like to do?</p>
+            <p id="action-status"></p>
+        </div>
+
+        <!-- Player Information -->
+        <div class="info-panel" role="region" aria-labelledby="info-heading">
+            <h2 id="info-heading" class="visually-hidden">Player Information</h2>
+            <p>Money: <span id="money-display" class="money">$0</span></p>
+            <p>Inventory: <span id="inventory-display" class="inventory"></span></p>
+            <p>Current Weapon: <span id="weapon-display" class="weapon">Basic Pickaxe</span></p>
+        </div>
+
+        <!-- Weapon Selection -->
+        <div role="group" aria-labelledby="weapon-select-heading">
+            <label for="weapon-select">Choose your weapon:</label>
+            <select id="weapon-select" aria-label="Select a weapon">
+                <option value="pickaxe">Basic Pickaxe</option>
+            </select>
+        </div>
+
+        <!-- Game Actions -->
+        <div class="actions" role="group" aria-labelledby="actions-heading">
+            <h2 id="actions-heading" class="visually-hidden">Game Actions</h2>
+            <button id="hunt-button" class="hunt-button" aria-label="Hunt">Hunt</button>
+        </div>
+
+        <!-- Map Locations -->
+        <div class="map" role="group" aria-labelledby="map-heading">
+            <h2 id="map-heading" class="visually-hidden">Map Locations</h2>
+            <button id="house-button" class="map-button house-button" aria-label="Go to the house">House</button>
+            <button id="market-button" class="map-button market-button" aria-label="Go to the local market">Local Market</button>
+            <button id="farmer-market-button" class="map-button farmer-market-button" aria-label="Go to the farmer's market">Farmer's Market</button>
+        </div>
+    </div>
+
+    <!-- Custom Message Box -->
+    <div id="message-box-overlay" class="message-box-overlay" role="dialog" aria-modal="true" aria-labelledby="message-box-title">
+        <div id="message-box" class="message-box">
+            <h3 id="message-box-title"></h3>
+            <p id="message-box-text"></p>
+            <button id="message-box-close-button" class="map-button" aria-label="Close message box">Close</button>
+        </div>
+    </div>
+
+    <script>
+        // Use a descriptive name for the game object to encapsulate all game state and logic.
+        const accessibleHunterGame = {
+            // Game State
+            state: {
+                money: 0,
+                inventory: [],
+                weapons: {
+                    pickaxe: { name: "Basic Pickaxe", price: 0, sellValue: 10, buyable: false },
+                    sword: { name: "Steel Sword", price: 20, sellValue: 50, buyable: true },
+                    bow: { name: "Hunting Bow", price: 50, sellValue: 100, buyable: true }
+                },
+                currentWeapon: "pickaxe",
+                location: "house",
+                // Hunting locations and their potential loot
+                huntingLocations: {
+                    "field": { animals: ["Rabbit", "Deer", "Fox"], sellValue: [5, 15, 10] },
+                    "forest": { animals: ["Bear", "Boar", "Wolf"], sellValue: [30, 25, 20] },
+                    "mountain": { animals: ["Mountain Goat", "Grizzly Bear", "Cougar"], sellValue: [40, 60, 50] }
+                }
+            },
+
+            // Game Elements and Tone.js Synths
+            elements: {
+                locationStatus: document.getElementById('location-status'),
+                actionStatus: document.getElementById('action-status'),
+                moneyDisplay: document.getElementById('money-display'),
+                inventoryDisplay: document.getElementById('inventory-display'),
+                weaponDisplay: document.getElementById('weapon-display'),
+                weaponSelect: document.getElementById('weapon-select'),
+                messageBox: document.getElementById('message-box'),
+                messageBoxOverlay: document.getElementById('message-box-overlay'),
+                messageBoxTitle: document.getElementById('message-box-title'),
+                messageBoxText: document.getElementById('message-box-text'),
+                messageBoxCloseButton: document.getElementById('message-box-close-button')
+            },
+
+            sounds: {},
+
+            // --- Core Game Functions ---
+            
+            // Initialize the game
+            init: function() {
+                // Set up Tone.js sounds
+                this.setupSounds();
+                // Set up event listeners for buttons and select menu
+                this.setupEventListeners();
+                // Update the UI initially
+                this.updateUI();
+                // Show the initial game message
+                this.showMessageBox("Welcome!", "Welcome to Accessible Hunter. Use the buttons below to travel and hunt. The game relies on TalkBack for announcements, so please ensure it is enabled.");
+            },
+            
+            // Sets up all the sound effects using Tone.js
+            setupSounds: function() {
+                this.sounds.huntSound = new Tone.MembraneSynth().toDestination();
+                this.sounds.hitSound = new Tone.MetalSynth({
+                    frequency: 200,
+                    envelope: {
+                        attack: 0.001,
+                        decay: 0.2,
+                        release: 0.2
+                    },
+                    harmonicity: 3.1,
+                    modulationIndex: 1,
+                    resonance: 2000,
+                    octaves: 0.5
+                }).toDestination();
+                this.sounds.walkSound = new Tone.NoiseSynth({
+                    noise: { type: "white" },
+                    envelope: {
+                        attack: 0.005,
+                        decay: 0.1,
+                        sustain: 0,
+                        release: 0.1
+                    }
+                }).toDestination();
+                this.sounds.sunEffectSound = new Tone.DuoSynth({
+                    voice0: {
+                        oscillator: { type: "sine" },
+                        envelope: { attack: 0.01, release: 0.5 },
+                        volume: -10
+                    },
+                    voice1: {
+                        oscillator: { type: "sine" },
+                        envelope: { attack: 0.01, release: 0.5 },
+                        volume: -10
+                    },
+                    vibratoAmount: 0.5,
+                    vibratoRate: 5,
+                    harmonicity: 1.5,
+                    volume: -20
+                }).toDestination();
+                this.sounds.errorSound = new Tone.Synth({
+                    oscillator: { type: "sawtooth" },
+                    envelope: {
+                        attack: 0.01,
+                        decay: 0.2,
+                        sustain: 0,
+                        release: 0.2
+                    },
+                    volume: -10
+                }).toDestination();
+                this.sounds.purchaseSound = new Tone.Synth({
+                    oscillator: { type: "triangle" },
+                    envelope: {
+                        attack: 0.005,
+                        decay: 0.1,
+                        sustain: 0,
+                        release: 0.1
+                    },
+                    volume: -10
+                }).toDestination();
+                this.sounds.sellSound = new Tone.Synth({
+                    oscillator: { type: "square" },
+                    envelope: {
+                        attack: 0.005,
+                        decay: 0.1,
+                        sustain: 0,
+                        release: 0.1
+                    },
+                    volume: -10
+                }).toDestination();
+            },
+
+            // Binds event listeners to the UI buttons and select menu
+            setupEventListeners: function() {
+                document.getElementById('hunt-button').addEventListener('click', () => this.handleAction('hunt'));
+                document.getElementById('house-button').addEventListener('click', () => this.travel('house'));
+                document.getElementById('market-button').addEventListener('click', () => this.travel('market'));
+                document.getElementById('farmer-market-button').addEventListener('click', () => this.travel('farmer-market'));
+                this.elements.weaponSelect.addEventListener('change', (event) => this.changeWeapon(event.target.value));
+                this.elements.messageBoxCloseButton.addEventListener('click', () => this.hideMessageBox());
+            },
+
+            // Main function to handle game actions based on current location
+            handleAction: function(action) {
+                switch(this.state.location) {
+                    case "house":
+                        this.showMessageBox("Resting", "You are at your house. There's nothing to do here but rest.");
+                        this.announce("You are resting at your house.");
+                        break;
+                    case "market":
+                        this.sellInventory();
+                        break;
+                    case "farmer-market":
+                        this.buyUpgrades();
+                        break;
+                    case "hunting-field":
+                    case "hunting-forest":
+                    case "hunting-mountain":
+                        this.hunt();
+                        break;
+                }
+            },
+
+            // Handles the hunting action
+            hunt: function() {
+                this.sounds.huntSound.triggerAttackRelease("C2", "8n");
+                this.announce("Hunting...");
+                this.updateActionStatus("Searching for animals...");
+
+                // Simulate finding an animal after a short delay
+                setTimeout(() => {
+                    const randomNumber = Math.random();
+                    const currentHuntingLocation = this.state.huntingLocations[this.state.location.substring(9)];
+                    
+                    if (randomNumber < 0.7) { // 70% chance to find an animal
+                        const animalIndex = Math.floor(Math.random() * currentHuntingLocation.animals.length);
+                        const animalFound = currentHuntingLocation.animals[animalIndex];
+                        const sellValue = currentHuntingLocation.sellValue[animalIndex];
+                        
+                        this.sounds.sunEffectSound.triggerAttackRelease("A4", "4n");
+                        setTimeout(() => {
+                            this.sounds.hitSound.triggerAttackRelease("C3", "8n");
+                            this.state.inventory.push({ name: animalFound, value: sellValue });
+                            this.updateUI();
+                            this.announce(`You found a ${animalFound}! It has been added to your inventory.`);
+                            this.updateActionStatus(`Found a ${animalFound}!`);
+                        }, 500);
+                        
+                    } else { // 30% chance to find nothing, auto-move
+                        this.sounds.errorSound.triggerAttackRelease("C1", "8n");
+                        this.announce("No animals found here. Automatically moving to a new location.");
+                        this.updateActionStatus("Nothing found. Moving on.");
+                        this.autoMove();
+                    }
+                }, 1500);
+            },
+
+            // Automatically moves to a new hunting spot
+            autoMove: function() {
+                setTimeout(() => {
+                    const locations = Object.keys(this.state.huntingLocations);
+                    const randomLocation = locations[Math.floor(Math.random() * locations.length)];
+                    this.travel(`hunting-${randomLocation}`);
+                }, 2000);
+            },
+
+            // Handles selling inventory at the local market
+            sellInventory: function() {
+                if (this.state.inventory.length === 0) {
+                    this.announce("You have nothing to sell.");
+                    this.updateActionStatus("Your inventory is empty.");
+                    this.sounds.errorSound.triggerAttackRelease("C2", "8n");
+                    return;
+                }
+                
+                let totalValue = 0;
+                this.state.inventory.forEach(item => {
+                    totalValue += item.value;
+                });
+                
+                this.state.money += totalValue;
+                this.state.inventory = [];
+                this.sounds.sellSound.triggerAttackRelease("C4", "8n");
+                
+                this.updateUI();
+                this.announce(`You sold all your items for $${totalValue}. Your current money is $${this.state.money}.`);
+                this.updateActionStatus(`Sold all items for $${totalValue}.`);
+            },
+            
+            // Handles buying upgrades at the farmer's market
+            buyUpgrades: function() {
+                // Check if any weapons are available to buy
+                const weaponsToBuy = Object.keys(this.state.weapons).filter(key => this.state.weapons[key].buyable);
+
+                if (weaponsToBuy.length === 0) {
+                    this.announce("There are no upgrades available to buy at this time.");
+                    this.updateActionStatus("No upgrades here.");
+                    this.sounds.errorSound.triggerAttackRelease("C2", "8n");
+                    return;
+                }
+
+                const optionsHtml = weaponsToBuy.map(key => {
+                    const weapon = this.state.weapons[key];
+                    return `<option value="${key}">${weapon.name} ($${weapon.price})</option>`;
+                }).join('');
+                
+                this.showMessageBox("Buy Upgrades", `Choose a weapon to buy from the list below.`, `<select id="buy-select">${optionsHtml}</select><button id="buy-button" class="buy-button">Buy</button>`);
+                
+                const buyButton = document.getElementById('buy-button');
+                const buySelect = document.getElementById('buy-select');
+
+                if (buyButton && buySelect) {
+                    buyButton.addEventListener('click', () => {
+                        const selectedWeaponKey = buySelect.value;
+                        const selectedWeapon = this.state.weapons[selectedWeaponKey];
+                        
+                        if (this.state.money >= selectedWeapon.price) {
+                            this.state.money -= selectedWeapon.price;
+                            this.state.weapons[selectedWeaponKey].buyable = false; // Make it not buyable again
+                            
+                            // Add the new weapon to the main weapon select dropdown
+                            const newOption = document.createElement('option');
+                            newOption.value = selectedWeaponKey;
+                            newOption.text = selectedWeapon.name;
+                            this.elements.weaponSelect.add(newOption);
+                            
+                            this.sounds.purchaseSound.triggerAttackRelease("C5", "8n");
+                            this.hideMessageBox();
+                            this.updateUI();
+                            this.announce(`You successfully bought a ${selectedWeapon.name}! Your current money is $${this.state.money}.`);
+                            this.updateActionStatus(`Bought a ${selectedWeapon.name}.`);
+                        } else {
+                            this.sounds.errorSound.triggerAttackRelease("C2", "8n");
+                            this.announce("You don't have enough money for that.");
+                            this.updateActionStatus("Insufficient funds.");
+                        }
+                    });
+                }
+            },
+
+            // Navigates to a new location
+            travel: function(location) {
+                if (this.state.location === location) {
+                    this.announce(`You are already at the ${location.replace('-', ' ')}.`);
+                    return;
+                }
+                
+                this.sounds.walkSound.triggerAttackRelease("8n");
+                this.state.location = location;
+                this.updateUI();
+                this.updateActionStatus(`Arrived at the ${location.replace('-', ' ')}.`);
+                
+                // Change the hunt button functionality based on location
+                const huntButton = document.getElementById('hunt-button');
+                if (location.startsWith("hunting")) {
+                    huntButton.textContent = "Hunt";
+                    huntButton.disabled = false;
+                } else if (location === "market") {
+                    huntButton.textContent = "Sell Items";
+                    huntButton.disabled = false;
+                } else if (location === "farmer-market") {
+                    huntButton.textContent = "Buy Upgrades";
+                    huntButton.disabled = false;
+                } else {
+                    huntButton.textContent = "Rest";
+                    huntButton.disabled = false;
+                }
+            },
+            
+            // Changes the currently equipped weapon
+            changeWeapon: function(weaponKey) {
+                const newWeapon = this.state.weapons[weaponKey];
+                this.state.currentWeapon = weaponKey;
+                this.updateUI();
+                this.announce(`You have equipped the ${newWeapon.name}.`);
+                this.updateActionStatus(`Equipped ${newWeapon.name}.`);
+            },
+            
+            // Updates the UI with the latest game state
+            updateUI: function() {
+                this.elements.locationStatus.textContent = `Current Location: ${this.state.location.replace('-', ' ')}`;
+                this.elements.moneyDisplay.textContent = `$${this.state.money}`;
+                this.elements.inventoryDisplay.textContent = this.state.inventory.length > 0 ? this.state.inventory.map(item => `${item.name} ($${item.value})`).join(', ') : "Empty";
+                this.elements.weaponDisplay.textContent = this.state.weapons[this.state.currentWeapon].name;
+            },
+
+            // --- Accessibility and Utility Functions ---
+            
+            // Announces a message via the ARIA live region for TalkBack
+            announce: function(message) {
+                this.elements.actionStatus.textContent = message;
+            },
+            
+            // Simple helper to update the action status in the UI
+            updateActionStatus: function(message) {
+                this.elements.actionStatus.textContent = message;
+            },
+
+            // Shows a modal message box
+            showMessageBox: function(title, text, customHtml = "") {
+                this.elements.messageBoxTitle.textContent = title;
+                this.elements.messageBoxText.textContent = text;
+                
+                // Add custom HTML if provided
+                const customContentDiv = document.createElement('div');
+                customContentDiv.innerHTML = customHtml;
+                this.elements.messageBox.insertBefore(customContentDiv, this.elements.messageBoxCloseButton);
+
+                this.elements.messageBoxOverlay.style.display = 'block';
+                this.elements.messageBox.style.display = 'block';
+                this.elements.messageBoxCloseButton.focus(); // Focus the close button for accessibility
+            },
+
+            // Hides the modal message box
+            hideMessageBox: function() {
+                this.elements.messageBoxOverlay.style.display = 'none';
+                this.elements.messageBox.style.display = 'none';
+                this.elements.messageBoxTitle.textContent = '';
+                this.elements.messageBoxText.textContent = '';
+                
+                // Remove any custom content
+                const customContentDiv = this.elements.messageBox.querySelector('div');
+                if (customContentDiv) {
+                    customContentDiv.remove();
+                }
+            }
+        };
+
+        // Initialize the game when the window is loaded
+        window.onload = function() {
+            accessibleHunterGame.init();
+        };
+
+    </script>
+</body>
+</html>
