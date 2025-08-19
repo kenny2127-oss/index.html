@@ -291,6 +291,8 @@
             const backToMenuFromGameBtn = document.getElementById('back-to-menu-from-game-btn');
             const gameIframe = document.getElementById('game-iframe');
             const saveGameBtn = document.getElementById('save-game-btn');
+            const backToQuickPlayBtn = document.getElementById('back-to-quick-play-btn'); // Get the back button for game settings
+
             
             const quarterLengthInput = document.getElementById('quarter-length');
             const quarterLengthValue = document.getElementById('quarter-length-value');
@@ -538,7 +540,8 @@
                 startGame(footballGameCode);
             });
             
-            document.getElementById('back-to-quick-play-btn').addEventListener('click', showQuickPlayMenu);
+            // **FIXED:** This event listener now correctly calls the function to show the team select menu.
+            backToQuickPlayBtn.addEventListener('click', showQuickPlayMenu);
             backToMenuFromGameBtn.addEventListener('click', backToMenuFromGame);
             saveGameBtn.addEventListener('click', saveCurrentGame);
 
