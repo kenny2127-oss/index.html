@@ -172,6 +172,14 @@
                     Load Last Game
                 </button>
             </div>
+            
+            <!-- TalkBack enable/disable option -->
+            <div class="flex items-center justify-center mt-6">
+                <input type="checkbox" id="talkback-toggle" class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded">
+                <label for="talkback-toggle" class="ml-2 block text-sm text-gray-400">
+                    Enable TalkBack
+                </label>
+            </div>
         </div>
         
         <!-- Quick Play Screen (Hidden by default) -->
@@ -193,6 +201,35 @@
                 <!-- Teams will be populated here -->
             </ul>
         </div>
+        
+        <!-- Quick Play Saved Game Options (Hidden by default) -->
+        <div id="quick-play-saved-game-options" class="w-full text-center hidden">
+            <h2 class="text-4xl md:text-5xl font-bold text-white text-center mb-6">
+                Game Found
+            </h2>
+            <p class="text-gray-400 mb-6">A saved game was found. What would you like to do?</p>
+            <div class="w-full flex flex-col gap-4">
+                <button
+                    id="resume-game-btn"
+                    class="py-4 px-6 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg shadow-md transition duration-200"
+                >
+                    Resume Game
+                </button>
+                <button
+                    id="delete-game-btn"
+                    class="py-4 px-6 bg-red-600 hover:bg-red-700 text-white font-bold rounded-lg shadow-md transition duration-200"
+                >
+                    Delete Game
+                </button>
+            </div>
+            <button
+                id="back-to-menu-from-saved-options"
+                class="mt-6 py-4 px-6 bg-gray-600 hover:bg-gray-700 text-white font-bold rounded-lg shadow-md transition duration-200"
+            >
+                Back to Main Menu
+            </button>
+        </div>
+
 
         <!-- Franchise Menu (Hidden by default) -->
         <div id="franchise-menu" class="w-full text-center hidden">
@@ -477,6 +514,7 @@
             // Get references to the HTML elements
             const mainMenu = document.getElementById('main-menu');
             const quickPlayMenu = document.getElementById('quick-play-menu');
+            const quickPlaySavedGameOptions = document.getElementById('quick-play-saved-game-options');
             const franchiseMenu = document.getElementById('franchise-menu');
             const newLeagueMenu = document.getElementById('new-league-menu');
             const franchiseTeamSelectMenu = document.getElementById('franchise-team-select-menu');
@@ -510,10 +548,13 @@
             const fieldGoalBtn = document.getElementById('field-goal-btn');
             const extraPointBtn = document.getElementById('extra-point-btn');
             const twoPointConversionBtn = document.getElementById('two-point-conversion-btn');
-
+            
+            // Menu buttons
             const playFootballBtn = document.getElementById('play-football-btn');
             const franchiseBtn = document.getElementById('franchise-btn');
             const loadGameBtn = document.getElementById('load-game-btn');
+            const resumeGameBtn = document.getElementById('resume-game-btn');
+            const deleteGameBtn = document.getElementById('delete-game-btn');
             
             // New League Roster buttons
             const rosterLiveRealLifeBtn = document.getElementById('roster-live-real-life');
@@ -525,6 +566,7 @@
             
             // Back buttons
             const backToMenuFromQuickPlayBtn = document.getElementById('back-to-menu-from-quick-play-btn');
+            const backToMenuFromSavedOptions = document.getElementById('back-to-menu-from-saved-options');
             const backToMenuFromFranchiseBtn = document.getElementById('back-to-menu-from-franchise-btn');
             const backToFranchiseBtn = document.getElementById('back-to-franchise-btn');
             const backToNewLeagueBtn = document.getElementById('back-to-new-league-btn');
@@ -536,6 +578,7 @@
             const startQuickPlayBtn = document.getElementById('start-quick-play-btn');
             const startSecondHalfBtn = document.getElementById('start-second-half-btn');
             const backToMenuFromGameEndBtn = document.getElementById('back-to-menu-from-game-end-btn');
+            const talkbackToggle = document.getElementById('talkback-toggle');
 
             const teamsList = document.getElementById('teams-list');
             const franchiseTeamsList = document.getElementById('franchise-teams-list');
@@ -550,6 +593,8 @@
             // Game state object
             let gameState = {};
             const playerNames = ['Christian McCaffrey', 'Patrick Mahomes', 'Tyreek Hill', 'Jalen Hurts', 'Cooper Kupp'];
+            let gameClockInterval = null;
+            let talkbackEnabled = false;
 
             // A list to hold the last saved game
             let lastSavedGame = null;
@@ -566,7 +611,7 @@
             
             // A list of all the main screen elements for centralized control
             const allScreens = [
-                mainMenu, quickPlayMenu, franchiseMenu, newLeagueMenu,
+                mainMenu, quickPlayMenu, quickPlaySavedGameOptions, franchiseMenu, newLeagueMenu,
                 franchiseTeamSelectMenu, customizeFranchiseMenu, gameSettingsMenu,
                 gameScreen, halftimeScreen, postGameScreen
             ];
@@ -606,13 +651,17 @@
              * @param {string} text The text to speak and display.
              */
             const announcePlay = (text) => {
-                console.log("TalkBack:", text);
-                const utterance = new SpeechSynthesisUtterance(text);
-                speechSynthesis.speak(utterance);
-                
                 const logEl = document.getElementById('play-by-play-log');
                 const p = document.createElement('p');
                 p.textContent = text;
+                
+                // Only use TTS if the toggle is enabled
+                if (talkbackEnabled) {
+                    console.log("TalkBack:", text);
+                    const utterance = new SpeechSynthesisUtterance(text);
+                    speechSynthesis.speak(utterance);
+                }
+
                 talkbackOutputEl.textContent = text;
                 // Add the new message to the top of the log
                 const playLogContainer = document.querySelector('.play-by-play-log');
@@ -672,6 +721,17 @@
             };
             
             /**
+             * Deletes the saved game from local storage.
+             */
+            const deleteSavedGame = () => {
+                localStorage.removeItem('lastSavedGame');
+                lastSavedGame = null;
+                showMessage('Saved game deleted!', 'success');
+                loadLastGameData();
+                showScreen(quickPlayMenu);
+            };
+            
+            /**
              * A new function to centrally control the visibility of all playbook buttons.
              * This ensures the UI always matches the game state.
              */
@@ -686,12 +746,76 @@
                     twoPointConversionBtn.classList.remove('hidden');
                 } else if (gameState.down === 4) {
                     puntPlayBtn.classList.remove('hidden');
-                    fieldGoalBtn.classList.remove('hidden');
+                    // Only allow field goal if they are within reasonable range (e.g., inside 40 yard line)
+                    if (gameState.offense === gameState.homeTeam && gameState.ballOn >= 60 || gameState.offense === gameState.awayTeam && gameState.ballOn <= 40) {
+                         fieldGoalBtn.classList.remove('hidden');
+                    }
                 } else {
                     runPlayBtn.classList.remove('hidden');
                     shortPassBtn.classList.remove('hidden');
                     longPassBtn.classList.remove('hidden');
                 }
+            };
+
+            /**
+             * Formats seconds into MM:SS format.
+             * @param {number} totalSeconds The total number of seconds.
+             * @returns {string} Formatted string.
+             */
+            const formatTime = (totalSeconds) => {
+                const minutes = Math.floor(totalSeconds / 60);
+                const seconds = totalSeconds % 60;
+                const formattedSeconds = seconds < 10 ? `0${seconds}` : seconds;
+                return `${minutes}:${formattedSeconds}`;
+            };
+
+            /**
+             * Starts the game clock countdown.
+             */
+            const startClock = () => {
+                // Clear any existing interval to prevent multiple timers
+                if (gameClockInterval) clearInterval(gameClockInterval);
+                
+                gameClockInterval = setInterval(() => {
+                    if (gameState.gameClock > 0) {
+                        gameState.gameClock--;
+                        gameClockEl.textContent = formatTime(gameState.gameClock);
+                    } else {
+                        // Clock hit zero, advance quarter
+                        endQuarter();
+                    }
+                }, 1000); // Update every second
+            };
+
+            /**
+             * Pauses the game clock.
+             */
+            const pauseClock = () => {
+                if (gameClockInterval) {
+                    clearInterval(gameClockInterval);
+                    gameClockInterval = null;
+                }
+            };
+            
+            /**
+             * Ends the current quarter and advances to the next one.
+             */
+            const endQuarter = () => {
+                 pauseClock(); // Stop the clock
+                 gameState.quarter++;
+                 
+                 if (gameState.quarter > 4) {
+                     endGame();
+                 } else if (gameState.quarter === 3) {
+                     gameState.isHalftime = true;
+                     announcePlay("Halftime! The teams are heading to the locker room.");
+                     showScreen(halftimeScreen);
+                 } else {
+                     announcePlay(`End of Quarter ${gameState.quarter - 1}. Starting Quarter ${gameState.quarter}.`);
+                     gameState.gameClock = gameState.quarterLength * 60; // Reset clock for new quarter
+                     updateGameUI();
+                     startClock();
+                 }
             };
 
             /**
@@ -703,39 +827,32 @@
                 awayScoreEl.textContent = gameState.awayScore;
                 homeScoreEl.textContent = gameState.homeScore;
                 quarterEl.textContent = `Q${gameState.quarter}`;
+                gameClockEl.textContent = formatTime(gameState.gameClock);
                 downDistanceEl.textContent = `${gameState.down} & ${gameState.distance}`;
                 ballOnEl.textContent = `BALL ON: ${gameState.ballOn}`;
                 
                 // Position the ball and markers visually
-                // Convert yard line to a percentage of the field length (100 yards)
                 const fieldWidth = gameDisplay.offsetWidth;
-                const fieldLength = 100;
-                
-                // The field is 100 yards, so each yard is 1%
-                // We'll use a 0-100 scale for the field, where 50 is the middle
                 let ballPosition;
-                if (gameState.ballOn === 50) {
-                    ballPosition = fieldWidth / 2;
-                } else if (gameState.ballOn < 50) { // On the away side of the field
-                    ballPosition = fieldWidth * (0.5 + (50 - gameState.ballOn) / 100);
-                } else { // On the home side of the field
-                    ballPosition = fieldWidth * (0.5 - (gameState.ballOn - 50) / 100);
+                if (gameState.offense === gameState.homeTeam) {
+                    // Ball is on the home side, counting up from 0 to 50
+                    ballPosition = (fieldWidth / 2) + (fieldWidth / 2) * (gameState.ballOn / 50);
+                } else {
+                    // Ball is on the away side, counting down from 100 to 50
+                    ballPosition = (fieldWidth / 2) - (fieldWidth / 2) * ((100 - gameState.ballOn) / 50);
                 }
-
                 ballMarkerEl.style.left = `${ballPosition}px`;
                 lineOfScrimmageMarkerEl.style.left = `${ballPosition}px`;
-                
-                // Position the first down marker
-                const firstDownYardLine = gameState.ballOn - gameState.distance;
+
                 let firstDownPosition;
-                if (firstDownYardLine < 50) {
-                     firstDownPosition = fieldWidth * (0.5 + (50 - firstDownYardLine) / 100);
-                } else if (firstDownYardLine > 50) {
-                    firstDownPosition = fieldWidth * (0.5 - (firstDownYardLine - 50) / 100);
+                const firstDownYardLine = gameState.ballOn + gameState.distance;
+                 if (gameState.offense === gameState.homeTeam) {
+                    firstDownPosition = (fieldWidth / 2) + (fieldWidth / 2) * (firstDownYardLine / 50);
                 } else {
-                    firstDownPosition = fieldWidth / 2;
+                    firstDownPosition = (fieldWidth / 2) - (fieldWidth / 2) * ((100 - firstDownYardLine) / 50);
                 }
                 firstDownMarkerEl.style.left = `${firstDownPosition}px`;
+
 
                 // Update play button visibility using the new central function
                 renderPlaybook();
@@ -751,39 +868,37 @@
                     return;
                 }
 
-                gameState.yardsToGain -= yardsGained;
-                gameState.ballOn += yardsGained;
-                gameState.distance = gameState.yardsToGain;
+                // Check for Touchdown before updating yards
+                if (gameState.ballOn + yardsGained >= 100) {
+                     scoreTouchdown();
+                     return;
+                }
 
+                gameState.ballOn += yardsGained;
+                gameState.yardsToGain -= yardsGained;
+                
                 // Check for first down
-                if (gameState.distance <= 0) {
+                if (gameState.yardsToGain <= 0) {
                     announcePlay(`First down!`);
                     gameState.down = 1;
-                    gameState.distance = 10;
+                    gameState.yardsToGain = 10;
                 } else {
                     gameState.down++;
                 }
                 
                 // Check for turnover on downs
                 if (gameState.down > 4) {
-                    announcePlay(`Turnover on downs! The other team takes over.`);
+                    announcePlay(`Turnover on downs! The ${gameState.defense} take over.`);
                     // Switch teams
                     const tempTeam = gameState.offense;
                     gameState.offense = gameState.defense;
                     gameState.defense = tempTeam;
                     // Reset down and distance
                     gameState.down = 1;
-                    gameState.distance = 10;
-                }
-                
-                // Check for a touchdown (ball reaches 100)
-                if (gameState.ballOn >= 100) {
-                    scoreTouchdown();
-                    return;
+                    gameState.yardsToGain = 10;
                 }
                 
                 updateGameUI();
-                checkQuarterEnd();
             };
 
             /**
@@ -825,7 +940,7 @@
                         gameState.offense = gameState.defense;
                         gameState.defense = tempTeam;
                         gameState.down = 1;
-                        gameState.distance = 10;
+                        gameState.yardsToGain = 10;
                     } else {
                         gameState.down++;
                     }
@@ -839,14 +954,14 @@
             const puntPlay = () => {
                  const yards = Math.floor(Math.random() * 20) + 30; // 30-50 yard punt
                  const newBallOn = gameState.ballOn + yards;
-                 announcePlay(`The team punts for ${yards} yards. The ball is now on the ${newBallOn} yard line.`);
+                 announcePlay(`The ${gameState.offense} punts for ${yards} yards. The ball is now on the ${newBallOn} yard line.`);
                  // Switch teams and set up for next play
                  const tempTeam = gameState.offense;
                  gameState.offense = gameState.defense;
                  gameState.defense = tempTeam;
                  gameState.ballOn = newBallOn;
                  gameState.down = 1;
-                 gameState.distance = 10;
+                 gameState.yardsToGain = 10;
                  updateGameUI();
             };
             
@@ -868,7 +983,7 @@
                     gameState.defense = tempTeam;
                     gameState.ballOn = gameState.ballOn; // Ball stays at spot of missed kick
                     gameState.down = 1;
-                    gameState.distance = 10;
+                    gameState.yardsToGain = 10;
                     updateGameUI();
                 }
             };
@@ -878,7 +993,7 @@
              */
             const scoreTouchdown = () => {
                 gameState.isTouchdown = true;
-                announcePlay(`TOUCHDOWN! ${gameState.offense} scores!`);
+                announcePlay(`TOUCHDOWN! The ${gameState.offense} scores!`);
                 
                 // Update score and game state
                 if (gameState.offense === gameState.homeTeam) {
@@ -895,12 +1010,12 @@
             const scoreExtraPoint = () => {
                 const outcome = Math.random();
                 if (outcome > 0.1) {
-                    announcePlay('The extra point is good! The score is now updated.');
                     if (gameState.offense === gameState.homeTeam) {
                         gameState.homeScore += 1;
                     } else {
                         gameState.awayScore += 1;
                     }
+                    announcePlay(`The extra point is good! The score is now ${gameState.homeTeam} ${gameState.homeScore}, and ${gameState.awayTeam} ${gameState.awayScore}.`);
                 } else {
                     announcePlay('The extra point is no good!');
                 }
@@ -913,12 +1028,12 @@
             const scoreTwoPointConversion = () => {
                 const outcome = Math.random();
                 if (outcome > 0.5) { // 50% chance of success
-                    announcePlay('The two-point conversion is good!');
                     if (gameState.offense === gameState.homeTeam) {
                         gameState.homeScore += 2;
                     } else {
                         gameState.awayScore += 2;
                     }
+                    announcePlay(`The two-point conversion is good! The score is now ${gameState.homeTeam} ${gameState.homeScore}, and ${gameState.awayTeam} ${gameState.awayScore}.`);
                 } else {
                     announcePlay('The two-point conversion is no good!');
                 }
@@ -936,7 +1051,7 @@
                 gameState.defense = tempTeam;
                 gameState.ballOn = 50; // Ball starts at midfield after a score
                 gameState.down = 1;
-                gameState.distance = 10;
+                gameState.yardsToGain = 10;
                 
                 updateGameUI();
             };
@@ -956,34 +1071,15 @@
                 gameState.defense = tempTeam;
                 gameState.ballOn = 50; // Ball starts at midfield after a score
                 gameState.down = 1;
-                gameState.distance = 10;
+                gameState.yardsToGain = 10;
                 updateGameUI();
-            };
-            
-            /**
-             * Checks if the quarter should end.
-             */
-            const checkQuarterEnd = () => {
-                // For now, we'll end quarters based on plays, not time
-                if (gameState.playsInQuarter >= 4) {
-                     gameState.quarter++;
-                     gameState.playsInQuarter = 0;
-                     if (gameState.quarter > 4) {
-                         endGame();
-                         return;
-                     }
-                     if (gameState.quarter === 3) {
-                         gameState.isHalftime = true;
-                         announcePlay("Halftime! The teams are heading to the locker room.");
-                         showScreen(halftimeScreen);
-                     }
-                }
             };
             
             /**
              * Ends the game and shows the post-game screen.
              */
             const endGame = () => {
+                pauseClock();
                 gameState.isGameActive = false;
                 showScreen(postGameScreen);
                 const winningTeam = gameState.homeScore > gameState.awayScore ? gameState.homeTeam : gameState.awayTeam;
@@ -1011,17 +1107,20 @@
                     offense: homeTeam,
                     defense: awayTeam,
                     quarter: 1,
+                    yardsToGain: 10,
                     down: 1,
-                    distance: 10,
                     ballOn: 50, // 50-yard line
+                    quarterLength: parseInt(quarterLengthInput.value),
+                    gameClock: parseInt(quarterLengthInput.value) * 60,
                     isGameActive: true,
                     isTouchdown: false,
-                    playsInQuarter: 0,
                     isHalftime: false
                 };
                 
                 showScreen(gameScreen);
                 updateGameUI();
+                startClock();
+                saveGameData(); // Save the game immediately when starting
                 announcePlay(`Welcome to the game! The ${gameState.offense} have the ball on their own 50 yard line.`);
             };
 
@@ -1034,6 +1133,7 @@
                     gameState.isGameActive = true;
                     showScreen(gameScreen);
                     updateGameUI();
+                    startClock();
                     announcePlay("Game loaded!");
                 } else {
                     showMessage("No saved game found!", 'error');
@@ -1041,14 +1141,27 @@
             };
 
             // Event listeners for main navigation
-            playFootballBtn.addEventListener('click', () => showScreen(quickPlayMenu));
+            playFootballBtn.addEventListener('click', () => {
+                loadLastGameData();
+                if (lastSavedGame) {
+                    showScreen(quickPlaySavedGameOptions);
+                } else {
+                    showScreen(quickPlayMenu);
+                }
+            });
             franchiseBtn.addEventListener('click', () => showScreen(franchiseMenu));
             loadGameBtn.addEventListener('click', loadGame);
+            
+            // New Quick Play options for saved games
+            resumeGameBtn.addEventListener('click', loadGame);
+            deleteGameBtn.addEventListener('click', deleteSavedGame);
+            backToMenuFromSavedOptions.addEventListener('click', () => showScreen(mainMenu));
             
             backToMenuFromQuickPlayBtn.addEventListener('click', () => showScreen(mainMenu));
             backToMenuFromFranchiseBtn.addEventListener('click', () => showScreen(mainMenu));
             backToMenuFromGameBtn.addEventListener('click', () => {
                 gameState.isGameActive = false; // Stop the current game
+                pauseClock(); // Stop the clock
                 showScreen(mainMenu);
             });
             backToMenuFromGameEndBtn.addEventListener('click', () => showScreen(mainMenu));
@@ -1094,7 +1207,10 @@
             
             // Quick Play game settings and start
             startQuickPlayBtn.addEventListener('click', () => {
-                newGame('Home Team', 'Away Team'); // Start a new game with default teams
+                // Get a random opponent
+                const opponentTeam = nflTeams[Math.floor(Math.random() * nflTeams.length)];
+                // Assume the player picked a team by clicking a button
+                newGame('San Francisco 49ers', opponentTeam);
             });
             backToQuickPlayBtn.addEventListener('click', () => showScreen(quickPlayMenu));
 
@@ -1109,6 +1225,7 @@
             startSecondHalfBtn.addEventListener('click', () => {
                  gameState.isHalftime = false;
                  showScreen(gameScreen);
+                 startClock();
                  announcePlay("Welcome back to the second half!");
                  updateGameUI();
             });
@@ -1126,10 +1243,22 @@
                 gameTimeValue.textContent = `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
             });
             
+            // TalkBack toggle
+            talkbackToggle.addEventListener('change', (event) => {
+                talkbackEnabled = event.target.checked;
+                showMessage(`TalkBack is now ${talkbackEnabled ? 'enabled' : 'disabled'}.`);
+            });
+
             // Initial setup
             loadLastGameData();
             // Render teams for Quick Play menu
-            renderTeamsList(teamsList, () => showScreen(gameSettingsMenu));
+            renderTeamsList(teamsList, (selectedTeam) => {
+                // This is the team the user selected. Now we show settings.
+                const opponentTeam = nflTeams.filter(t => t !== selectedTeam)[Math.floor(Math.random() * (nflTeams.length - 1))];
+                gameState.selectedTeam = selectedTeam;
+                gameState.opponentTeam = opponentTeam;
+                showScreen(gameSettingsMenu);
+            });
         });
     </script>
 </body>
