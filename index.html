@@ -391,4 +391,24 @@ function rand(min,max) {
 updateUI("Welcome to Madden Text Adventure. Choose a play to begin.");
 </script>
 </body>
-</html>
+</html><!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Madden Text Adventure — Full Game</title>
+<style>
+  :root{--bg:#0b0f18;--card:#121826;--accent:#22d3ee;--text:#e5e7eb;--sub:#9ca3af;--good:#34d399;--bad:#f87171}
+  html,body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,Segoe UI,Arial}
+  .wrap{max-width:960px;margin:0 auto;padding:16px}
+  h1{font-size:1.25rem;margin:0 0 8px}
+  .grid{display:grid;grid-template-columns:1fr;gap:12px}
+  @media(min-width:820px){.grid{grid-template-columns: 1fr 320px}}
+  .card{background:var(--card);border-radius:14px;padding:12px;box-shadow:0 2px 10px #0006}
+  .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+  .pill{background:#0f172a;border:1px solid #1f2937;border-radius:999px;padding:6px 10px;font-weight:600}
+  #log{height:280px;overflow:auto;background:#0a0f1c;border:1px solid #1f2937;border-radius:10px;padding:10px}
+  button{background:#0f172a;border:1px solid #344155;color:var(--text);padding:10px 12px;border-radius:12px;font-size:1rem}
+  button:disabled{opacity:.5}
+  #field{width:100%;height:220px;background:#115e3b;border-radius:12px;border:2px solid #0b3a24}
+  .sectionTitle
