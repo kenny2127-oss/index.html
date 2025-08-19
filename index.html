@@ -3,6 +3,169 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Madden Text Adventure with Defense</title>
+<style>
+  body { font-family: system-ui, sans-serif; padding: 1em; background: #111; color: #eee; }
+  #log { border: 2px solid #555; padding: 1em; height: 300px; overflow-y: auto; background: #000; }
+  button { font-size: 1rem; margin: 0.3em; padding: 0.6em 1em; border-radius: 8px; border: none; }
+</style>
+</head>
+<body>
+<h1>Madden Text Adventure</h1>
+
+<div id="score">Home 0 — 0 Away</div>
+<div id="down">1st & 10 at Home 25</div>
+<div id="log" aria-live="polite"></div>
+
+<!-- Offensive Playbook -->
+<div id="offensePlays">
+  <h2>Offense</h2>
+  <button onclick="callPlay('run')">Run Play</button>
+  <button onclick="callPlay('pass')">Pass Play</button>
+  <button onclick="callPlay('punt')">Punt</button>
+</div>
+
+<!-- Defensive Playbook -->
+<div id="defensePlays" style="display:none;">
+  <h2>Defense</h2>
+  <button onclick="defensePlay('blitz')">Blitz</button>
+  <button onclick="defensePlay('zone')">Zone Coverage</button>
+  <button onclick="defensePlay('man')">Man-to-Man</button>
+</div>
+
+<script>
+let game = {
+  home: 0, away: 0,
+  ballOn: 25, down: 1, toGo: 10,
+  possession: "home" // "home" = you on offense, "away" = CPU on offense
+};
+
+function updateUI(msg) {
+  document.getElementById("score").textContent = `Home ${game.home} — ${game.away} Away`;
+  document.getElementById("down").textContent = `${ordinal(game.down)} & ${game.toGo} at ${spotText()}`;
+  const log = document.getElementById("log");
+  log.innerHTML += `<div>${msg}</div>`;
+  log.scrollTop = log.scrollHeight;
+
+  // Speak only the latest message
+  if ("speechSynthesis" in window) {
+    speechSynthesis.cancel();
+    let u = new SpeechSynthesisUtterance(msg);
+    speechSynthesis.speak(u);
+  }
+
+  // Toggle playbooks
+  document.getElementById("offensePlays").style.display = game.possession === "home" ? "block" : "none";
+  document.getElementById("defensePlays").style.display = game.possession === "away" ? "block" : "none";
+}
+
+function callPlay(type) {
+  if (game.possession !== "home") {
+    updateUI("It's not your ball right now!");
+    return;
+  }
+
+  let yards = 0;
+  if (type === "run") yards = rand(-3, 10);
+  if (type === "pass") yards = rand(-10, 25);
+  if (type === "punt") {
+    yards = rand(30, 50);
+    game.ballOn = 100 - (game.ballOn + yards);
+    game.possession = "away";
+    game.down = 1; game.toGo = 10;
+    updateUI(`You punted for ${yards} yards. Away takes over at their ${spotText()}.`);
+    return;
+  }
+
+  processPlayResult(yards, "Home");
+}
+
+function defensePlay(call) {
+  if (game.possession !== "away") {
+    updateUI("You can only call defense when Away has the ball!");
+    return;
+  }
+
+  // CPU picks random offense
+  let cpuCall = Math.random() < 0.5 ? "run" : "pass";
+  let yards = cpuCall === "run" ? rand(-2, 8) : rand(-5, 20);
+
+  // Modify based on your defense
+  if (call === "blitz" && cpuCall === "pass") yards += 5; // risky vs pass
+  if (call === "blitz" && cpuCall === "run") yards -= 2; // strong vs run
+  if (call === "zone" && cpuCall === "pass") yards -= 2;
+  if (call === "man" && cpuCall === "pass") yards -= 4;
+  if (call === "man" && cpuCall === "run") yards += 2;
+
+  updateUI(`Away ran a ${cpuCall}. You called ${call}. Gain of ${yards} yards.`);
+  processPlayResult(yards, "Away");
+}
+
+function processPlayResult(yards, team) {
+  game.ballOn += (team === "Home" ? yards : -yards);
+
+  // Touchdown?
+  if (team === "Home" && game.ballOn >= 100) {
+    game.home += 7;
+    updateUI(`Touchdown Home! Score is now Home ${game.home}, Away ${game.away}.`);
+    resetDrive("away");
+    return;
+  }
+  if (team === "Away" && game.ballOn <= 0) {
+    game.away += 7;
+    updateUI(`Touchdown Away! Score is now Home ${game.home}, Away ${game.away}.`);
+    resetDrive("home");
+    return;
+  }
+
+  // First down or next down
+  if (yards >= game.toGo) {
+    game.down = 1;
+    game.toGo = 10;
+    updateUI(`${team} gets a first down at ${spotText()}.`);
+  } else {
+    game.down++;
+    game.toGo -= yards;
+    if (game.down > 4) {
+      game.possession = (team === "Home") ? "away" : "home";
+      updateUI(`Turnover on downs. ${game.possession === "home" ? "Home" : "Away"} takes over at ${spotText()}.`);
+      game.down = 1; game.toGo = 10;
+    } else {
+      updateUI(`${team} gained ${yards} yards. Now ${ordinal(game.down)} & ${game.toGo}.`);
+    }
+  }
+}
+
+function resetDrive(toTeam) {
+  game.ballOn = 25;
+  game.down = 1;
+  game.toGo = 10;
+  game.possession = toTeam;
+}
+
+function ordinal(n) {
+  return ["1st","2nd","3rd","4th"][n-1] || n+"th";
+}
+
+function spotText() {
+  if (game.ballOn < 50) return `Home ${game.ballOn}`;
+  if (game.ballOn === 50) return "Midfield";
+  return `Away ${100 - game.ballOn}`;
+}
+
+function rand(min,max) {
+  return Math.floor(Math.random()*(max-min+1))+min;
+}
+
+// Intro
+updateUI("Welcome to Madden Text Adventure. Choose a play to begin.");
+</script>
+</body>
+</html><!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Madden Text Adventure</title>
 <style>
   body { font-family: system-ui, sans-serif; padding: 1em; background: #111; color: #eee; }
