@@ -423,11 +423,11 @@
             <div id="offensive-playbook" class="w-full flex flex-col gap-2 mt-4">
                 <h3 class="text-xl font-bold mb-2">Offensive Playbook</h3>
                 <div class="grid grid-cols-2 gap-2">
-                    <button id="run-play-btn" class="py-3 px-6 bg-green-600 hover:bg-green-700 text-white font-bold rounded-lg transition duration-200">Run</button>
-                    <button id="short-pass-btn" class="py-3 px-6 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg transition duration-200">Short Pass</button>
-                    <button id="long-pass-btn" class="py-3 px-6 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-lg transition duration-200">Long Pass</button>
-                    <button id="punt-play-btn" class="py-3 px-6 bg-orange-600 hover:bg-orange-700 text-white font-bold rounded-lg transition duration-200">Punt</button>
-                    <button id="field-goal-btn" class="py-3 px-6 bg-yellow-600 hover:bg-yellow-700 text-white font-bold rounded-lg transition duration-200">Field Goal</button>
+                    <button id="run-play-btn" class="py-3 px-6 bg-green-600 hover:bg-green-700 text-white font-bold rounded-lg transition duration-200 hidden">Run</button>
+                    <button id="short-pass-btn" class="py-3 px-6 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg transition duration-200 hidden">Short Pass</button>
+                    <button id="long-pass-btn" class="py-3 px-6 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-lg transition duration-200 hidden">Long Pass</button>
+                    <button id="punt-play-btn" class="py-3 px-6 bg-orange-600 hover:bg-orange-700 text-white font-bold rounded-lg transition duration-200 hidden">Punt</button>
+                    <button id="field-goal-btn" class="py-3 px-6 bg-yellow-600 hover:bg-yellow-700 text-white font-bold rounded-lg transition duration-200 hidden">Field Goal</button>
                     <button id="extra-point-btn" class="py-3 px-6 bg-yellow-600 hover:bg-yellow-700 text-white font-bold rounded-lg transition duration-200 hidden">Extra Point</button>
                     <button id="two-point-conversion-btn" class="py-3 px-6 bg-orange-600 hover:bg-orange-700 text-white font-bold rounded-lg transition duration-200 hidden">2-Point Conversion</button>
                 </div>
@@ -672,6 +672,29 @@
             };
             
             /**
+             * A new function to centrally control the visibility of all playbook buttons.
+             * This ensures the UI always matches the game state.
+             */
+            const renderPlaybook = () => {
+                // Hide all buttons by default
+                const allPlayButtons = [runPlayBtn, shortPassBtn, longPassBtn, puntPlayBtn, fieldGoalBtn, extraPointBtn, twoPointConversionBtn];
+                allPlayButtons.forEach(btn => btn.classList.add('hidden'));
+
+                // Show buttons based on the current game state
+                if (gameState.isTouchdown) {
+                    extraPointBtn.classList.remove('hidden');
+                    twoPointConversionBtn.classList.remove('hidden');
+                } else if (gameState.down === 4) {
+                    puntPlayBtn.classList.remove('hidden');
+                    fieldGoalBtn.classList.remove('hidden');
+                } else {
+                    runPlayBtn.classList.remove('hidden');
+                    shortPassBtn.classList.remove('hidden');
+                    longPassBtn.classList.remove('hidden');
+                }
+            };
+
+            /**
              * Updates the game UI based on the current state.
              */
             const updateGameUI = () => {
@@ -714,22 +737,8 @@
                 }
                 firstDownMarkerEl.style.left = `${firstDownPosition}px`;
 
-                // Update play button visibility
-                if (gameState.down === 4) {
-                    puntPlayBtn.classList.remove('hidden');
-                    fieldGoalBtn.classList.remove('hidden');
-                    // Hide other buttons on 4th down
-                    runPlayBtn.classList.add('hidden');
-                    shortPassBtn.classList.add('hidden');
-                    longPassBtn.classList.add('hidden');
-                } else {
-                    puntPlayBtn.classList.add('hidden');
-                    fieldGoalBtn.classList.add('hidden');
-                    // Show normal playbook buttons
-                    runPlayBtn.classList.remove('hidden');
-                    shortPassBtn.classList.remove('hidden');
-                    longPassBtn.classList.remove('hidden');
-                }
+                // Update play button visibility using the new central function
+                renderPlaybook();
             };
 
             /**
@@ -871,15 +880,6 @@
                 gameState.isTouchdown = true;
                 announcePlay(`TOUCHDOWN! ${gameState.offense} scores!`);
                 
-                // Show extra point/2-point conversion buttons
-                runPlayBtn.classList.add('hidden');
-                shortPassBtn.classList.add('hidden');
-                longPassBtn.classList.add('hidden');
-                puntPlayBtn.classList.add('hidden');
-                fieldGoalBtn.classList.add('hidden');
-                extraPointBtn.classList.remove('hidden');
-                twoPointConversionBtn.classList.remove('hidden');
-
                 // Update score and game state
                 if (gameState.offense === gameState.homeTeam) {
                     gameState.homeScore += 6;
@@ -938,13 +938,6 @@
                 gameState.down = 1;
                 gameState.distance = 10;
                 
-                // Hide scoring buttons and show normal playbook
-                extraPointBtn.classList.add('hidden');
-                twoPointConversionBtn.classList.add('hidden');
-                runPlayBtn.classList.remove('hidden');
-                shortPassBtn.classList.remove('hidden');
-                longPassBtn.classList.remove('hidden');
-
                 updateGameUI();
             };
 
@@ -1028,17 +1021,6 @@
                 };
                 
                 showScreen(gameScreen);
-
-                // --- FIX: Ensure playbook buttons are visible at the start of a new game ---
-                runPlayBtn.classList.remove('hidden');
-                shortPassBtn.classList.remove('hidden');
-                longPassBtn.classList.remove('hidden');
-                puntPlayBtn.classList.add('hidden');
-                fieldGoalBtn.classList.add('hidden');
-                extraPointBtn.classList.add('hidden');
-                twoPointConversionBtn.classList.add('hidden');
-                // ------------------------------------------------------------------------
-
                 updateGameUI();
                 announcePlay(`Welcome to the game! The ${gameState.offense} have the ball on their own 50 yard line.`);
             };
