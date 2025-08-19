@@ -75,7 +75,13 @@
                 >
                     Quick Play
                 </button>
-                
+                <!-- New "Franchise" button -->
+                <button
+                    id="franchise-btn"
+                    class="py-4 px-6 bg-gray-600 hover:bg-gray-700 text-white font-bold rounded-lg shadow-md transition duration-200"
+                >
+                    Franchise
+                </button>
                 <!-- This button will be shown only if a game is saved -->
                 <button
                     id="load-game-btn"
@@ -104,6 +110,69 @@
             <ul id="teams-list" class="mt-8 grid grid-cols-2 gap-4">
                 <!-- Teams will be populated here -->
             </ul>
+        </div>
+
+        <!-- Franchise Menu (Hidden by default) -->
+        <div id="franchise-menu" class="w-full text-center hidden">
+            <h2 class="text-4xl md:text-5xl font-bold text-white text-center mb-6">
+                Franchise Mode
+            </h2>
+            
+            <div class="w-full flex flex-col gap-4">
+                <div class="flex flex-row gap-4 items-center">
+                    <!-- Dropdown for saved franchises (initially empty) -->
+                    <select id="franchise-saves-select" class="flex-grow py-3 px-4 bg-gray-700 rounded-lg border border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
+                        <!-- Options will be dynamically added here -->
+                        <option value="" disabled selected>No saved franchises</option>
+                    </select>
+                    <!-- Create New League button -->
+                    <button
+                        id="create-new-league-btn"
+                        class="py-3 px-6 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-lg shadow-md transition duration-200"
+                    >
+                        Create New League
+                    </button>
+                </div>
+            </div>
+
+            <!-- Back to Main Menu button -->
+            <button
+                id="back-to-menu-from-franchise-btn"
+                class="mt-6 py-4 px-6 bg-gray-600 hover:bg-gray-700 text-white font-bold rounded-lg shadow-md transition duration-200"
+            >
+                Back to Main Menu
+            </button>
+        </div>
+
+        <!-- New League Menu (Hidden by default) -->
+        <div id="new-league-menu" class="w-full text-center hidden">
+            <h2 class="text-4xl md:text-5xl font-bold text-white text-center mb-6">
+                Create New League
+            </h2>
+
+            <div class="w-full flex flex-col gap-4">
+                <!-- Roster options using buttons -->
+                <button class="py-4 px-6 bg-gray-700 hover:bg-gray-600 text-white font-bold rounded-lg transition duration-200">
+                    Live Real Life Roster
+                </button>
+                <button class="py-4 px-6 bg-gray-700 hover:bg-gray-600 text-white font-bold rounded-lg transition duration-200">
+                    Live Active Roster
+                </button>
+                <button class="py-4 px-6 bg-gray-700 hover:bg-gray-600 text-white font-bold rounded-lg transition duration-200">
+                    Offline Preseason Roster
+                </button>
+                <button class="py-4 px-6 bg-gray-700 hover:bg-gray-600 text-white font-bold rounded-lg transition duration-200">
+                    Offline Active Roster
+                </button>
+            </div>
+
+            <!-- Back to Franchise Menu button -->
+            <button
+                id="back-to-franchise-btn"
+                class="mt-6 py-4 px-6 bg-gray-600 hover:bg-gray-700 text-white font-bold rounded-lg shadow-md transition duration-200"
+            >
+                Back to Franchise Mode
+            </button>
         </div>
         
         <!-- Game Settings Screen (Hidden by default) -->
@@ -207,11 +276,17 @@
             // Get references to the HTML elements
             const mainMenu = document.getElementById('main-menu');
             const quickPlayMenu = document.getElementById('quick-play-menu');
+            const franchiseMenu = document.getElementById('franchise-menu');
+            const newLeagueMenu = document.getElementById('new-league-menu');
             const gameSettingsMenu = document.getElementById('game-settings-menu');
             const gameScreen = document.getElementById('game-screen');
             const playFootballBtn = document.getElementById('play-football-btn');
+            const franchiseBtn = document.getElementById('franchise-btn');
             const loadGameBtn = document.getElementById('load-game-btn');
             const backToMenuFromQuickPlayBtn = document.getElementById('back-to-menu-from-quick-play-btn');
+            const createNewLeagueBtn = document.getElementById('create-new-league-btn');
+            const backToMenuFromFranchiseBtn = document.getElementById('back-to-menu-from-franchise-btn');
+            const backToFranchiseBtn = document.getElementById('back-to-franchise-btn');
             const teamsList = document.getElementById('teams-list');
             const backToMenuFromGameBtn = document.getElementById('back-to-menu-from-game-btn');
             const gameIframe = document.getElementById('game-iframe');
@@ -344,6 +419,8 @@
                 // Hide menus and show the game screen
                 mainMenu.classList.add('hidden');
                 quickPlayMenu.classList.add('hidden');
+                franchiseMenu.classList.add('hidden');
+                newLeagueMenu.classList.add('hidden');
                 gameSettingsMenu.classList.add('hidden');
                 gameScreen.classList.remove('hidden');
 
@@ -387,13 +464,42 @@
             };
 
             /**
-             * Displays the quick play menu and hides the main menu.
-             * This function is also now used to navigate back from the settings menu.
+             * Hides all other menus and displays the main menu.
+             */
+            const showMainMenu = () => {
+                quickPlayMenu.classList.add('hidden');
+                franchiseMenu.classList.add('hidden');
+                newLeagueMenu.classList.add('hidden');
+                gameSettingsMenu.classList.add('hidden');
+                gameScreen.classList.add('hidden');
+                mainMenu.classList.remove('hidden');
+                loadLastGameData();
+            };
+
+            /**
+             * Hides all other menus and displays the quick play menu.
              */
             const showQuickPlayMenu = () => {
                 mainMenu.classList.add('hidden');
-                gameSettingsMenu.classList.add('hidden'); // Ensure the settings menu is hidden
+                gameSettingsMenu.classList.add('hidden');
                 quickPlayMenu.classList.remove('hidden');
+            };
+
+            /**
+             * Hides all other menus and displays the franchise menu.
+             */
+            const showFranchiseMenu = () => {
+                mainMenu.classList.add('hidden');
+                newLeagueMenu.classList.add('hidden');
+                franchiseMenu.classList.remove('hidden');
+            };
+
+            /**
+             * Hides all other menus and displays the new league menu.
+             */
+            const showNewLeagueMenu = () => {
+                franchiseMenu.classList.add('hidden');
+                newLeagueMenu.classList.remove('hidden');
             };
             
             /**
@@ -405,22 +511,16 @@
                 // Optional: set a title for the settings screen based on the team
             };
 
-            /**
-             * Hides all menus and displays the main menu.
-             */
-            const showMainMenu = () => {
-                quickPlayMenu.classList.add('hidden');
-                gameSettingsMenu.classList.add('hidden');
-                gameScreen.classList.add('hidden');
-                mainMenu.classList.remove('hidden');
-                loadLastGameData();
-            };
-
             // Event listeners
             playFootballBtn.addEventListener('click', showQuickPlayMenu);
+            franchiseBtn.addEventListener('click', showFranchiseMenu);
             loadGameBtn.addEventListener('click', loadLastGame);
             
             backToMenuFromQuickPlayBtn.addEventListener('click', showMainMenu);
+            backToMenuFromFranchiseBtn.addEventListener('click', showMainMenu);
+
+            createNewLeagueBtn.addEventListener('click', showNewLeagueMenu);
+            backToFranchiseBtn.addEventListener('click', showFranchiseMenu);
             
             // Sliders for game settings
             quarterLengthInput.addEventListener('input', (event) => {
@@ -438,7 +538,6 @@
                 startGame(footballGameCode);
             });
             
-            // **FIXED:** This event listener now correctly calls the function to show the team select menu.
             document.getElementById('back-to-quick-play-btn').addEventListener('click', showQuickPlayMenu);
             backToMenuFromGameBtn.addEventListener('click', backToMenuFromGame);
             saveGameBtn.addEventListener('click', saveCurrentGame);
