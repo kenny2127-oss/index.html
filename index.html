@@ -3,228 +3,55 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Screen Reader Prototype</title>
-    <!-- Tailwind CSS CDN for modern, mobile-friendly styling -->
+    <title>Football Game</title>
+    <!-- Tailwind CSS CDN for easy and fast styling -->
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
+        /* Apply a default font and dark background for the whole page */
         body {
             font-family: 'Inter', sans-serif;
             background-color: #1a202c; /* bg-gray-900 */
             color: #e2e8f0; /* text-gray-200 */
         }
-        .container {
+        /* Style the main container to center the content on the screen */
+        .game-container {
             max-width: 640px;
             margin: auto;
             padding: 1rem;
-        }
-        .modal {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.7);
+            min-height: 100vh;
             display: flex;
+            flex-direction: column;
             justify-content: center;
             align-items: center;
-            z-index: 1000;
-        }
-        .modal-content {
-            background-color: #2d3748; /* bg-gray-700 */
-            padding: 1.5rem;
-            border-radius: 0.75rem;
-            max-width: 90%;
-            text-align: center;
         }
     </style>
 </head>
-<body class="bg-gray-900 min-h-screen flex flex-col items-center justify-center py-8 px-4">
+<body class="bg-gray-900">
 
-    <div class="container bg-gray-800 rounded-xl shadow-lg p-6 mb-6">
-        <h1 class="text-3xl font-bold text-center text-indigo-400 mb-4">Screen Reader Prototype</h1>
-        <p class="text-center text-sm mb-6 text-gray-400">
-            Paste text from a website below and use the controls to read it aloud.
-        </p>
+    <!-- Main container for the game's UI -->
+    <div class="game-container">
 
-        <div class="mb-4">
-            <textarea
-                id="text-input"
-                class="w-full h-48 p-3 bg-gray-700 rounded-lg border border-gray-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none text-sm placeholder-gray-400"
-                placeholder="Paste the text you want to read here."
-            ></textarea>
-        </div>
+        <!-- Title for the Main Menu -->
+        <h1 class="text-5xl md:text-6xl font-extrabold text-white text-center mb-10">
+            <span class="text-indigo-400">Football</span> Game
+        </h1>
 
-        <div class="flex gap-4 mb-4">
-            <button
-                id="start-btn"
-                class="flex-1 py-3 px-4 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-lg transition duration-200"
-                aria-label="Start reading aloud"
-            >
-                Start Reading
+        <!-- Menu items container. This is where your buttons will go. -->
+        <div class="w-full flex flex-col gap-4">
+            <!-- This is a placeholder for your New Game button -->
+            <button class="py-4 px-6 bg-green-600 hover:bg-green-700 text-white font-bold rounded-lg shadow-md transition duration-200">
+                New Game
             </button>
-            <button
-                id="stop-btn"
-                class="flex-1 py-3 px-4 bg-red-600 hover:bg-red-700 text-white font-bold rounded-lg transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-                aria-label="Stop reading"
-                disabled
-            >
-                Stop Reading
+
+            <!-- This is a placeholder for your Options button -->
+            <button class="py-4 px-6 bg-gray-600 hover:bg-gray-700 text-white font-bold rounded-lg shadow-md transition duration-200">
+                Options
             </button>
-        </div>
-        
-        <button
-            id="download-btn"
-            class="w-full py-3 px-4 bg-gray-600 hover:bg-gray-700 text-white font-bold rounded-lg transition duration-200 mt-2"
-        >
-            Download App
-        </button>
-
-        <div id="status-message" class="mt-4 p-3 text-sm rounded-lg text-center hidden"></div>
-    </div>
-
-    <!-- Custom Modal for user feedback -->
-    <div id="error-modal" class="modal hidden">
-        <div class="modal-content">
-            <h2 class="text-2xl font-bold text-red-400 mb-2">Sound Not Playing</h2>
-            <p class="text-sm mb-4">
-                The sound may be blocked by your browser. Please check the following:
-            </p>
-            <ul class="list-disc list-inside text-left mx-auto max-w-xs mb-4 text-sm text-gray-300">
-                <li>Check that your **media volume** is turned up.</li>
-                <li>Make sure your device is not in **silent mode**.</li>
-                <li>Try closing and reopening the page.</li>
-            </ul>
-            <button id="close-modal-btn" class="py-2 px-4 bg-red-600 hover:bg-red-700 text-white font-bold rounded-lg transition duration-200">
-                Got it
-            </button>
-        </div>
-    </div>
-
-    <script>
-        // Get references to the HTML elements
-        const textInput = document.getElementById('text-input');
-        const startBtn = document.getElementById('start-btn');
-        const stopBtn = document.getElementById('stop-btn');
-        const downloadBtn = document.getElementById('download-btn');
-        const statusMessage = document.getElementById('status-message');
-        const errorModal = document.getElementById('error-modal');
-        const closeModalBtn = document.getElementById('close-modal-btn');
-
-        let utterance = null;
-
-        /**
-         * Displays a status message to the user.
-         * @param {string} message The message to display.
-         * @param {string} className The Tailwind CSS class for styling.
-         */
-        const showStatusMessage = (message, className) => {
-            statusMessage.textContent = message;
-            statusMessage.className = `mt-4 p-3 text-sm rounded-lg text-center ${className}`;
-            statusMessage.classList.remove('hidden');
-        };
-
-        /**
-         * Shows the error modal with troubleshooting tips.
-         */
-        const showErrorModal = () => {
-            errorModal.classList.remove('hidden');
-        };
-
-        /**
-         * Clears the current speech and resets button states.
-         */
-        const resetSpeech = () => {
-            if (window.speechSynthesis.speaking) {
-                window.speechSynthesis.cancel();
-            }
-            startBtn.disabled = false;
-            stopBtn.disabled = true;
-        };
-
-        /**
-         * Starts the text-to-speech functionality.
-         */
-        const startReading = () => {
-            const text = textInput.value.trim();
-
-            if (!text) {
-                showStatusMessage("Please paste some text to read.", 'bg-red-800 text-red-200');
-                return;
-            }
-
-            if (!('speechSynthesis' in window)) {
-                showStatusMessage("Sorry, your browser doesn't support Text-to-Speech.", 'bg-red-800 text-red-200');
-                return;
-            }
-
-            try {
-                // If there's no ongoing speech, create a new utterance
-                if (!window.speechSynthesis.speaking) {
-                    utterance = new SpeechSynthesisUtterance(text);
-                }
-
-                utterance.onstart = () => {
-                    startBtn.disabled = true;
-                    stopBtn.disabled = false;
-                    showStatusMessage("Speaking...", 'bg-blue-800 text-blue-200');
-                };
-
-                utterance.onend = () => {
-                    resetSpeech();
-                    showStatusMessage("Finished reading.", 'bg-green-800 text-green-200');
-                };
-
-                utterance.onerror = (event) => {
-                    resetSpeech();
-                    console.error('SpeechSynthesisError', event.error);
-                    showStatusMessage("An error occurred.", 'bg-red-800 text-red-200');
-                    showErrorModal();
-                };
-
-                window.speechSynthesis.speak(utterance);
-
-            } catch (e) {
-                console.error("Failed to speak text:", e);
-                showStatusMessage("An unexpected error occurred while trying to speak.", 'bg-red-800 text-red-200');
-                showErrorModal();
-            }
-        };
-
-        /**
-         * Stops the text-to-speech functionality.
-         */
-        const stopReading = () => {
-            resetSpeech();
-            showStatusMessage("Reading stopped.", 'bg-yellow-800 text-yellow-200');
-        };
-        
-        /**
-         * Handles the download functionality.
-         */
-        const downloadApp = () => {
-            const htmlContent = document.documentElement.outerHTML;
-            const blob = new Blob([htmlContent], {type: 'text/html'});
-            const url = URL.createObjectURL(blob);
             
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = 'screen-reader-prototype.html';
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
-            
-            showStatusMessage("Download started!", 'bg-green-800 text-green-200');
-        };
+            <!-- You can add more buttons here as we build the game -->
+        </div>
 
-        // Event listeners
-        startBtn.addEventListener('click', startReading);
-        stopBtn.addEventListener('click', stopReading);
-        downloadBtn.addEventListener('click', downloadApp);
-        closeModalBtn.addEventListener('click', () => {
-            errorModal.classList.add('hidden');
-        });
-    </script>
+    </div>
 
 </body>
 </html>
