@@ -1,38 +1,115 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Accessible Football Test</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Madden Text Adventure</title>
+<style>
+  body { font-family: system-ui, sans-serif; padding: 1em; background: #111; color: #eee; }
+  #log { border: 2px solid #555; padding: 1em; height: 300px; overflow-y: auto; background: #000; }
+  button { font-size: 1rem; margin: 0.3em; padding: 0.6em 1em; border-radius: 8px; border: none; }
+</style>
 </head>
 <body>
-<h1>Accessible Football Test</h1>
+<h1>Madden Text Adventure</h1>
 
-<button id="btnNewDrive">Start New Drive</button>
-<button id="btnSnap">Snap</button>
+<div id="score">Home 0 — 0 Away</div>
+<div id="down">1st & 10 at Home 25</div>
+<div id="log" aria-live="polite"></div>
 
-<div id="livePolite" aria-live="polite"></div>
+<div>
+  <button onclick="callPlay('run')">Run Play</button>
+  <button onclick="callPlay('pass')">Pass Play</button>
+  <button onclick="callPlay('punt')">Punt</button>
+</div>
 
 <script>
-const livePolite = document.getElementById('livePolite');
+let game = {
+  home: 0, away: 0,
+  ballOn: 25, down: 1, toGo: 10,
+  possession: "home"
+};
 
-function speak(text) {
-  livePolite.textContent = text; // screen reader announcement
-  if ('speechSynthesis' in window) {
-    let u = new SpeechSynthesisUtterance(text);
+function updateUI(msg) {
+  document.getElementById("score").textContent = `Home ${game.home} — ${game.away} Away`;
+  document.getElementById("down").textContent = `${ordinal(game.down)} & ${game.toGo} at ${spotText()}`;
+  const log = document.getElementById("log");
+  log.innerHTML += `<div>${msg}</div>`;
+  log.scrollTop = log.scrollHeight;
+
+  // speech output for screen readers
+  if ("speechSynthesis" in window) {
+    let u = new SpeechSynthesisUtterance(msg);
+    speechSynthesis.cancel();
     speechSynthesis.speak(u);
   }
 }
 
-document.getElementById('btnNewDrive').addEventListener('click', () => {
-  console.log("New Drive button clicked");
-  speak("New drive started");
-});
+function callPlay(type) {
+  if (game.possession !== "home") {
+    updateUI("It's not your ball right now!");
+    return;
+  }
 
-document.getElementById('btnSnap').addEventListener('click', () => {
-  console.log("Snap button clicked");
-  speak("Ball snapped!");
-});
+  let yards = 0;
+  if (type === "run") yards = rand(-3, 10);
+  if (type === "pass") yards = rand(-10, 25);
+  if (type === "punt") {
+    yards = rand(30, 50);
+    game.ballOn = 100 - (game.ballOn + yards);
+    game.possession = "away";
+    game.down = 1; game.toGo = 10;
+    updateUI(`You punted for ${yards} yards. Away takes over at their ${spotText()}.`);
+    return;
+  }
+
+  game.ballOn += yards;
+  if (game.ballOn >= 100) {
+    game.home += 7;
+    updateUI(`Touchdown! Home scores. The score is now Home ${game.home}, Away ${game.away}.`);
+    resetDrive();
+    return;
+  }
+
+  if (yards >= game.toGo) {
+    game.down = 1;
+    game.toGo = 10;
+    updateUI(`You gained ${yards} yards. First down at ${spotText()}.`);
+  } else {
+    game.down++;
+    game.toGo -= yards;
+    if (game.down > 4) {
+      game.possession = "away";
+      updateUI(`Turnover on downs. Away takes over at their ${spotText()}.`);
+      game.down = 1; game.toGo = 10;
+    } else {
+      updateUI(`You gained ${yards} yards. Now ${ordinal(game.down)} & ${game.toGo}.`);
+    }
+  }
+}
+
+function resetDrive() {
+  game.ballOn = 25;
+  game.down = 1;
+  game.toGo = 10;
+}
+
+function ordinal(n) {
+  return ["1st","2nd","3rd","4th"][n-1] || n+"th";
+}
+
+function spotText() {
+  if (game.ballOn < 50) return `Home ${game.ballOn}`;
+  if (game.ballOn === 50) return "Midfield";
+  return `Away ${100 - game.ballOn}`;
+}
+
+function rand(min,max) {
+  return Math.floor(Math.random()*(max-min+1))+min;
+}
+
+// Intro
+updateUI("Welcome to Madden Text Adventure. Choose a play to begin.");
 </script>
 </body>
 </html>
