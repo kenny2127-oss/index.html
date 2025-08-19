@@ -1,3 +1,47 @@
-`csharp
-, using UnityEngine; #if UNITYANDROID using UnityEngine.Android; #endif public class GameController : MonoBehaviour { public GameObject playerPrefab; public GameObject ballPrefab; private GameObject player; private GameObject ball; void Start() { player = Instantiate(playerPrefab, new Vector3(-4, 0, 0), Quaternion.identity); ball = Instantiate(ballPrefab, new Vector3(-4.3f, 0, 0), Quaternion.identity); AnnounceToScreenReader("Game started. Player and ball are ready.", false); } void Update() { if (Input.GetKeyDown(KeyCode.Space)) { player.transform.position += new Vector3(2, 0, 0); ball.transform.position = player.transform.position + new Vector3(-0.3f, 0, 0); AnnounceToScreenReader("Player moved. Ball is with player.", false); } } void AnnounceToScreenReader(string message, bool interrupt) { #if UNITYANDROID using (AndroidJavaClass unityPlayer = new AndroidJavaClass("com.unity3d.player.UnityPlayer")) { AndroidJavaObject currentActivity = unityPlayer.GetStatic<AndroidJavaObject>("currentActivity"); AndroidJavaClass ttsClass = new AndroidJavaClass("android.speech.tts.TextToSpeech"); currentActivity.Call("runOnUiThread", new AndroidJavaRunnable(() => { AndroidJavaObject tts = new AndroidJavaObject("android.speech.tts.TextToSpeech", currentActivity, null); tts.Call<int>("speak", message, 0, null, null); })); } #endif Debug.Log("Accessibility: " + message); } }
+`html
+, <!DOCTYPE html>
+, <html lang="en">
+, <head>
+,   <meta charset="UTF-8">
+,   <title>Accessible Football Game</title>
+,   <style>
+,     #field { width: 600px; height: 300px; background: #006400; position: relative; margin: 20px auto; }
+,     .player { width: 40px; height: 40px; background: #FFD700; border-radius: 50%; position: absolute; }
+,     .ball { width: 20px; height: 20px; background: #FFFFFF; border-radius: 50%; position: absolute; }
+,     #info { margin: 20px auto; width: 600px; text-align: center; }
+,   </style>
+, </head>
+, <body>
+,   <div id="field">
+,     <div id="player" class="player" style="left:20px;top:130px;"></div>
+,     <div id="ball" class="ball" style="left:10px;top:140px;"></div>
+,   </div>
+,   <div id="info" aria-live="polite"></div>
+,   <script>
+,     const player = document.getElementById('player');
+,     const ball = document.getElementById('ball');
+,     const info = document.getElementById('info');
+,     let playerX = 20;
+,     let ballX = 10;
+, 
+,     function announce(message) {
+,       info.textContent = message;
+,       console.log('Accessibility:', message);
+,     }
+, 
+,     announce('Game started. Player and ball are ready.');
+, 
+,     document.body.addEventListener('keydown', function(e) {
+,       if(e.code === 'Space') {
+,         playerX += 60;
+,         if(playerX > 540) playerX = 540;
+,         ballX = playerX - 10;
+,         player.style.left = playerX + 'px';
+,         ball.style.left = ballX + 'px';
+,         announce('Player moved. Ball is with player.');
+,       }
+,     });
+,   </script>
+, </body>
+, </html>
 , `
