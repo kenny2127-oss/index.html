@@ -152,16 +152,16 @@
 
             <div class="w-full flex flex-col gap-4">
                 <!-- Roster options using buttons -->
-                <button class="py-4 px-6 bg-gray-700 hover:bg-gray-600 text-white font-bold rounded-lg transition duration-200">
+                <button id="roster-live-real-life" class="py-4 px-6 bg-gray-700 hover:bg-gray-600 text-white font-bold rounded-lg transition duration-200">
                     Live Real Life Roster
                 </button>
-                <button class="py-4 px-6 bg-gray-700 hover:bg-gray-600 text-white font-bold rounded-lg transition duration-200">
+                <button id="roster-live-active" class="py-4 px-6 bg-gray-700 hover:bg-gray-600 text-white font-bold rounded-lg transition duration-200">
                     Live Active Roster
                 </button>
-                <button class="py-4 px-6 bg-gray-700 hover:bg-gray-600 text-white font-bold rounded-lg transition duration-200">
+                <button id="roster-offline-preseason" class="py-4 px-6 bg-gray-700 hover:bg-gray-600 text-white font-bold rounded-lg transition duration-200">
                     Offline Preseason Roster
                 </button>
-                <button class="py-4 px-6 bg-gray-700 hover:bg-gray-600 text-white font-bold rounded-lg transition duration-200">
+                <button id="roster-offline-active" class="py-4 px-6 bg-gray-700 hover:bg-gray-600 text-white font-bold rounded-lg transition duration-200">
                     Offline Active Roster
                 </button>
             </div>
@@ -172,6 +172,59 @@
                 class="mt-6 py-4 px-6 bg-gray-600 hover:bg-gray-700 text-white font-bold rounded-lg shadow-md transition duration-200"
             >
                 Back to Franchise Mode
+            </button>
+        </div>
+
+        <!-- Franchise Team Select Menu (Hidden by default) -->
+        <div id="franchise-team-select-menu" class="w-full text-center hidden">
+            <h2 class="text-4xl md:text-5xl font-bold text-white text-center mb-6">
+                Choose Your Team
+            </h2>
+            <p class="mb-4 text-gray-400">Loading roster...</p>
+            <!-- Back to New League Menu button -->
+            <button
+                id="back-to-new-league-btn"
+                class="py-4 px-6 bg-gray-600 hover:bg-gray-700 text-white font-bold rounded-lg shadow-md transition duration-200"
+            >
+                Back to Roster Select
+            </button>
+            
+            <!-- Teams list will be populated here -->
+            <ul id="franchise-teams-list" class="mt-8 grid grid-cols-2 gap-4">
+            </ul>
+        </div>
+        
+        <!-- Franchise Customization Menu (Hidden by default) -->
+        <div id="customize-franchise-menu" class="w-full text-center hidden">
+            <h2 class="text-4xl md:text-5xl font-bold text-white text-center mb-6">
+                Customize Franchise
+            </h2>
+            
+            <div class="w-full flex flex-col gap-6 p-4 bg-gray-800 rounded-lg shadow-md">
+                <!-- Starting Point Combo Box -->
+                <div class="flex flex-col">
+                    <label for="starting-point-select" class="text-lg text-gray-400 text-left">Starting Point</label>
+                    <select id="starting-point-select" class="w-full py-3 px-4 bg-gray-700 rounded-lg border border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
+                        <option value="preseason">Preseason</option>
+                        <option value="regular">Regular Season</option>
+                        <option value="fantasy-draft">Fantasy Draft</option>
+                    </select>
+                </div>
+            </div>
+            
+            <button
+                id="start-playing-btn"
+                class="mt-6 py-4 px-6 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-lg shadow-md transition duration-200"
+            >
+                Start Playing
+            </button>
+
+            <!-- Back to Franchise Team Select button -->
+            <button
+                id="back-to-franchise-team-select-btn"
+                class="mt-4 py-4 px-6 bg-gray-600 hover:bg-gray-700 text-white font-bold rounded-lg shadow-md transition duration-200"
+            >
+                Back to Team Select
             </button>
         </div>
         
@@ -278,26 +331,45 @@
             const quickPlayMenu = document.getElementById('quick-play-menu');
             const franchiseMenu = document.getElementById('franchise-menu');
             const newLeagueMenu = document.getElementById('new-league-menu');
+            const franchiseTeamSelectMenu = document.getElementById('franchise-team-select-menu');
+            const customizeFranchiseMenu = document.getElementById('customize-franchise-menu');
             const gameSettingsMenu = document.getElementById('game-settings-menu');
             const gameScreen = document.getElementById('game-screen');
+
             const playFootballBtn = document.getElementById('play-football-btn');
             const franchiseBtn = document.getElementById('franchise-btn');
             const loadGameBtn = document.getElementById('load-game-btn');
-            const backToMenuFromQuickPlayBtn = document.getElementById('back-to-menu-from-quick-play-btn');
+            
+            // New League Roster buttons
+            const rosterLiveRealLifeBtn = document.getElementById('roster-live-real-life');
+            const rosterLiveActiveBtn = document.getElementById('roster-live-active');
+            const rosterOfflinePreseasonBtn = document.getElementById('roster-offline-preseason');
+            const rosterOfflineActiveBtn = document.getElementById('roster-offline-active');
+            
             const createNewLeagueBtn = document.getElementById('create-new-league-btn');
+            
+            // Back buttons
+            const backToMenuFromQuickPlayBtn = document.getElementById('back-to-menu-from-quick-play-btn');
             const backToMenuFromFranchiseBtn = document.getElementById('back-to-menu-from-franchise-btn');
             const backToFranchiseBtn = document.getElementById('back-to-franchise-btn');
-            const teamsList = document.getElementById('teams-list');
+            const backToNewLeagueBtn = document.getElementById('back-to-new-league-btn');
+            const backToFranchiseTeamSelectBtn = document.getElementById('back-to-franchise-team-select-btn');
             const backToMenuFromGameBtn = document.getElementById('back-to-menu-from-game-btn');
+            const backToQuickPlayBtn = document.getElementById('back-to-quick-play-btn');
+
+            const startPlayingBtn = document.getElementById('start-playing-btn');
+            const startQuickPlayBtn = document.getElementById('start-quick-play-btn');
+
+            const teamsList = document.getElementById('teams-list');
+            const franchiseTeamsList = document.getElementById('franchise-teams-list');
             const gameIframe = document.getElementById('game-iframe');
             const saveGameBtn = document.getElementById('save-game-btn');
-            const backToQuickPlayBtn = document.getElementById('back-to-quick-play-btn'); // Get the back button for game settings
 
-            
             const quarterLengthInput = document.getElementById('quarter-length');
             const quarterLengthValue = document.getElementById('quarter-length-value');
             const gameTimeInput = document.getElementById('game-time');
             const gameTimeValue = document.getElementById('game-time-value');
+            const startingPointSelect = document.getElementById('starting-point-select');
             
             // A list to hold the last saved game
             let lastSavedGame = null;
@@ -366,10 +438,10 @@
             };
 
             /**
-             * Renders the NFL teams list.
+             * Renders the NFL teams list for Quick Play.
              */
-            const renderTeamsList = () => {
-                teamsList.innerHTML = '';
+            const renderTeamsList = (listElement, onTeamSelect) => {
+                listElement.innerHTML = '';
                 nflTeams.forEach(team => {
                     const li = document.createElement('li');
                     const button = document.createElement('button');
@@ -377,10 +449,10 @@
                     button.className = 'py-2 px-4 bg-gray-700 hover:bg-gray-600 text-white font-bold rounded-lg w-full text-center transition duration-200';
                     button.setAttribute('data-team', team);
                     button.addEventListener('click', () => {
-                        showGameSettingsMenu(team);
+                        onTeamSelect(team);
                     });
                     li.appendChild(button);
-                    teamsList.appendChild(li);
+                    listElement.appendChild(li);
                 });
             };
 
@@ -423,6 +495,8 @@
                 quickPlayMenu.classList.add('hidden');
                 franchiseMenu.classList.add('hidden');
                 newLeagueMenu.classList.add('hidden');
+                franchiseTeamSelectMenu.classList.add('hidden');
+                customizeFranchiseMenu.classList.add('hidden');
                 gameSettingsMenu.classList.add('hidden');
                 gameScreen.classList.remove('hidden');
 
@@ -472,6 +546,8 @@
                 quickPlayMenu.classList.add('hidden');
                 franchiseMenu.classList.add('hidden');
                 newLeagueMenu.classList.add('hidden');
+                franchiseTeamSelectMenu.classList.add('hidden');
+                customizeFranchiseMenu.classList.add('hidden');
                 gameSettingsMenu.classList.add('hidden');
                 gameScreen.classList.add('hidden');
                 mainMenu.classList.remove('hidden');
@@ -513,6 +589,24 @@
                 // Optional: set a title for the settings screen based on the team
             };
 
+            /**
+             * Shows the Franchise Team Select menu and simulates player import.
+             */
+            const showFranchiseTeamSelectMenu = (rosterType) => {
+                newLeagueMenu.classList.add('hidden');
+                franchiseTeamSelectMenu.classList.remove('hidden');
+                showMessage(`Importing ${rosterType} players...`, 'success');
+                renderTeamsList(franchiseTeamsList, showCustomizeFranchiseMenu);
+            };
+
+            /**
+             * Shows the Franchise Customization menu.
+             */
+            const showCustomizeFranchiseMenu = (teamName) => {
+                franchiseTeamSelectMenu.classList.add('hidden');
+                customizeFranchiseMenu.classList.remove('hidden');
+            };
+
             // Event listeners
             playFootballBtn.addEventListener('click', showQuickPlayMenu);
             franchiseBtn.addEventListener('click', showFranchiseMenu);
@@ -523,6 +617,28 @@
 
             createNewLeagueBtn.addEventListener('click', showNewLeagueMenu);
             backToFranchiseBtn.addEventListener('click', showFranchiseMenu);
+            
+            // New League Roster buttons (triggering the franchise team select screen)
+            rosterLiveRealLifeBtn.addEventListener('click', () => showFranchiseTeamSelectMenu('Live Real Life Roster'));
+            rosterLiveActiveBtn.addEventListener('click', () => showFranchiseTeamSelectMenu('Live Active Roster'));
+            rosterOfflinePreseasonBtn.addEventListener('click', () => showFranchiseTeamSelectMenu('Offline Preseason Roster'));
+            rosterOfflineActiveBtn.addEventListener('click', () => showFranchiseTeamSelectMenu('Offline Active Roster'));
+
+            // Back button for Franchise Team Select
+            backToNewLeagueBtn.addEventListener('click', showNewLeagueMenu);
+
+            // Back button for Franchise Customize
+            backToFranchiseTeamSelectBtn.addEventListener('click', () => {
+                customizeFranchiseMenu.classList.add('hidden');
+                franchiseTeamSelectMenu.classList.remove('hidden');
+            });
+
+            // Start playing button from the new Franchise Customize menu
+            startPlayingBtn.addEventListener('click', () => {
+                const selectedStartingPoint = startingPointSelect.value;
+                showMessage(`Starting franchise with ${selectedStartingPoint}...`, 'success');
+                startGame(footballGameCode);
+            });
             
             // Sliders for game settings
             quarterLengthInput.addEventListener('input', (event) => {
@@ -546,7 +662,8 @@
 
             // Initial setup
             loadLastGameData();
-            renderTeamsList();
+            // Render teams for Quick Play menu
+            renderTeamsList(teamsList, showGameSettingsMenu);
         });
     </script>
 
