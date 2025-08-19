@@ -29,12 +29,94 @@
             height: 70vh; /* Adjust height as needed */
             border-radius: 0.75rem;
             overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: center;
+            background-color: #2f855a; /* A nice green for the field */
+            padding: 1rem;
+            position: relative;
         }
-        .game-display iframe {
+
+        /* Styles for the game elements */
+        .field {
             width: 100%;
             height: 100%;
-            border: none;
+            background-image: repeating-linear-gradient(to right, #2f855a, #2f855a 10%, #38a169 10%, #38a169 20%);
+            position: relative;
+            border-top: 5px solid white;
+            border-bottom: 5px solid white;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
         }
+
+        .yard-line {
+            height: 100%;
+            width: 2px;
+            background-color: white;
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .ball-marker {
+            width: 10px;
+            height: 10px;
+            background-color: yellow;
+            border-radius: 50%;
+            position: absolute;
+            bottom: 50%;
+            transform: translateY(50%);
+            left: calc(50% + 50%); /* Start at the 50-yard line */
+            z-index: 10;
+        }
+
+        .line-of-scrimmage {
+            height: 100%;
+            width: 2px;
+            background-color: red;
+            position: absolute;
+            z-index: 5;
+        }
+        
+        .first-down-marker {
+            height: 100%;
+            width: 2px;
+            background-color: yellow;
+            position: absolute;
+            z-index: 5;
+        }
+
+        .score-board {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            padding: 0.5rem;
+            background-color: rgba(0,0,0,0.5);
+            border-radius: 0.5rem;
+            font-family: monospace;
+            font-size: 1.5rem;
+        }
+        
+        .score-board .team-score {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .play-by-play-log {
+            height: 100px;
+            overflow-y: auto;
+            background-color: rgba(0,0,0,0.3);
+            border-radius: 0.5rem;
+            padding: 0.5rem;
+            margin-top: 1rem;
+        }
+        .play-by-play-log p {
+            font-size: 0.9rem;
+            line-height: 1.2;
+            margin-bottom: 0.2rem;
+        }
+
         /* Style for the simple modal message box */
         .message-box {
             position: fixed;
@@ -301,10 +383,77 @@
         
         <!-- Game Screen (Hidden by default) -->
         <div id="game-screen" class="w-full text-center hidden">
+            <h2 id="game-title" class="text-3xl font-bold mb-4"></h2>
             <div class="game-display bg-gray-800 rounded-xl shadow-lg mb-4">
-                <iframe id="game-iframe" title="Generated Game" sandbox="allow-scripts"></iframe>
+                <!-- Scoreboard at the top -->
+                <div class="score-board w-full flex justify-between p-2 rounded-t-lg">
+                    <div class="flex flex-col items-center">
+                        <span id="away-team-name" class="font-bold text-lg">AWAY</span>
+                        <span id="away-score" class="text-3xl">0</span>
+                    </div>
+                    <div class="flex flex-col items-center">
+                        <div class="flex items-center space-x-2">
+                            <span id="quarter" class="text-xl">Q1</span>
+                            <span id="game-clock" class="text-xl">15:00</span>
+                        </div>
+                        <span id="down-distance" class="text-lg">1st & 10</span>
+                        <span id="ball-on" class="text-base">BALL ON: 50</span>
+                    </div>
+                    <div class="flex flex-col items-center">
+                        <span id="home-team-name" class="font-bold text-lg">HOME</span>
+                        <span id="home-score" class="text-3xl">0</span>
+                    </div>
+                </div>
+
+                <!-- Field visualization area -->
+                <div class="field my-4 relative">
+                    <div id="ball-marker" class="absolute h-4 w-4 rounded-full bg-yellow-400 transition-all duration-300"></div>
+                    <div id="line-of-scrimmage-marker" class="absolute h-full w-1 bg-red-500 opacity-70 transition-all duration-300"></div>
+                    <div id="first-down-marker" class="absolute h-full w-1 bg-yellow-400 opacity-70 transition-all duration-300"></div>
+                </div>
+
+                <!-- Play-by-play log and TalkBack container -->
+                <div class="play-by-play-log w-full h-24 overflow-y-auto bg-gray-700 rounded-lg p-2 text-sm text-gray-200">
+                    <p id="talkback-output" class="mb-2"></p>
+                    <p>Welcome to the game!</p>
+                </div>
             </div>
-            <div class="flex flex-row justify-between w-full">
+            
+            <!-- Offensive Playbook -->
+            <div id="offensive-playbook" class="w-full flex flex-col gap-2 mt-4">
+                <h3 class="text-xl font-bold mb-2">Offensive Playbook</h3>
+                <div class="grid grid-cols-2 gap-2">
+                    <button id="run-play-btn" class="py-3 px-6 bg-green-600 hover:bg-green-700 text-white font-bold rounded-lg transition duration-200">Run</button>
+                    <button id="short-pass-btn" class="py-3 px-6 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg transition duration-200">Short Pass</button>
+                    <button id="long-pass-btn" class="py-3 px-6 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-lg transition duration-200">Long Pass</button>
+                    <button id="punt-play-btn" class="py-3 px-6 bg-orange-600 hover:bg-orange-700 text-white font-bold rounded-lg transition duration-200">Punt</button>
+                    <button id="field-goal-btn" class="py-3 px-6 bg-yellow-600 hover:bg-yellow-700 text-white font-bold rounded-lg transition duration-200">Field Goal</button>
+                    <button id="extra-point-btn" class="py-3 px-6 bg-yellow-600 hover:bg-yellow-700 text-white font-bold rounded-lg transition duration-200 hidden">Extra Point</button>
+                    <button id="two-point-conversion-btn" class="py-3 px-6 bg-orange-600 hover:bg-orange-700 text-white font-bold rounded-lg transition duration-200 hidden">2-Point Conversion</button>
+                </div>
+            </div>
+
+            <!-- Halftime/Post-Game Screen -->
+            <div id="halftime-screen" class="w-full text-center hidden">
+                <h2 id="halftime-title" class="text-4xl font-bold mb-4">HALFTIME</h2>
+                <p id="halftime-score" class="text-2xl mb-4"></p>
+                <button id="start-second-half-btn" class="py-4 px-6 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-lg shadow-md transition duration-200">Start Second Half</button>
+            </div>
+            
+            <div id="post-game-screen" class="w-full text-center hidden">
+                <h2 class="text-4xl font-bold mb-4">GAME OVER</h2>
+                <p id="final-score" class="text-2xl mb-4"></p>
+                <p id="game-summary" class="text-lg text-gray-400 mb-4"></p>
+                <button
+                    id="back-to-menu-from-game-end-btn"
+                    class="py-4 px-6 bg-gray-600 hover:bg-gray-700 text-white font-bold rounded-lg shadow-md transition duration-200"
+                >
+                    Back to Main Menu
+                </button>
+            </div>
+
+
+            <div class="flex flex-row justify-between w-full mt-4">
                 <button
                     id="back-to-menu-from-game-btn"
                     class="py-4 px-6 bg-gray-600 hover:bg-gray-700 text-white font-bold rounded-lg shadow-md transition duration-200"
@@ -319,7 +468,6 @@
                 </button>
             </div>
         </div>
-
     </div>
 
     <script>
@@ -335,6 +483,33 @@
             const customizeFranchiseMenu = document.getElementById('customize-franchise-menu');
             const gameSettingsMenu = document.getElementById('game-settings-menu');
             const gameScreen = document.getElementById('game-screen');
+            const halftimeScreen = document.getElementById('halftime-screen');
+            const postGameScreen = document.getElementById('post-game-screen');
+            const gameDisplay = document.querySelector('.game-display');
+            
+            // Game UI elements
+            const awayTeamNameEl = document.getElementById('away-team-name');
+            const awayScoreEl = document.getElementById('away-score');
+            const homeTeamNameEl = document.getElementById('home-team-name');
+            const homeScoreEl = document.getElementById('home-score');
+            const quarterEl = document.getElementById('quarter');
+            const gameClockEl = document.getElementById('game-clock');
+            const downDistanceEl = document.getElementById('down-distance');
+            const ballOnEl = document.getElementById('ball-on');
+            const ballMarkerEl = document.getElementById('ball-marker');
+            const lineOfScrimmageMarkerEl = document.getElementById('line-of-scrimmage-marker');
+            const firstDownMarkerEl = document.getElementById('first-down-marker');
+            const playbook = document.getElementById('offensive-playbook');
+            const talkbackOutputEl = document.getElementById('talkback-output');
+            
+            // Play buttons
+            const runPlayBtn = document.getElementById('run-play-btn');
+            const shortPassBtn = document.getElementById('short-pass-btn');
+            const longPassBtn = document.getElementById('long-pass-btn');
+            const puntPlayBtn = document.getElementById('punt-play-btn');
+            const fieldGoalBtn = document.getElementById('field-goal-btn');
+            const extraPointBtn = document.getElementById('extra-point-btn');
+            const twoPointConversionBtn = document.getElementById('two-point-conversion-btn');
 
             const playFootballBtn = document.getElementById('play-football-btn');
             const franchiseBtn = document.getElementById('franchise-btn');
@@ -359,10 +534,11 @@
 
             const startPlayingBtn = document.getElementById('start-playing-btn');
             const startQuickPlayBtn = document.getElementById('start-quick-play-btn');
+            const startSecondHalfBtn = document.getElementById('start-second-half-btn');
+            const backToMenuFromGameEndBtn = document.getElementById('back-to-menu-from-game-end-btn');
 
             const teamsList = document.getElementById('teams-list');
             const franchiseTeamsList = document.getElementById('franchise-teams-list');
-            const gameIframe = document.getElementById('game-iframe');
             const saveGameBtn = document.getElementById('save-game-btn');
 
             const quarterLengthInput = document.getElementById('quarter-length');
@@ -371,44 +547,12 @@
             const gameTimeValue = document.getElementById('game-time-value');
             const startingPointSelect = document.getElementById('starting-point-select');
             
+            // Game state object
+            let gameState = {};
+            const playerNames = ['Christian McCaffrey', 'Patrick Mahomes', 'Tyreek Hill', 'Jalen Hurts', 'Cooper Kupp'];
+
             // A list to hold the last saved game
             let lastSavedGame = null;
-            let currentGameCode = ''; // Store the currently playing game code for saving
-
-            // Simple placeholder HTML for the default "Football" game
-            const footballGameCode = `
-                <!DOCTYPE html>
-                <html lang="en">
-                <head>
-                    <meta charset="UTF-8">
-                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                    <title>Football</title>
-                    <style>
-                        body {
-                            font-family: sans-serif;
-                            background-color: #38a169; /* a nice green field color */
-                            color: white;
-                            display: flex;
-                            justify-content: center;
-                            align-items: center;
-                            height: 100vh;
-                            margin: 0;
-                            flex-direction: column;
-                        }
-                        .game-title {
-                            font-size: 2rem;
-                            font-weight: bold;
-                            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
-                        }
-                    </style>
-                </head>
-                <body>
-                    <h1 class="game-title">🏈 Football Game 🏈</h1>
-                    <p class="mt-4 text-lg">This is a placeholder for your game logic.</p>
-                    <p class="mt-2 text-sm">Use the "Save Game" button to save your progress!</p>
-                </body>
-                </html>
-            `;
 
             // List of all 32 NFL teams
             const nflTeams = [
@@ -423,7 +567,8 @@
             // A list of all the main screen elements for centralized control
             const allScreens = [
                 mainMenu, quickPlayMenu, franchiseMenu, newLeagueMenu,
-                franchiseTeamSelectMenu, customizeFranchiseMenu, gameSettingsMenu, gameScreen
+                franchiseTeamSelectMenu, customizeFranchiseMenu, gameSettingsMenu,
+                gameScreen, halftimeScreen, postGameScreen
             ];
 
             /**
@@ -457,6 +602,30 @@
             };
 
             /**
+             * A simple "TalkBack" function to announce game events and log them.
+             * @param {string} text The text to speak and display.
+             */
+            const announcePlay = (text) => {
+                console.log("TalkBack:", text);
+                const utterance = new SpeechSynthesisUtterance(text);
+                speechSynthesis.speak(utterance);
+                
+                const logEl = document.getElementById('play-by-play-log');
+                const p = document.createElement('p');
+                p.textContent = text;
+                talkbackOutputEl.textContent = text;
+                // Add the new message to the top of the log
+                const playLogContainer = document.querySelector('.play-by-play-log');
+                const newLogEntry = document.createElement('p');
+                newLogEntry.textContent = text;
+                if (playLogContainer.children.length > 0) {
+                    playLogContainer.insertBefore(newLogEntry, playLogContainer.children[0]);
+                } else {
+                    playLogContainer.appendChild(newLogEntry);
+                }
+            };
+
+            /**
              * Renders the NFL teams list for Quick Play.
              */
             const renderTeamsList = (listElement, onTeamSelect) => {
@@ -479,12 +648,12 @@
              * Loads last saved game from the browser's local storage.
              */
             const loadLastGameData = () => {
-                lastSavedGame = localStorage.getItem('lastSavedGame');
-                
-                // Show/hide the "Load Last Game" button
-                if (lastSavedGame) {
+                const savedState = localStorage.getItem('lastSavedGame');
+                if (savedState) {
+                    lastSavedGame = JSON.parse(savedState);
                     loadGameBtn.classList.remove('hidden');
                 } else {
+                    lastSavedGame = null;
                     loadGameBtn.classList.add('hidden');
                 }
             };
@@ -493,65 +662,399 @@
              * Saves the last saved game to the browser's local storage.
              */
             const saveGameData = () => {
-                if (lastSavedGame) {
-                    localStorage.setItem('lastSavedGame', lastSavedGame);
+                if (gameState.isGameActive) {
+                    localStorage.setItem('lastSavedGame', JSON.stringify(gameState));
                     showMessage('Game saved!', 'success');
-                    // Update the "Load Last Game" button visibility
                     loadLastGameData();
+                } else {
+                    showMessage('No active game to save!', 'error');
                 }
             };
             
             /**
-             * Starts a game by displaying it in the iframe.
-             * @param {string} code The code to load into the iframe.
+             * Updates the game UI based on the current state.
              */
-            const startGame = (code) => {
-                // Set the current game code for saving
-                currentGameCode = code;
+            const updateGameUI = () => {
+                awayTeamNameEl.textContent = gameState.awayTeam;
+                homeTeamNameEl.textContent = gameState.homeTeam;
+                awayScoreEl.textContent = gameState.awayScore;
+                homeScoreEl.textContent = gameState.homeScore;
+                quarterEl.textContent = `Q${gameState.quarter}`;
+                downDistanceEl.textContent = `${gameState.down} & ${gameState.distance}`;
+                ballOnEl.textContent = `BALL ON: ${gameState.ballOn}`;
+                
+                // Position the ball and markers visually
+                // Convert yard line to a percentage of the field length (100 yards)
+                const fieldWidth = gameDisplay.offsetWidth;
+                const fieldLength = 100;
+                
+                // The field is 100 yards, so each yard is 1%
+                // We'll use a 0-100 scale for the field, where 50 is the middle
+                let ballPosition;
+                if (gameState.ballOn === 50) {
+                    ballPosition = fieldWidth / 2;
+                } else if (gameState.ballOn < 50) { // On the away side of the field
+                    ballPosition = fieldWidth * (0.5 + (50 - gameState.ballOn) / 100);
+                } else { // On the home side of the field
+                    ballPosition = fieldWidth * (0.5 - (gameState.ballOn - 50) / 100);
+                }
 
-                // Hide menus and show the game screen
+                ballMarkerEl.style.left = `${ballPosition}px`;
+                lineOfScrimmageMarkerEl.style.left = `${ballPosition}px`;
+                
+                // Position the first down marker
+                const firstDownYardLine = gameState.ballOn - gameState.distance;
+                let firstDownPosition;
+                if (firstDownYardLine < 50) {
+                     firstDownPosition = fieldWidth * (0.5 + (50 - firstDownYardLine) / 100);
+                } else if (firstDownYardLine > 50) {
+                    firstDownPosition = fieldWidth * (0.5 - (firstDownYardLine - 50) / 100);
+                } else {
+                    firstDownPosition = fieldWidth / 2;
+                }
+                firstDownMarkerEl.style.left = `${firstDownPosition}px`;
+
+                // Update play button visibility
+                if (gameState.down === 4) {
+                    puntPlayBtn.classList.remove('hidden');
+                    fieldGoalBtn.classList.remove('hidden');
+                } else {
+                    puntPlayBtn.classList.add('hidden');
+                    fieldGoalBtn.classList.add('hidden');
+                }
+            };
+
+            /**
+             * Advances the game state after a play.
+             * @param {number} yardsGained The yards gained on the play.
+             */
+            const advanceGame = (yardsGained) => {
+                if (gameState.isHalftime) {
+                    showScreen(halftimeScreen);
+                    return;
+                }
+
+                gameState.yardsToGain -= yardsGained;
+                gameState.ballOn += yardsGained;
+                gameState.distance = gameState.yardsToGain;
+
+                // Check for first down
+                if (gameState.distance <= 0) {
+                    announcePlay(`First down!`);
+                    gameState.down = 1;
+                    gameState.distance = 10;
+                } else {
+                    gameState.down++;
+                }
+                
+                // Check for turnover on downs
+                if (gameState.down > 4) {
+                    announcePlay(`Turnover on downs! The other team takes over.`);
+                    // Switch teams
+                    const tempTeam = gameState.offense;
+                    gameState.offense = gameState.defense;
+                    gameState.defense = tempTeam;
+                    // Reset down and distance
+                    gameState.down = 1;
+                    gameState.distance = 10;
+                }
+                
+                // Check for a touchdown (ball reaches 100)
+                if (gameState.ballOn >= 100) {
+                    scoreTouchdown();
+                    return;
+                }
+                
+                updateGameUI();
+                checkQuarterEnd();
+            };
+
+            /**
+             * Simulates a running play. Runs are way more effective than other plays.
+             */
+            const runPlay = () => {
+                const yards = Math.floor(Math.random() * 20) + 1; // More effective
+                const player = playerNames[Math.floor(Math.random() * playerNames.length)];
+                announcePlay(`${player} runs for ${yards} yards! The ball is now on the ${gameState.ballOn + yards} yard line.`);
+                advanceGame(yards);
+            };
+
+            /**
+             * Simulates a short pass.
+             */
+            const shortPassPlay = () => {
+                const yards = Math.floor(Math.random() * 8) + 1;
+                const player = playerNames[Math.floor(Math.random() * playerNames.length)];
+                announcePlay(`${player} catches a short pass for ${yards} yards. The ball is now on the ${gameState.ballOn + yards} yard line.`);
+                advanceGame(yards);
+            };
+
+            /**
+             * Simulates a long pass. Can be a huge gain or an incomplete.
+             */
+            const longPassPlay = () => {
+                const outcome = Math.random();
+                if (outcome > 0.5) { // 50% chance of completion
+                    const yards = Math.floor(Math.random() * 30) + 10;
+                    const player = playerNames[Math.floor(Math.random() * playerNames.length)];
+                    announcePlay(`A long pass is completed to ${player} for ${yards} yards! The ball is now on the ${gameState.ballOn + yards} yard line.`);
+                    advanceGame(yards);
+                } else {
+                    const message = outcome > 0.2 ? 'incomplete' : 'intercepted';
+                    announcePlay(`The long pass is ${message}. The ball is still on the ${gameState.ballOn} yard line.`);
+                    if (message === 'intercepted') {
+                        // Switch teams
+                        const tempTeam = gameState.offense;
+                        gameState.offense = gameState.defense;
+                        gameState.defense = tempTeam;
+                        gameState.down = 1;
+                        gameState.distance = 10;
+                    } else {
+                        gameState.down++;
+                    }
+                }
+                updateGameUI();
+            };
+
+            /**
+             * Simulates a punt.
+             */
+            const puntPlay = () => {
+                 const yards = Math.floor(Math.random() * 20) + 30; // 30-50 yard punt
+                 const newBallOn = gameState.ballOn + yards;
+                 announcePlay(`The team punts for ${yards} yards. The ball is now on the ${newBallOn} yard line.`);
+                 // Switch teams and set up for next play
+                 const tempTeam = gameState.offense;
+                 gameState.offense = gameState.defense;
+                 gameState.defense = tempTeam;
+                 gameState.ballOn = newBallOn;
+                 gameState.down = 1;
+                 gameState.distance = 10;
+                 updateGameUI();
+            };
+            
+            /**
+             * Simulates a field goal attempt.
+             */
+            const fieldGoalPlay = () => {
+                const distance = 100 - gameState.ballOn;
+                const outcome = Math.random();
+                // Logic for field goal success based on distance
+                if (distance < 50 && outcome > 0.2 || distance >= 50 && outcome > 0.7) {
+                    announcePlay('The field goal is good!');
+                    scoreFieldGoal();
+                } else {
+                    announcePlay('The field goal is no good!');
+                    // Turn over on downs
+                    const tempTeam = gameState.offense;
+                    gameState.offense = gameState.defense;
+                    gameState.defense = tempTeam;
+                    gameState.ballOn = gameState.ballOn; // Ball stays at spot of missed kick
+                    gameState.down = 1;
+                    gameState.distance = 10;
+                    updateGameUI();
+                }
+            };
+            
+            /**
+             * Handles scoring a touchdown.
+             */
+            const scoreTouchdown = () => {
+                gameState.isTouchdown = true;
+                announcePlay(`TOUCHDOWN! ${gameState.offense} scores!`);
+                
+                // Show extra point/2-point conversion buttons
+                runPlayBtn.classList.add('hidden');
+                shortPassBtn.classList.add('hidden');
+                longPassBtn.classList.add('hidden');
+                puntPlayBtn.classList.add('hidden');
+                fieldGoalBtn.classList.add('hidden');
+                extraPointBtn.classList.remove('hidden');
+                twoPointConversionBtn.classList.remove('hidden');
+
+                // Update score and game state
+                if (gameState.offense === gameState.homeTeam) {
+                    gameState.homeScore += 6;
+                } else {
+                    gameState.awayScore += 6;
+                }
+                updateGameUI();
+            };
+            
+            /**
+             * Handles scoring an extra point.
+             */
+            const scoreExtraPoint = () => {
+                const outcome = Math.random();
+                if (outcome > 0.1) {
+                    announcePlay('The extra point is good! The score is now updated.');
+                    if (gameState.offense === gameState.homeTeam) {
+                        gameState.homeScore += 1;
+                    } else {
+                        gameState.awayScore += 1;
+                    }
+                } else {
+                    announcePlay('The extra point is no good!');
+                }
+                endScoringPlay();
+            };
+            
+            /**
+             * Handles a two-point conversion attempt.
+             */
+            const scoreTwoPointConversion = () => {
+                const outcome = Math.random();
+                if (outcome > 0.5) { // 50% chance of success
+                    announcePlay('The two-point conversion is good!');
+                    if (gameState.offense === gameState.homeTeam) {
+                        gameState.homeScore += 2;
+                    } else {
+                        gameState.awayScore += 2;
+                    }
+                } else {
+                    announcePlay('The two-point conversion is no good!');
+                }
+                endScoringPlay();
+            };
+            
+            /**
+             * Resets the game state after a touchdown scoring play.
+             */
+            const endScoringPlay = () => {
+                gameState.isTouchdown = false;
+                // Switch teams and reset down/distance for the next kickoff
+                const tempTeam = gameState.offense;
+                gameState.offense = gameState.defense;
+                gameState.defense = tempTeam;
+                gameState.ballOn = 50; // Ball starts at midfield after a score
+                gameState.down = 1;
+                gameState.distance = 10;
+                
+                // Hide scoring buttons and show normal playbook
+                extraPointBtn.classList.add('hidden');
+                twoPointConversionBtn.classList.add('hidden');
+                runPlayBtn.classList.remove('hidden');
+                shortPassBtn.classList.remove('hidden');
+                longPassBtn.classList.remove('hidden');
+
+                updateGameUI();
+            };
+
+            /**
+             * Handles scoring a field goal.
+             */
+            const scoreFieldGoal = () => {
+                if (gameState.offense === gameState.homeTeam) {
+                    gameState.homeScore += 3;
+                } else {
+                    gameState.awayScore += 3;
+                }
+                // Switch teams and reset for next possession
+                const tempTeam = gameState.offense;
+                gameState.offense = gameState.defense;
+                gameState.defense = tempTeam;
+                gameState.ballOn = 50; // Ball starts at midfield after a score
+                gameState.down = 1;
+                gameState.distance = 10;
+                updateGameUI();
+            };
+            
+            /**
+             * Checks if the quarter should end.
+             */
+            const checkQuarterEnd = () => {
+                // For now, we'll end quarters based on plays, not time
+                if (gameState.playsInQuarter >= 4) {
+                     gameState.quarter++;
+                     gameState.playsInQuarter = 0;
+                     if (gameState.quarter > 4) {
+                         endGame();
+                         return;
+                     }
+                     if (gameState.quarter === 3) {
+                         gameState.isHalftime = true;
+                         announcePlay("Halftime! The teams are heading to the locker room.");
+                         showScreen(halftimeScreen);
+                     }
+                }
+            };
+            
+            /**
+             * Ends the game and shows the post-game screen.
+             */
+            const endGame = () => {
+                gameState.isGameActive = false;
+                showScreen(postGameScreen);
+                const winningTeam = gameState.homeScore > gameState.awayScore ? gameState.homeTeam : gameState.awayTeam;
+                const losingTeam = winningTeam === gameState.homeTeam ? gameState.awayTeam : gameState.homeTeam;
+                const finalScoreText = `${gameState.homeTeam} ${gameState.homeScore} - ${gameState.awayTeam} ${gameState.awayScore}`;
+                const summaryText = `${winningTeam} defeats ${losingTeam} in a close game!`;
+                
+                document.getElementById('final-score').textContent = finalScoreText;
+                document.getElementById('game-summary').textContent = summaryText;
+                announcePlay(`Game over! The final score is ${finalScoreText}.`);
+            };
+
+
+            /**
+             * Starts a new game.
+             */
+            const newGame = (homeTeam, awayTeam) => {
+                gameState = {
+                    homeTeam: homeTeam,
+                    awayTeam: awayTeam,
+                    homeScore: 0,
+                    awayScore: 0,
+                    offense: homeTeam,
+                    defense: awayTeam,
+                    quarter: 1,
+                    down: 1,
+                    distance: 10,
+                    ballOn: 50, // 50-yard line
+                    isGameActive: true,
+                    isTouchdown: false,
+                    playsInQuarter: 0,
+                    isHalftime: false
+                };
+                
                 showScreen(gameScreen);
+                updateGameUI();
+                announcePlay(`Welcome to the game! The ${gameState.offense} have the ball on their own 50 yard line.`);
+            };
 
-                // Load the game code into the iframe
-                gameIframe.srcdoc = code;
-            };
-            
             /**
-             * Handles saving the currently playing game.
+             * Handles loading a saved game.
              */
-            const saveCurrentGame = () => {
-                if (currentGameCode) {
-                    lastSavedGame = currentGameCode;
-                    saveGameData();
-                } else {
-                    showMessage('No game to save!', 'error');
-                }
-            };
-            
-            /**
-             * Handles loading the last saved game.
-             */
-            const loadLastGame = () => {
+            const loadGame = () => {
                 if (lastSavedGame) {
-                    startGame(lastSavedGame);
-                    showMessage('Loaded last saved game!', 'success');
+                    gameState = lastSavedGame;
+                    gameState.isGameActive = true;
+                    showScreen(gameScreen);
+                    updateGameUI();
+                    announcePlay("Game loaded!");
                 } else {
-                    showMessage('No saved game found!', 'error');
+                    showMessage("No saved game found!", 'error');
                 }
             };
 
-            // Event listeners
+            // Event listeners for main navigation
             playFootballBtn.addEventListener('click', () => showScreen(quickPlayMenu));
             franchiseBtn.addEventListener('click', () => showScreen(franchiseMenu));
-            loadGameBtn.addEventListener('click', loadLastGame);
+            loadGameBtn.addEventListener('click', loadGame);
             
             backToMenuFromQuickPlayBtn.addEventListener('click', () => showScreen(mainMenu));
             backToMenuFromFranchiseBtn.addEventListener('click', () => showScreen(mainMenu));
+            backToMenuFromGameBtn.addEventListener('click', () => {
+                gameState.isGameActive = false; // Stop the current game
+                showScreen(mainMenu);
+            });
+            backToMenuFromGameEndBtn.addEventListener('click', () => showScreen(mainMenu));
 
+            // Franchise navigation
             createNewLeagueBtn.addEventListener('click', () => showScreen(newLeagueMenu));
             backToFranchiseBtn.addEventListener('click', () => showScreen(franchiseMenu));
             
-            // New League Roster buttons (triggering the franchise team select screen)
+            // New League Roster buttons
             rosterLiveRealLifeBtn.addEventListener('click', () => {
                 showScreen(franchiseTeamSelectMenu);
                 showMessage('Importing Live Real Life Roster players...', 'success');
@@ -583,9 +1086,33 @@
             startPlayingBtn.addEventListener('click', () => {
                 const selectedStartingPoint = startingPointSelect.value;
                 showMessage(`Starting franchise with ${selectedStartingPoint}...`, 'success');
-                startGame(footballGameCode);
+                newGame('Home Team', 'Away Team'); // Start a new game with default teams
             });
             
+            // Quick Play game settings and start
+            startQuickPlayBtn.addEventListener('click', () => {
+                newGame('Home Team', 'Away Team'); // Start a new game with default teams
+            });
+            backToQuickPlayBtn.addEventListener('click', () => showScreen(quickPlayMenu));
+
+            // Gameplay button listeners
+            runPlayBtn.addEventListener('click', runPlay);
+            shortPassBtn.addEventListener('click', shortPassPlay);
+            longPassBtn.addEventListener('click', longPassPlay);
+            puntPlayBtn.addEventListener('click', puntPlay);
+            fieldGoalBtn.addEventListener('click', fieldGoalPlay);
+            extraPointBtn.addEventListener('click', scoreExtraPoint);
+            twoPointConversionBtn.addEventListener('click', scoreTwoPointConversion);
+            startSecondHalfBtn.addEventListener('click', () => {
+                 gameState.isHalftime = false;
+                 showScreen(gameScreen);
+                 announcePlay("Welcome back to the second half!");
+                 updateGameUI();
+            });
+
+            // Save and load
+            saveGameBtn.addEventListener('click', saveGameData);
+
             // Sliders for game settings
             quarterLengthInput.addEventListener('input', (event) => {
                 quarterLengthValue.textContent = event.target.value;
@@ -596,23 +1123,12 @@
                 gameTimeValue.textContent = `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
             });
             
-            document.getElementById('start-quick-play-btn').addEventListener('click', () => {
-                // This is where you would build the game based on the selected settings
-                // For now, we'll just start the placeholder football game
-                startGame(footballGameCode);
-            });
-            
-            backToQuickPlayBtn.addEventListener('click', () => showScreen(quickPlayMenu));
-            backToMenuFromGameBtn.addEventListener('click', () => showScreen(mainMenu));
-            saveGameBtn.addEventListener('click', saveCurrentGame);
-
             // Initial setup
             loadLastGameData();
             // Render teams for Quick Play menu
             renderTeamsList(teamsList, () => showScreen(gameSettingsMenu));
         });
     </script>
-
 </body>
 </html>
 
