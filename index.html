@@ -1,3 +1,314 @@
+ // This JavaScript object contains the 2024 season rosters for all 32 NFL teams,
+// organized by conference and division.
+// The data includes key players at the Quarterback, Running Back, Wide Receiver,
+// and Tight End positions.
+
+const nflRosters2024 = {
+  // AFC EAST
+  "Buffalo Bills": {
+    division: "AFC East",
+    roster: {
+      qbs: ["Josh Allen"],
+      rbs: ["James Cook"],
+      wrs: ["Khalil Shakir", "Keon Coleman"],
+      tes: ["Dalton Kincaid", "Dawson Knox"]
+    }
+  },
+  "Miami Dolphins": {
+    division: "AFC East",
+    roster: {
+      qbs: ["Tua Tagovailoa"],
+      rbs: ["Raheem Mostert"],
+      wrs: ["Tyreek Hill", "Jaylen Waddle"],
+      tes: ["Jonnu Smith"]
+    }
+  },
+  "New England Patriots": {
+    division: "AFC East",
+    roster: {
+      qbs: ["Jacoby Brissett", "Drake Maye"],
+      rbs: ["Rhamondre Stevenson"],
+      wrs: ["Kendrick Bourne", "DeMario Douglas"],
+      tes: ["Hunter Henry"]
+    }
+  },
+  "New York Jets": {
+    division: "AFC East",
+    roster: {
+      qbs: ["Aaron Rodgers"],
+      rbs: ["Breece Hall"],
+      wrs: ["Garrett Wilson", "Mike Williams"],
+      tes: ["Tyler Conklin"]
+    }
+  },
+
+  // AFC NORTH
+  "Baltimore Ravens": {
+    division: "AFC North",
+    roster: {
+      qbs: ["Lamar Jackson"],
+      rbs: ["Derrick Henry"],
+      wrs: ["Zay Flowers", "Rashod Bateman"],
+      tes: ["Mark Andrews"]
+    }
+  },
+  "Cincinnati Bengals": {
+    division: "AFC North",
+    roster: {
+      qbs: ["Joe Burrow"],
+      rbs: ["Zack Moss"],
+      wrs: ["Ja'Marr Chase", "Tee Higgins"],
+      tes: ["Mike Gesicki"]
+    }
+  },
+  "Cleveland Browns": {
+    division: "AFC North",
+    roster: {
+      qbs: ["Deshaun Watson"],
+      rbs: ["Nick Chubb"],
+      wrs: ["Amari Cooper", "Jerry Jeudy"],
+      tes: ["David Njoku"]
+    }
+  },
+  "Pittsburgh Steelers": {
+    division: "AFC North",
+    roster: {
+      qbs: ["Russell Wilson", "Justin Fields"],
+      rbs: ["Najee Harris", "Jaylen Warren"],
+      wrs: ["George Pickens", "Roman Wilson"],
+      tes: ["Pat Freiermuth"]
+    }
+  },
+
+  // AFC SOUTH
+  "Houston Texans": {
+    division: "AFC South",
+    roster: {
+      qbs: ["C.J. Stroud"],
+      rbs: ["Joe Mixon"],
+      wrs: ["Nico Collins", "Tank Dell", "Stefon Diggs"],
+      tes: ["Dalton Schultz"]
+    }
+  },
+  "Indianapolis Colts": {
+    division: "AFC South",
+    roster: {
+      qbs: ["Anthony Richardson"],
+      rbs: ["Jonathan Taylor"],
+      wrs: ["Michael Pittman Jr.", "Josh Downs"],
+      tes: ["Mo Alie-Cox"]
+    }
+  },
+  "Jacksonville Jaguars": {
+    division: "AFC South",
+    roster: {
+      qbs: ["Trevor Lawrence"],
+      rbs: ["Travis Etienne Jr."],
+      wrs: ["Christian Kirk", "Gabe Davis", "Brian Thomas Jr."],
+      tes: ["Evan Engram"]
+    }
+  },
+  "Tennessee Titans": {
+    division: "AFC South",
+    roster: {
+      qbs: ["Will Levis"],
+      rbs: ["Tony Pollard"],
+      wrs: ["Calvin Ridley", "DeAndre Hopkins"],
+      tes: ["Chigoziem Okonkwo"]
+    }
+  },
+
+  // AFC WEST
+  "Denver Broncos": {
+    division: "AFC West",
+    roster: {
+      qbs: ["Bo Nix"],
+      rbs: ["Javonte Williams"],
+      wrs: ["Courtland Sutton", "Troy Franklin"],
+      tes: ["Greg Dulcich"]
+    }
+  },
+  "Kansas City Chiefs": {
+    division: "AFC West",
+    roster: {
+      qbs: ["Patrick Mahomes"],
+      rbs: ["Isiah Pacheco"],
+      wrs: ["Hollywood Brown", "Rashee Rice"],
+      tes: ["Travis Kelce"]
+    }
+  },
+  "Las Vegas Raiders": {
+    division: "AFC West",
+    roster: {
+      qbs: ["Gardner Minshew", "Aidan O'Connell"],
+      rbs: ["Zamir White"],
+      wrs: ["Davante Adams", "Jakobi Meyers"],
+      tes: ["Michael Mayer"]
+    }
+  },
+  "Los Angeles Chargers": {
+    division: "AFC West",
+    roster: {
+      qbs: ["Justin Herbert"],
+      rbs: ["Gus Edwards"],
+      wrs: ["Ladd McConkey", "Quentin Johnston"],
+      tes: ["Hayden Hurst"]
+    }
+  },
+
+  // NFC EAST
+  "Dallas Cowboys": {
+    division: "NFC East",
+    roster: {
+      qbs: ["Dak Prescott"],
+      rbs: ["Ezekiel Elliott"],
+      wrs: ["CeeDee Lamb"],
+      tes: ["Jake Ferguson"]
+    }
+  },
+  "New York Giants": {
+    division: "NFC East",
+    roster: {
+      qbs: ["Daniel Jones", "Drew Lock"],
+      rbs: ["Devin Singletary"],
+      wrs: ["Malik Nabers"],
+      tes: ["Darren Waller"]
+    }
+  },
+  "Philadelphia Eagles": {
+    division: "NFC East",
+    roster: {
+      qbs: ["Jalen Hurts"],
+      rbs: ["Saquon Barkley"],
+      wrs: ["A.J. Brown", "DeVonta Smith"],
+      tes: ["Dallas Goedert"]
+    }
+  },
+  "Washington Commanders": {
+    division: "NFC East",
+    roster: {
+      qbs: ["Jayden Daniels"],
+      rbs: ["Brian Robinson Jr."],
+      wrs: ["Terry McLaurin", "Jahan Dotson"],
+      tes: ["Zach Ertz"]
+    }
+  },
+
+  // NFC NORTH
+  "Chicago Bears": {
+    division: "NFC North",
+    roster: {
+      qbs: ["Caleb Williams"],
+      rbs: ["D'Andre Swift"],
+      wrs: ["D.J. Moore", "Keenan Allen", "Rome Odunze"],
+      tes: ["Cole Kmet"]
+    }
+  },
+  "Detroit Lions": {
+    division: "NFC North",
+    roster: {
+      qbs: ["Jared Goff"],
+      rbs: ["Jahmyr Gibbs", "David Montgomery"],
+      wrs: ["Amon-Ra St. Brown", "Jameson Williams"],
+      tes: ["Sam LaPorta"]
+    }
+  },
+  "Green Bay Packers": {
+    division: "NFC North",
+    roster: {
+      qbs: ["Jordan Love"],
+      rbs: ["Josh Jacobs"],
+      wrs: ["Christian Watson", "Romeo Doubs", "Jayden Reed"],
+      tes: ["Tucker Kraft", "Luke Musgrave"]
+    }
+  },
+  "Minnesota Vikings": {
+    division: "NFC North",
+    roster: {
+      qbs: ["J.J. McCarthy"],
+      rbs: ["Aaron Jones"],
+      wrs: ["Justin Jefferson", "Jordan Addison"],
+      tes: ["T.J. Hockenson"]
+    }
+  },
+
+  // NFC SOUTH
+  "Atlanta Falcons": {
+    division: "NFC South",
+    roster: {
+      qbs: ["Kirk Cousins"],
+      rbs: ["Bijan Robinson", "Tyler Allgeier"],
+      wrs: ["Drake London", "Darnell Mooney"],
+      tes: ["Kyle Pitts"]
+    }
+  },
+  "Carolina Panthers": {
+    division: "NFC South",
+    roster: {
+      qbs: ["Bryce Young"],
+      rbs: ["Jonathon Brooks"],
+      wrs: ["Adam Thielen", "Diontae Johnson"],
+      tes: ["Ja'Tavion Sanders"]
+    }
+  },
+  "New Orleans Saints": {
+    division: "NFC South",
+    roster: {
+      qbs: ["Derek Carr"],
+      rbs: ["Alvin Kamara"],
+      wrs: ["Chris Olave", "Rashid Shaheed"],
+      tes: ["Juwan Johnson"]
+    }
+  },
+  "Tampa Bay Buccaneers": {
+    division: "NFC South",
+    roster: {
+      qbs: ["Baker Mayfield"],
+      rbs: ["Rachaad White"],
+      wrs: ["Mike Evans", "Chris Godwin"],
+      tes: ["Cade Otton"]
+    }
+  },
+
+  // NFC WEST
+  "Arizona Cardinals": {
+    division: "NFC West",
+    roster: {
+      qbs: ["Kyler Murray"],
+      rbs: ["James Conner"],
+      wrs: ["Marvin Harrison Jr."],
+      tes: ["Trey McBride"]
+    }
+  },
+  "Los Angeles Rams": {
+    division: "NFC West",
+    roster: {
+      qbs: ["Matthew Stafford"],
+      rbs: ["Kyren Williams"],
+      wrs: ["Cooper Kupp", "Puka Nacua"],
+      tes: ["Tyler Higbee"]
+    }
+  },
+  "San Francisco 49ers": {
+    division: "NFC West",
+    roster: {
+      qbs: ["Brock Purdy"],
+      rbs: ["Christian McCaffrey"],
+      wrs: ["Deebo Samuel", "Brandon Aiyuk"],
+      tes: ["George Kittle"]
+    }
+  },
+  "Seattle Seahawks": {
+    division: "NFC West",
+    roster: {
+      qbs: ["Geno Smith"],
+      rbs: ["Kenneth Walker III"],
+      wrs: ["D.K. Metcalf", "Tyler Lockett"],
+      tes: ["Noah Fant"]
+    }
+  }
+};
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
