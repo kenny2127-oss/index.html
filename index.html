@@ -48,7 +48,7 @@
                 <span class="text-indigo-400">Football</span> Game
             </h1>
 
-            <div id="game-buttons" class="w-full flex flex-col gap-4">
+            <div class="w-full flex flex-col gap-4">
                 <!-- Main "Football" game button -->
                 <button
                     id="play-football-btn"
@@ -56,9 +56,17 @@
                 >
                     Football
                 </button>
-                
-                <!-- This container will hold dynamically loaded saved games -->
-                <div id="saved-games-container" class="w-full flex flex-col gap-4"></div>
+
+                <!-- This section holds the saved games dropdown -->
+                <div class="w-full flex flex-col gap-2">
+                    <label for="saved-games-select" class="text-lg text-gray-400">Play Saved Games</label>
+                    <select
+                        id="saved-games-select"
+                        class="w-full py-3 px-4 bg-gray-700 rounded-lg border border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                    >
+                        <!-- Options will be dynamically added here by JavaScript -->
+                    </select>
+                </div>
 
                 <!-- The button to create a new game -->
                 <button
@@ -127,7 +135,7 @@
         const gameScreen = document.getElementById('game-screen');
         const playFootballBtn = document.getElementById('play-football-btn');
         const newGameBtn = document.getElementById('new-game-btn');
-        const savedGamesContainer = document.getElementById('saved-games-container');
+        const savedGamesSelect = document.getElementById('saved-games-select');
         const gameDescriptionInput = document.getElementById('game-description-input');
         const gameTitleInput = document.getElementById('game-title-input');
         const createButton = document.getElementById('create-button');
@@ -174,19 +182,17 @@
         `;
 
         /**
-         * Renders all the saved game buttons on the main menu.
+         * Renders all game options in the dropdown.
          */
-        const renderSavedGames = () => {
-            savedGamesContainer.innerHTML = '';
+        const renderGameOptions = () => {
+            savedGamesSelect.innerHTML = '<option value="" disabled selected>Select a game to play</option>';
+            
+            // Add all the saved games
             savedGames.forEach(game => {
-                const button = document.createElement('button');
-                button.classList.add(
-                    'py-4', 'px-6', 'font-bold', 'rounded-lg', 'shadow-md', 'transition', 'duration-200', 'text-white', 'w-full',
-                    'bg-blue-600', 'hover:bg-blue-700'
-                );
-                button.textContent = game.title;
-                button.addEventListener('click', () => startGame(game.id));
-                savedGamesContainer.appendChild(button);
+                const option = document.createElement('option');
+                option.value = game.id;
+                option.textContent = game.title;
+                savedGamesSelect.appendChild(option);
             });
         };
 
@@ -195,7 +201,7 @@
          */
         const loadGames = () => {
             savedGames = JSON.parse(localStorage.getItem('savedGames') || '[]');
-            renderSavedGames();
+            renderGameOptions();
         };
 
         /**
@@ -302,7 +308,7 @@
                 // Clear inputs and go back to main menu
                 gameDescriptionInput.value = '';
                 gameTitleInput.value = '';
-                renderSavedGames();
+                renderGameOptions();
                 showMainMenu();
             } else {
                 alert('Sorry, I could not create that game. Please try a different description.');
@@ -352,9 +358,31 @@
             gameIframe.srcdoc = '';
         };
 
+        /**
+         * Displays the create game menu and hides the main menu.
+         */
+        const showCreateGameMenu = () => {
+            mainMenu.classList.add('hidden');
+            createGameMenu.classList.remove('hidden');
+        };
+
+        /**
+         * Hides the create game menu and displays the main menu.
+         */
+        const showMainMenu = () => {
+            createGameMenu.classList.add('hidden');
+            mainMenu.classList.remove('hidden');
+        };
+
         // Event listeners
         playFootballBtn.addEventListener('click', () => startGame('football'));
         newGameBtn.addEventListener('click', showCreateGameMenu);
+        savedGamesSelect.addEventListener('change', (event) => {
+            const selectedGameId = event.target.value;
+            if (selectedGameId) {
+                startGame(selectedGameId);
+            }
+        });
         createButton.addEventListener('click', createNewGame);
         backButton.addEventListener('click', showMainMenu);
         backToMenuFromGameBtn.addEventListener('click', backToMenuFromGame);
