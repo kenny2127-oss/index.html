@@ -420,6 +420,25 @@
                 'Tennessee Titans', 'Washington Commanders'
             ];
             
+            // A list of all the main screen elements for centralized control
+            const allScreens = [
+                mainMenu, quickPlayMenu, franchiseMenu, newLeagueMenu,
+                franchiseTeamSelectMenu, customizeFranchiseMenu, gameSettingsMenu, gameScreen
+            ];
+
+            /**
+             * Central function to hide all screens and show a specific one.
+             * @param {HTMLElement} screenToShow The element to make visible.
+             */
+            const showScreen = (screenToShow) => {
+                allScreens.forEach(screen => {
+                    screen.classList.add('hidden');
+                });
+                if (screenToShow) {
+                    screenToShow.classList.remove('hidden');
+                }
+            };
+            
             // Helper function to show messages
             const showMessage = (message, type = 'success') => {
                 const msgBox = document.createElement('div');
@@ -491,14 +510,7 @@
                 currentGameCode = code;
 
                 // Hide menus and show the game screen
-                mainMenu.classList.add('hidden');
-                quickPlayMenu.classList.add('hidden');
-                franchiseMenu.classList.add('hidden');
-                newLeagueMenu.classList.add('hidden');
-                franchiseTeamSelectMenu.classList.add('hidden');
-                customizeFranchiseMenu.classList.add('hidden');
-                gameSettingsMenu.classList.add('hidden');
-                gameScreen.classList.remove('hidden');
+                showScreen(gameScreen);
 
                 // Load the game code into the iframe
                 gameIframe.srcdoc = code;
@@ -528,111 +540,44 @@
                 }
             };
 
-            /**
-             * Handles the back button on the game screen.
-             */
-            const backToMenuFromGame = () => {
-                gameScreen.classList.add('hidden');
-                mainMenu.classList.remove('hidden');
-                // Stop the game and clear the iframe
-                gameIframe.srcdoc = '';
-                currentGameCode = '';
-            };
-
-            /**
-             * Hides all other menus and displays the main menu.
-             */
-            const showMainMenu = () => {
-                quickPlayMenu.classList.add('hidden');
-                franchiseMenu.classList.add('hidden');
-                newLeagueMenu.classList.add('hidden');
-                franchiseTeamSelectMenu.classList.add('hidden');
-                customizeFranchiseMenu.classList.add('hidden');
-                gameSettingsMenu.classList.add('hidden');
-                gameScreen.classList.add('hidden');
-                mainMenu.classList.remove('hidden');
-                loadLastGameData();
-            };
-
-            /**
-             * Hides all other menus and displays the quick play menu.
-             */
-            const showQuickPlayMenu = () => {
-                mainMenu.classList.add('hidden');
-                gameSettingsMenu.classList.add('hidden');
-                quickPlayMenu.classList.remove('hidden');
-            };
-
-            /**
-             * Hides all other menus and displays the franchise menu.
-             */
-            const showFranchiseMenu = () => {
-                mainMenu.classList.add('hidden');
-                newLeagueMenu.classList.add('hidden');
-                franchiseMenu.classList.remove('hidden');
-            };
-
-            /**
-             * Hides all other menus and displays the new league menu.
-             */
-            const showNewLeagueMenu = () => {
-                franchiseMenu.classList.add('hidden');
-                franchiseTeamSelectMenu.classList.add('hidden'); // Added this line
-                newLeagueMenu.classList.remove('hidden');
-            };
-            
-            /**
-             * Displays the game settings menu and hides the quick play menu.
-             */
-            const showGameSettingsMenu = (teamName) => {
-                quickPlayMenu.classList.add('hidden');
-                gameSettingsMenu.classList.remove('hidden');
-                // Optional: set a title for the settings screen based on the team
-            };
-
-            /**
-             * Shows the Franchise Team Select menu and simulates player import.
-             */
-            const showFranchiseTeamSelectMenu = (rosterType) => {
-                newLeagueMenu.classList.add('hidden');
-                franchiseTeamSelectMenu.classList.remove('hidden');
-                showMessage(`Importing ${rosterType} players...`, 'success');
-                renderTeamsList(franchiseTeamsList, showCustomizeFranchiseMenu);
-            };
-
-            /**
-             * Shows the Franchise Customization menu.
-             */
-            const showCustomizeFranchiseMenu = (teamName) => {
-                franchiseTeamSelectMenu.classList.add('hidden');
-                customizeFranchiseMenu.classList.remove('hidden');
-            };
-
             // Event listeners
-            playFootballBtn.addEventListener('click', showQuickPlayMenu);
-            franchiseBtn.addEventListener('click', showFranchiseMenu);
+            playFootballBtn.addEventListener('click', () => showScreen(quickPlayMenu));
+            franchiseBtn.addEventListener('click', () => showScreen(franchiseMenu));
             loadGameBtn.addEventListener('click', loadLastGame);
             
-            backToMenuFromQuickPlayBtn.addEventListener('click', showMainMenu);
-            backToMenuFromFranchiseBtn.addEventListener('click', showMainMenu);
+            backToMenuFromQuickPlayBtn.addEventListener('click', () => showScreen(mainMenu));
+            backToMenuFromFranchiseBtn.addEventListener('click', () => showScreen(mainMenu));
 
-            createNewLeagueBtn.addEventListener('click', showNewLeagueMenu);
-            backToFranchiseBtn.addEventListener('click', showFranchiseMenu);
+            createNewLeagueBtn.addEventListener('click', () => showScreen(newLeagueMenu));
+            backToFranchiseBtn.addEventListener('click', () => showScreen(franchiseMenu));
             
             // New League Roster buttons (triggering the franchise team select screen)
-            rosterLiveRealLifeBtn.addEventListener('click', () => showFranchiseTeamSelectMenu('Live Real Life Roster'));
-            rosterLiveActiveBtn.addEventListener('click', () => showFranchiseTeamSelectMenu('Live Active Roster'));
-            rosterOfflinePreseasonBtn.addEventListener('click', () => showFranchiseTeamSelectMenu('Offline Preseason Roster'));
-            rosterOfflineActiveBtn.addEventListener('click', () => showFranchiseTeamSelectMenu('Offline Active Roster'));
+            rosterLiveRealLifeBtn.addEventListener('click', () => {
+                showScreen(franchiseTeamSelectMenu);
+                showMessage('Importing Live Real Life Roster players...', 'success');
+                renderTeamsList(franchiseTeamsList, () => showScreen(customizeFranchiseMenu));
+            });
+            rosterLiveActiveBtn.addEventListener('click', () => {
+                showScreen(franchiseTeamSelectMenu);
+                showMessage('Importing Live Active Roster players...', 'success');
+                renderTeamsList(franchiseTeamsList, () => showScreen(customizeFranchiseMenu));
+            });
+            rosterOfflinePreseasonBtn.addEventListener('click', () => {
+                showScreen(franchiseTeamSelectMenu);
+                showMessage('Importing Offline Preseason Roster players...', 'success');
+                renderTeamsList(franchiseTeamsList, () => showScreen(customizeFranchiseMenu));
+            });
+            rosterOfflineActiveBtn.addEventListener('click', () => {
+                showScreen(franchiseTeamSelectMenu);
+                showMessage('Importing Offline Active Roster players...', 'success');
+                renderTeamsList(franchiseTeamsList, () => showScreen(customizeFranchiseMenu));
+            });
 
             // Back button for Franchise Team Select
-            backToNewLeagueBtn.addEventListener('click', showNewLeagueMenu);
+            backToNewLeagueBtn.addEventListener('click', () => showScreen(newLeagueMenu));
 
             // Back button for Franchise Customize
-            backToFranchiseTeamSelectBtn.addEventListener('click', () => {
-                customizeFranchiseMenu.classList.add('hidden');
-                franchiseTeamSelectMenu.classList.remove('hidden');
-            });
+            backToFranchiseTeamSelectBtn.addEventListener('click', () => showScreen(franchiseTeamSelectMenu));
 
             // Start playing button from the new Franchise Customize menu
             startPlayingBtn.addEventListener('click', () => {
@@ -657,14 +602,14 @@
                 startGame(footballGameCode);
             });
             
-            backToQuickPlayBtn.addEventListener('click', showQuickPlayMenu);
-            backToMenuFromGameBtn.addEventListener('click', backToMenuFromGame);
+            backToQuickPlayBtn.addEventListener('click', () => showScreen(quickPlayMenu));
+            backToMenuFromGameBtn.addEventListener('click', () => showScreen(mainMenu));
             saveGameBtn.addEventListener('click', saveCurrentGame);
 
             // Initial setup
             loadLastGameData();
             // Render teams for Quick Play menu
-            renderTeamsList(teamsList, showGameSettingsMenu);
+            renderTeamsList(teamsList, () => showScreen(gameSettingsMenu));
         });
     </script>
 
