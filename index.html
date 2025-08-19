@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Voice Reader</title>
+    <title>Screen Reader Prototype</title>
     <!-- Tailwind CSS CDN for modern, mobile-friendly styling -->
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
@@ -41,25 +41,36 @@
 <body class="bg-gray-900 min-h-screen flex flex-col items-center justify-center py-8 px-4">
 
     <div class="container bg-gray-800 rounded-xl shadow-lg p-6 mb-6">
-        <h1 class="text-3xl font-bold text-center text-indigo-400 mb-4">Voice Reader</h1>
+        <h1 class="text-3xl font-bold text-center text-indigo-400 mb-4">Screen Reader Prototype</h1>
         <p class="text-center text-sm mb-6 text-gray-400">
-            Type or paste text below and click 'Read Aloud'.
+            Paste text from a website below and use the controls to read it aloud.
         </p>
 
         <div class="mb-4">
             <textarea
                 id="text-input"
                 class="w-full h-48 p-3 bg-gray-700 rounded-lg border border-gray-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none text-sm placeholder-gray-400"
-                placeholder="Hello, I am your voice assistant. Type something here and I will read it for you."
+                placeholder="Paste the text you want to read here."
             ></textarea>
         </div>
 
-        <button
-            id="read-aloud-btn"
-            class="w-full py-3 px-4 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-lg transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-            Read Aloud
-        </button>
+        <div class="flex gap-4 mb-4">
+            <button
+                id="start-btn"
+                class="flex-1 py-3 px-4 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-lg transition duration-200"
+                aria-label="Start reading aloud"
+            >
+                Start Reading
+            </button>
+            <button
+                id="stop-btn"
+                class="flex-1 py-3 px-4 bg-red-600 hover:bg-red-700 text-white font-bold rounded-lg transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                aria-label="Stop reading"
+                disabled
+            >
+                Stop Reading
+            </button>
+        </div>
 
         <div id="status-message" class="mt-4 p-3 text-sm rounded-lg text-center hidden"></div>
     </div>
@@ -85,7 +96,8 @@
     <script>
         // Get references to the HTML elements
         const textInput = document.getElementById('text-input');
-        const readAloudBtn = document.getElementById('read-aloud-btn');
+        const startBtn = document.getElementById('start-btn');
+        const stopBtn = document.getElementById('stop-btn');
         const statusMessage = document.getElementById('status-message');
         const errorModal = document.getElementById('error-modal');
         const closeModalBtn = document.getElementById('close-modal-btn');
@@ -111,51 +123,56 @@
         };
 
         /**
-         * Handles the text-to-speech functionality when the button is clicked.
+         * Clears the current speech and resets button states.
          */
-        const handleReadAloud = () => {
-            // If the speech is already in progress, stop it first
+        const resetSpeech = () => {
             if (window.speechSynthesis.speaking) {
                 window.speechSynthesis.cancel();
             }
+            startBtn.disabled = false;
+            stopBtn.disabled = true;
+        };
 
+        /**
+         * Starts the text-to-speech functionality.
+         */
+        const startReading = () => {
             const text = textInput.value.trim();
 
-            // Check if there is any text to read
             if (!text) {
-                showStatusMessage("Please enter some text to read.", 'bg-red-800 text-red-200');
+                showStatusMessage("Please paste some text to read.", 'bg-red-800 text-red-200');
                 return;
             }
-            
-            // Check if the browser supports the Web Speech API
+
             if (!('speechSynthesis' in window)) {
                 showStatusMessage("Sorry, your browser doesn't support Text-to-Speech.", 'bg-red-800 text-red-200');
                 return;
             }
 
             try {
-                // Create a new speech utterance object
-                utterance = new SpeechSynthesisUtterance(text);
-                
-                // Add event listeners for feedback
+                // If there's no ongoing speech, create a new utterance
+                if (!window.speechSynthesis.speaking) {
+                    utterance = new SpeechSynthesisUtterance(text);
+                }
+
                 utterance.onstart = () => {
-                    readAloudBtn.disabled = true;
+                    startBtn.disabled = true;
+                    stopBtn.disabled = false;
                     showStatusMessage("Speaking...", 'bg-blue-800 text-blue-200');
                 };
 
                 utterance.onend = () => {
-                    readAloudBtn.disabled = false;
-                    showStatusMessage("Finished speaking.", 'bg-green-800 text-green-200');
+                    resetSpeech();
+                    showStatusMessage("Finished reading.", 'bg-green-800 text-green-200');
                 };
 
                 utterance.onerror = (event) => {
-                    readAloudBtn.disabled = false;
+                    resetSpeech();
                     console.error('SpeechSynthesisError', event.error);
                     showStatusMessage("An error occurred.", 'bg-red-800 text-red-200');
                     showErrorModal();
                 };
 
-                // Use the device's default speech synthesis to speak the text
                 window.speechSynthesis.speak(utterance);
 
             } catch (e) {
@@ -165,8 +182,17 @@
             }
         };
 
+        /**
+         * Stops the text-to-speech functionality.
+         */
+        const stopReading = () => {
+            resetSpeech();
+            showStatusMessage("Reading stopped.", 'bg-yellow-800 text-yellow-200');
+        };
+
         // Event listeners
-        readAloudBtn.addEventListener('click', handleReadAloud);
+        startBtn.addEventListener('click', startReading);
+        stopBtn.addEventListener('click', stopReading);
         closeModalBtn.addEventListener('click', () => {
             errorModal.classList.add('hidden');
         });
