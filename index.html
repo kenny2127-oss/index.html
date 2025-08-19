@@ -973,10 +973,10 @@
                 const outcome = Math.random();
                 // Logic for field goal success based on distance
                 if (distance < 50 && outcome > 0.2 || distance >= 50 && outcome > 0.7) {
-                    announcePlay('The field goal is good!');
+                    announcePlay(`The ${gameState.offense} field goal attempt is good!`);
                     scoreFieldGoal();
                 } else {
-                    announcePlay('The field goal is no good!');
+                    announcePlay(`The ${gameState.offense} field goal is no good!`);
                     // Turn over on downs
                     const tempTeam = gameState.offense;
                     gameState.offense = gameState.defense;
@@ -1065,6 +1065,7 @@
                 } else {
                     gameState.awayScore += 3;
                 }
+                announcePlay(`The score is now ${gameState.homeTeam} ${gameState.homeScore}, and ${gameState.awayTeam} ${gameState.awayScore}.`);
                 // Switch teams and reset for next possession
                 const tempTeam = gameState.offense;
                 gameState.offense = gameState.defense;
@@ -1208,9 +1209,8 @@
             // Quick Play game settings and start
             startQuickPlayBtn.addEventListener('click', () => {
                 // Get a random opponent
-                const opponentTeam = nflTeams[Math.floor(Math.random() * nflTeams.length)];
-                // Assume the player picked a team by clicking a button
-                newGame('San Francisco 49ers', opponentTeam);
+                const opponentTeam = nflTeams.filter(t => t !== gameState.selectedTeam)[Math.floor(Math.random() * (nflTeams.length - 1))];
+                newGame(gameState.selectedTeam, opponentTeam);
             });
             backToQuickPlayBtn.addEventListener('click', () => showScreen(quickPlayMenu));
 
