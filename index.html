@@ -388,9 +388,11 @@
 
             /**
              * Displays the quick play menu and hides the main menu.
+             * This function is also now used to navigate back from the settings menu.
              */
             const showQuickPlayMenu = () => {
                 mainMenu.classList.add('hidden');
+                gameSettingsMenu.classList.add('hidden'); // Ensure the settings menu is hidden
                 quickPlayMenu.classList.remove('hidden');
             };
             
