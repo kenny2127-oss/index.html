@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Madden Main Menu</title>
+    <title>Madden Game</title>
     <!--
       Load the Tailwind CSS CDN for styling.
       This allows us to use Tailwind classes without a build process.
@@ -20,46 +20,121 @@
 </head>
 <body class="bg-gray-950 text-white flex items-center justify-center min-h-screen p-4">
 
-    <!-- Main container for the menu, centered and styled -->
+    <!--
+      Main container for the entire application.
+      All "screens" will be placed inside this container.
+    -->
     <div class="text-center p-8 rounded-2xl shadow-2xl bg-gray-900 bg-opacity-90 max-w-sm md:max-w-md w-full">
-        <!-- Main title with a gradient effect -->
-        <h1 class="text-6xl md:text-8xl font-black mb-8 bg-gradient-to-r from-blue-500 to-green-400 text-transparent bg-clip-text drop-shadow-xl">
-            MADDEN
-        </h1>
 
-        <!-- Container for the menu buttons with vertical spacing -->
-        <div class="space-y-4 flex flex-col items-stretch">
-            <!-- Menu Button: PLAY NOW -->
-            <button
-                class="w-full p-4 cursor-pointer rounded-xl transition-all duration-300 ease-in-out transform shadow-lg bg-gray-800 bg-opacity-70 hover:bg-white hover:bg-opacity-10 hover:scale-105">
-                <span class="block text-2xl md:text-3xl font-bold tracking-wider uppercase">PLAY NOW</span>
-            </button>
+        <!-- ==================== MAIN MENU SCREEN ==================== -->
+        <!-- This div represents the main menu "page". It is shown by default. -->
+        <div id="main-menu-screen">
+            <!-- Main Title -->
+            <h1 class="text-6xl md:text-8xl font-black mb-8 bg-gradient-to-r from-blue-500 to-green-400 text-transparent bg-clip-text drop-shadow-xl">
+                MADDEN
+            </h1>
 
-            <!-- Menu Button: FRANCHISE -->
-            <button
-                class="w-full p-4 cursor-pointer rounded-xl transition-all duration-300 ease-in-out transform shadow-lg bg-gray-800 bg-opacity-70 hover:bg-white hover:bg-opacity-10 hover:scale-105">
-                <span class="block text-2xl md:text-3xl font-bold tracking-wider uppercase">FRANCHISE</span>
-            </button>
+            <!-- Menu Buttons -->
+            <div class="space-y-4 flex flex-col items-stretch">
+                <!-- Button to navigate to the Play Now screen -->
+                <button
+                    id="play-now-button"
+                    class="w-full p-4 cursor-pointer rounded-xl transition-all duration-300 ease-in-out transform shadow-lg bg-gray-800 bg-opacity-70 hover:bg-white hover:bg-opacity-10 hover:scale-105">
+                    <span class="block text-2xl md:text-3xl font-bold tracking-wider uppercase">PLAY NOW</span>
+                </button>
 
-            <!-- Menu Button: ULTIMATE TEAM -->
-            <button
-                class="w-full p-4 cursor-pointer rounded-xl transition-all duration-300 ease-in-out transform shadow-lg bg-gray-800 bg-opacity-70 hover:bg-white hover:bg-opacity-10 hover:scale-105">
-                <span class="block text-2xl md:text-3xl font-bold tracking-wider uppercase">ULTIMATE TEAM</span>
-            </button>
+                <button
+                    class="w-full p-4 cursor-pointer rounded-xl transition-all duration-300 ease-in-out transform shadow-lg bg-gray-800 bg-opacity-70 hover:bg-white hover:bg-opacity-10 hover:scale-105">
+                    <span class="block text-2xl md:text-3xl font-bold tracking-wider uppercase">FRANCHISE</span>
+                </button>
 
-            <!-- Menu Button: SETTINGS -->
-            <button
-                class="w-full p-4 cursor-pointer rounded-xl transition-all duration-300 ease-in-out transform shadow-lg bg-gray-800 bg-opacity-70 hover:bg-white hover:bg-opacity-10 hover:scale-105">
-                <span class="block text-2xl md:text-3xl font-bold tracking-wider uppercase">SETTINGS</span>
-            </button>
+                <button
+                    class="w-full p-4 cursor-pointer rounded-xl transition-all duration-300 ease-in-out transform shadow-lg bg-gray-800 bg-opacity-70 hover:bg-white hover:bg-opacity-10 hover:scale-105">
+                    <span class="block text-2xl md:text-3xl font-bold tracking-wider uppercase">ULTIMATE TEAM</span>
+                </button>
 
-            <!-- Menu Button: CREDITS -->
-            <button
-                class="w-full p-4 cursor-pointer rounded-xl transition-all duration-300 ease-in-out transform shadow-lg bg-gray-800 bg-opacity-70 hover:bg-white hover:bg-opacity-10 hover:scale-105">
-                <span class="block text-2xl md:text-3xl font-bold tracking-wider uppercase">CREDITS</span>
-            </button>
+                <button
+                    class="w-full p-4 cursor-pointer rounded-xl transition-all duration-300 ease-in-out transform shadow-lg bg-gray-800 bg-opacity-70 hover:bg-white hover:bg-opacity-10 hover:scale-105">
+                    <span class="block text-2xl md:text-3xl font-bold tracking-wider uppercase">SETTINGS</span>
+                </button>
+
+                <button
+                    class="w-full p-4 cursor-pointer rounded-xl transition-all duration-300 ease-in-out transform shadow-lg bg-gray-800 bg-opacity-70 hover:bg-white hover:bg-opacity-10 hover:scale-105">
+                    <span class="block text-2xl md:text-3xl font-bold tracking-wider uppercase">CREDITS</span>
+                </button>
+            </div>
         </div>
+
+        <!-- ==================== PLAY NOW SCREEN ==================== -->
+        <!-- This div represents the Play Now "page". It is hidden by default. -->
+        <div id="play-now-screen" class="hidden">
+            <!-- Screen Title -->
+            <h1 class="text-5xl md:text-7xl font-black mb-8 bg-gradient-to-r from-blue-500 to-green-400 text-transparent bg-clip-text drop-shadow-xl">
+                PLAY NOW
+            </h1>
+
+            <!-- Game Mode Buttons -->
+            <div class="space-y-4 flex flex-col items-stretch">
+                <button
+                    class="w-full p-4 cursor-pointer rounded-xl transition-all duration-300 ease-in-out transform shadow-lg bg-gray-800 bg-opacity-70 hover:bg-white hover:bg-opacity-10 hover:scale-105">
+                    <span class="block text-2xl md:text-3xl font-bold tracking-wider uppercase">QUICK MATCH</span>
+                </button>
+
+                <button
+                    class="w-full p-4 cursor-pointer rounded-xl transition-all duration-300 ease-in-out transform shadow-lg bg-gray-800 bg-opacity-70 hover:bg-white hover:bg-opacity-10 hover:scale-105">
+                    <span class="block text-2xl md:text-3xl font-bold tracking-wider uppercase">VS. CPU</span>
+                </button>
+
+                <button
+                    class="w-full p-4 cursor-pointer rounded-xl transition-all duration-300 ease-in-out transform shadow-lg bg-gray-800 bg-opacity-70 hover:bg-white hover:bg-opacity-10 hover:scale-105">
+                    <span class="block text-2xl md:text-3xl font-bold tracking-wider uppercase">2-PLAYER</span>
+                </button>
+
+                <div class="h-4"></div>
+
+                <!-- Button to navigate back to the main menu -->
+                <button
+                    id="back-button"
+                    class="w-full p-4 cursor-pointer rounded-xl transition-all duration-300 ease-in-out transform shadow-lg bg-red-800 bg-opacity-70 hover:bg-red-700 hover:scale-105">
+                    <span class="block text-2xl md:text-3xl font-bold tracking-wider uppercase">BACK</span>
+                </button>
+            </div>
+        </div>
+
     </div>
+
+    <!-- The JavaScript for navigation -->
+    <script>
+        // Get references to the screen divs
+        const mainMenuScreen = document.getElementById('main-menu-screen');
+        const playNowScreen = document.getElementById('play-now-screen');
+
+        // Get references to the buttons
+        const playNowButton = document.getElementById('play-now-button');
+        const backButton = document.getElementById('back-button');
+
+        /**
+         * Function to show a specific screen and hide all others.
+         * @param {string} screenId The ID of the screen to show.
+         */
+        const showScreen = (screenId) => {
+            // Hide all screens first
+            mainMenuScreen.classList.add('hidden');
+            playNowScreen.classList.add('hidden');
+            
+            // Show the requested screen
+            document.getElementById(screenId).classList.remove('hidden');
+        };
+
+        // Add event listeners to the buttons to handle navigation
+        playNowButton.addEventListener('click', () => {
+            showScreen('play-now-screen');
+        });
+
+        backButton.addEventListener('click', () => {
+            showScreen('main-menu-screen');
+        });
+    </script>
 
 </body>
 </html>
