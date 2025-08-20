@@ -1,209 +1,95 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Accessible Madden Style Game</title>
-  <style>
-    body { font-family: Arial, sans-serif; background:#111; color:#fff; text-align:center; }
-    .hidden { display:none; }
-    button { display:block; margin:10px auto; padding:10px 20px; font-size:18px; border-radius:8px; }
-    h1,h2 { margin-top:20px; }
-  </style>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Accessible Madden-Style Game</title>
+<style>
+  body{margin:0;background:#111;color:#fff;font-family:system-ui,Segoe UI,Roboto,Arial,sans-serif}
+  header{padding:16px;text-align:center;font-weight:700;font-size:1.5rem}
+  main{padding:16px;display:flex;flex-direction:column;align-items:center;min-height:calc(100vh - 64px)}
+  button,select{width:100%;max-width:560px;padding:14px 18px;margin:8px 0;font-size:1.1rem;border-radius:12px;border:2px solid #fff;background:#1b1b1b;color:#fff}
+  button:focus,select:focus{outline:3px solid #ffbf00;outline-offset:2px}
+  .hidden{display:none}
+  .sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0;margin:-1px;padding:0}
+  h1,h2{margin:8px 0 12px}
+  .info{margin:8px 0 16px;font-size:1.05rem}
+</style>
 </head>
 <body>
-  <!-- Main Menu -->
-  <main id="mainMenu">
-    <h1>Main Menu</h1>
-    <button data-action="quick">Quick Play</button>
-    <button data-action="franchise">Franchise</button>
-    <button data-action="ultimate">Ultimate Team</button>
-    <button data-action="practice">Practice</button>
-    <button data-action="settings">Settings</button>
-  </main>
+<header>Accessible Madden</header>
 
-  <!-- Quick Play Team Selection -->
-  <main id="quickPlaySelect" class="hidden" aria-hidden="true">
-    <h2>Quick Play - Team Select</h2>
-    <label>Home Team:
-      <select id="homeTeam">
-        <option>Team A</option>
-        <option>Team B</option>
-        <option>Team C</option>
-      </select>
-    </label>
-    <label>Away Team:
-      <select id="awayTeam">
-        <option>Team X</option>
-        <option>Team Y</option>
-        <option>Team Z</option>
-      </select>
-    </label>
-    <button id="startQuickGame">Start Game</button>
-    <button onclick="showMenu(mainMenu, quickPlaySelect)">Back</button>
-  </main>
+<!-- Main Menu -->
+<main id="mainMenu">
+  <h1>Main Menu</h1>
+  <button role="menuitem" data-action="quick">Quick Play</button>
+  <button role="menuitem" data-action="franchise">Franchise</button>
+  <button role="menuitem" data-action="mut">Ultimate Team</button>
+  <button role="menuitem" data-action="practice">Practice</button>
+  <button role="menuitem" data-action="settings">Settings</button>
+</main>
 
-  <!-- Quick Play Gameplay -->
-  <main id="quickPlayGame" class="hidden" aria-hidden="true">
-    <h2 id="scoreboard">Team A 0 - 0 Team X | Q1</h2>
-    <p id="downInfo">Ball on 25 yard line, 1st & 10</p>
-    <button data-play="run">Run Play</button>
-    <button data-play="pass">Pass Play</button>
-    <button data-play="longpass">Long Pass</button>
-    <button data-play="fieldgoal">Field Goal</button>
-    <button data-play="twopoint">Two Point Conversion</button>
-    <button id="nextQuarter">Next Quarter</button>
-  </main>
+<!-- Quick Play: Team Select -->
+<main id="quickPlaySelect" class="hidden" aria-hidden="true">
+  <h2>Quick Play – Team Select</h2>
+  <label for="homeTeam">Home Team</label>
+  <select id="homeTeam">
+    <option>49ers</option><option>Chiefs</option><option>Cowboys</option><option>Eagles</option>
+  </select>
+  <label for="awayTeam">Away Team</label>
+  <select id="awayTeam">
+    <option>Packers</option><option>Bills</option><option>Ravens</option><option>Dolphins</option>
+  </select>
+  <button id="startQuickGame">Start Game</button>
+  <button id="backFromSelect">Back</button>
+</main>
 
-  <!-- Halftime -->
-  <main id="halftimeShow" class="hidden" aria-hidden="true">
-    <h2>Halftime Show</h2>
-    <p id="halftimeScore"></p>
-    <button id="startSecondHalf">Start 3rd Quarter</button>
-  </main>
+<!-- Quick Play: Gameplay -->
+<main id="quickPlayGame" class="hidden" aria-hidden="true">
+  <h2 id="scoreboard">Home 0 — 0 Away | Q1</h2>
+  <p class="info" id="downInfo">Ball on 25 yard line, 1st & 10</p>
+  <button data-play="run">Run Play (2–3 yards)</button>
+  <button data-play="pass">Pass Play (10–15 yards, no TD)</button>
+  <button data-play="longpass">Long Pass (30–40 yards)</button>
+  <button data-play="fieldgoal">Field Goal (try for 3)</button>
+  <button id="nextQuarter">Next Quarter</button>
+  <button id="backFromGame">Back to Main Menu</button>
+</main>
 
-  <!-- Postgame -->
-  <main id="postGame" class="hidden" aria-hidden="true">
-    <h2>Post Game Show</h2>
-    <p id="finalScore"></p>
-    <button onclick="showMenu(mainMenu, postGame)">Return to Main Menu</button>
-  </main>
+<!-- Halftime -->
+<main id="halftimeShow" class="hidden" aria-hidden="true">
+  <h2>Halftime Show</h2>
+  <p class="info" id="halftimeScore"></p>
+  <button id="startSecondHalf">Start 3rd Quarter</button>
+</main>
 
-  <script>
-    const mainMenu = document.getElementById('mainMenu');
-    const quickPlaySelect = document.getElementById('quickPlaySelect');
-    const quickPlayGame = document.getElementById('quickPlayGame');
-    const halftimeShow = document.getElementById('halftimeShow');
-    const postGame = document.getElementById('postGame');
-    const scoreboard = document.getElementById('scoreboard');
-    const downInfo = document.getElementById('downInfo');
+<!-- Postgame -->
+<main id="postGame" class="hidden" aria-hidden="true">
+  <h2>Postgame Show</h2>
+  <p class="info" id="finalScore"></p>
+  <button id="returnToMain">Return to Main Menu</button>
+</main>
 
-    let homeTeam, awayTeam, homeScore, awayScore, quarter, ballOn, down, yardsToGo;
+<!-- Live region for TalkBack/Vox -->
+<div id="live" class="sr-only" aria-live="polite" aria-atomic="true"></div>
 
-    function speak(msg){
-      let u = new SpeechSynthesisUtterance(msg);
-      speechSynthesis.speak(u);
-      console.log("Speak:", msg);
-    }
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const live = document.getElementById('live');
+  const speak = (msg) => { live.textContent = msg; };
 
-    function showMenu(show, ...hideMenus){
-      show.classList.remove('hidden');
-      show.setAttribute('aria-hidden','false');
-      show.querySelector('button,select')?.focus();
-      hideMenus.forEach(m=>{
-        m.classList.add('hidden');
-        m.setAttribute('aria-hidden','true');
-      });
-    }
+  const mainMenu = document.getElementById('mainMenu');
+  const quickPlaySelect = document.getElementById('quickPlaySelect');
+  const quickPlayGame = document.getElementById('quickPlayGame');
+  const halftimeShow = document.getElementById('halftimeShow');
+  const postGame = document.getElementById('postGame');
 
-    // Start Quick Play Game
-    document.getElementById('startQuickGame').addEventListener('click', ()=>{
-      homeTeam = document.getElementById('homeTeam').value;
-      awayTeam = document.getElementById('awayTeam').value;
-      homeScore = 0; awayScore = 0; quarter = 1;
-      ballOn = 25; down = 1; yardsToGo = 10;
-      updateScoreboard();
-      updateDownInfo();
-      showMenu(quickPlayGame, quickPlaySelect, mainMenu);
-      speak(`Game starting. ${homeTeam} versus ${awayTeam}. Kickoff at the 25 yard line.`);
-    });
+  const scoreboard = document.getElementById('scoreboard');
+  const downInfo = document.getElementById('downInfo');
 
-    function updateScoreboard(){
-      scoreboard.textContent = `${homeTeam} ${homeScore} - ${awayScore} ${awayTeam} | Q${quarter}`;
-    }
-
-    function updateDownInfo(){
-      downInfo.textContent = `Ball on ${ballOn} yard line, ${ordinal(down)} & ${yardsToGo}`;
-    }
-
-    function ordinal(n){ return ["1st","2nd","3rd","4th"][n-1] || n+"th"; }
-
-    // Offensive Plays
-    quickPlayGame.querySelectorAll('button[data-play]').forEach(btn=>{
-      btn.addEventListener('click', ()=>{
-        let yards = 0;
-        let play = btn.dataset.play;
-        if(play==="run"){
-          yards = Math.floor(Math.random()*2)+2; // 2-3 yards
-          speak(`Run play gains ${yards} yards.`);
-        } else if(play==="pass"){
-          yards = Math.floor(Math.random()*6)+10; // 10-15 yards
-          speak(`Pass complete for ${yards} yards.`);
-        } else if(play==="longpass"){
-          yards = Math.floor(Math.random()*11)+30; // 30-40 yards
-          speak(`Long pass complete for ${yards} yards.`);
-        } else if(play==="fieldgoal"){
-          let good = Math.random()>.5;
-          if(good){ homeScore+=3; speak("Field goal is good! 3 points."); }
-          else{ speak("Field goal missed."); }
-        } else if(play==="twopoint"){
-          let success = Math.random()>.5;
-          if(success){ homeScore+=2; speak("Two point conversion successful!"); }
-          else{ speak("Two point conversion failed."); }
-        }
-
-        // Handle ball movement + downs
-        if(play==="run"||play==="pass"||play==="longpass"){
-          // check if the play would go beyond the endzone
-          if(ballOn + yards >= 100){
-            homeScore += 7;
-            speak("Touchdown! 7 points.");
-            ballOn = 25; down = 1; yardsToGo = 10;
-          } else {
-            ballOn += yards;
-            yardsToGo -= yards;
-            if(yardsToGo<=0){
-              down = 1; yardsToGo = 10;
-              speak("First down!");
-            } else {
-              down++;
-              if(down>4){
-                speak("Turnover on downs.");
-                down = 1; yardsToGo = 10; ballOn = 25;
-              }
-            }
-          }
-        }
-
-        updateScoreboard();
-        updateDownInfo();
-      });
-    });
-
-    // Quarter Button
-    document.getElementById('nextQuarter').addEventListener('click', ()=>{
-      if(quarter===2){
-        document.getElementById('halftimeScore').textContent = scoreboard.textContent;
-        showMenu(halftimeShow, quickPlayGame);
-        speak("Halftime show.");
-      } else if(quarter===4){
-        document.getElementById('finalScore').textContent = scoreboard.textContent;
-        showMenu(postGame, quickPlayGame);
-        speak("Game over. Postgame show.");
-      } else {
-        quarter++;
-        updateScoreboard();
-        speak(`Quarter ${quarter} begins.`);
-      }
-    });
-
-    document.getElementById('startSecondHalf').addEventListener('click', ()=>{
-      quarter=3;
-      updateScoreboard();
-      showMenu(quickPlayGame, halftimeShow);
-      speak("Second half begins. 3rd quarter.");
-    });
-
-    // Main menu buttons
-    mainMenu.querySelectorAll('button').forEach(btn=>{
-      btn.addEventListener('click', ()=>{
-        if(btn.dataset.action==='quick'){
-          showMenu(quickPlaySelect, mainMenu);
-          speak("Quick Play menu opened. Choose teams.");
-        } else {
-          speak(btn.textContent + " activated.");
-        }
-      });
-    });
-  </script>
-</body>
-</html>
+  const showMenu = (show, ...hide) => {
+    show.classList.remove('hidden');
+    show.setAttribute('aria-hidden','false');
+    const focusTarget = show.querySelector('button,select');
+    if (focusTarget) focusTarget.focus();
+    hide.forEach(m => { m.classList.add('hidden'); m.setAttribute('aria
