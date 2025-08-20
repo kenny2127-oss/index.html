@@ -20,6 +20,7 @@
     <h3>Select Teams</h3>
     <label for="homeTeamSelect">Home Team:</label>
     <select id="homeTeamSelect">
+      <option value="49ers" selected>49ers</option>
       <option value="Cowboys">Cowboys</option>
       <option value="Eagles">Eagles</option>
       <option value="Packers">Packers</option>
@@ -32,6 +33,7 @@
       <option value="Eagles">Eagles</option>
       <option value="Packers">Packers</option>
       <option value="Giants">Giants</option>
+      <option value="49ers">49ers</option>
     </select>
 
     <button onclick="startGame()" aria-label="Start Game">Start Game</button>
@@ -70,7 +72,7 @@
   </div>
 
   <script>
-    let homeTeam = "Cowboys";
+    let homeTeam = "49ers";
     let awayTeam = "Eagles";
     let homeScore = 0;
     let awayScore = 0;
@@ -105,11 +107,11 @@
       ballPosition = 25;
       quarter = 1;
 
-     ,  document.getElementById('teamSelection').style.display = 'none';
+      document.getElementById('teamSelection').style.display = 'none';
       document.getElementById('game').style.display = 'block';
       document.getElementById('offensePlays').style.display = 'block';
       updateSituation();
-      announce(`Game starting. ${homeTeam} vs ${awayTeam}. ${homeTeam} has the ball.`);
+      announce(`Game starting. ${homeTeam} vs ${awayTeam}. ${homeTeam} has the ball at the ${ballPosition} yard line.`);
     }
 
     function startFranchise() {
@@ -121,14 +123,6 @@
       document.getElementById('scoreboard').innerText = `${homeTeam} ${homeScore} - ${awayScore} ${awayTeam}`;
       document.getElementById('situation').innerText =
         `${currentDown} and ${yardsToFirst} at the ${ballPosition} yard line. ${teamWithBall} ball.`;
-
-      if (currentDown === 4 && yardsToFirst > 0) {
-        document.getElementById('offensePlays').style.display = 'none';
-        document.getElementById('fourthDownOptions').style.display = 'block';
-      } else {
-        document.getElementById('offensePlays').style.display = 'block';
-        document.getElementById('fourthDownOptions').style.display = 'none';
-      }
     }
 
     function chooseDefense(choice) {
@@ -177,7 +171,7 @@
       }
 
       updateSituation();
-      announce(msg);
+      announce(`${msg} Current down: ${currentDown}, ${yardsToFirst} yards to first down, ball at ${ballPosition} yard line.`);
     }
 
     function punt() {
@@ -185,7 +179,7 @@
       ballPosition = 100 - puntYards;
       changePossession();
       let teamWithBall = (possession === "home") ? homeTeam : awayTeam;
-      announce(`Punt goes ${puntYards} yards. ${teamWithBall} takes over.`);
+      announce(`Punt goes ${puntYards} yards. ${teamWithBall} takes over at the ${ballPosition} yard line.`);
       updateSituation();
     }
 
@@ -220,4 +214,4 @@
     }
   </script>
 </body>
-</html>, ✅ Fixes applied:, 1., You can choose home and away teams at the start of Quick Play., 2., TalkBack now announces play results without modal dialogs., In,  list
+</html>
