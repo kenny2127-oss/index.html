@@ -41,6 +41,7 @@ label { display:block; margin:10px 0 5px; }
   </select>
   <label for="quarterLength">Quarter Length (minutes)</label>
   <input type="range" id="quarterLength" min="1" max="15" value="5">
+  <button id="startQuick">Start Game</button>
   <div class="scoreboard" id="scoreboard">Score: Home 0 - Away 0 | Quarter 1</div>
   <button id="homeScore3">Home +3</button>
   <button id="homeScore7">Home +7</button>
@@ -78,74 +79,4 @@ label { display:block; margin:10px 0 5px; }
   <h2>Draft System</h2>
   <label for="draftPick">Choose Your Draft Pick</label>
   <select id="draftPick">
-    <option>Quarterback</option><option>Running Back</option><option>Wide Receiver</option><option>Linebacker</option><option>Defensive End</option>
-  </select>
-  <button id="confirmDraft">Confirm Draft</button>
-  <button id="backRoster">Back to Roster</button>
-</main>
-
-<div class="sr-only" aria-live="polite" id="live"></div>
-
-<script>
-const live = document.getElementById('live');
-const mainMenu = document.getElementById('mainMenu');
-const quickPlayMenu = document.getElementById('quickPlayMenu');
-const franchiseMainMenu = document.getElementById('franchiseMainMenu');
-const teamSelectionMenu = document.getElementById('teamSelectionMenu');
-const rosterMenu = document.getElementById('rosterMenu');
-const draftMenu = document.getElementById('draftMenu');
-
-const homeTeam = document.getElementById('homeTeam');
-const awayTeam = document.getElementById('awayTeam');
-const scoreboard = document.getElementById('scoreboard');
-let homeScore = 0;
-let awayScore = 0;
-let quarter = 1;
-
-// Function to update scoreboard
-function updateScoreboard() {
-  scoreboard.textContent = `Score: ${homeTeam.value} ${homeScore} - ${awayTeam.value} ${awayScore} | Quarter ${quarter}`;
-}
-
-// Function to speak messages
-function speak(msg){ live.textContent = msg; }
-
-// Menu switching
-function showMenu(show, ...hideMenus){
-  show.classList.remove('hidden'); show.setAttribute('aria-hidden','false');
-  show.querySelector('button, select, input')?.focus();
-  hideMenus.forEach(menu=>{ if(menu){ menu.classList.add('hidden'); menu.setAttribute('aria-hidden','true'); }});
-}
-
-// Main Menu Buttons
-mainMenu.querySelectorAll('button').forEach(btn=>{
-  btn.addEventListener('click', ()=>{
-    if(btn.dataset.action==='quick'){
-      showMenu(quickPlayMenu, mainMenu, franchiseMainMenu);
-      speak("Quick Play menu opened. Choose Home and Away teams.");
-    } else if(btn.dataset.action==='franchise'){
-      showMenu(franchiseMainMenu, mainMenu, quickPlayMenu);
-      speak("Franchise Mode opened. Start a new season or continue a season.");
-    } else {
-      speak(btn.textContent + " activated");
-    }
-  });
-});
-
-// Quick Play Buttons
-document.getElementById('backMainFromQuick').addEventListener('click', ()=>{
-  showMenu(mainMenu, quickPlayMenu);
-  homeScore = 0; awayScore = 0; quarter = 1; updateScoreboard();
-  speak("Main Menu");
-});
-document.getElementById('homeScore3').addEventListener('click', ()=>{
-  homeScore += 3; updateScoreboard();
-  speak(`${homeTeam.value} scored 3 points. Score is now ${homeTeam.value} ${homeScore} - ${awayTeam.value} ${awayScore}`);
-});
-document.getElementById('homeScore7').addEventListener('click', ()=>{
-  homeScore += 7; updateScoreboard();
-  speak(`${homeTeam.value} scored a touchdown. Score is now ${homeTeam.value} ${homeScore} - ${awayTeam.value} ${awayScore}`);
-});
-document.getElementById('awayScore3').addEventListener('click', ()=>{
-  awayScore += 3; updateScoreboard();
-  speak(`${awayTeam.value} scored 3 points. Score is now ${homeTeam.value} ${homeScore}
+    <option>Quarterback</option
