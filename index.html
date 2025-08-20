@@ -140,13 +140,30 @@
           if(success){ homeScore+=2; speak("Two point conversion successful!"); }
           else{ speak("Two point conversion failed."); }
         }
+
+        // Handle ball movement + downs
         if(play==="run"||play==="pass"||play==="longpass"){
-          ballOn += yards;
-          yardsToGo -= yards;
-          if(yardsToGo<=0){ down=1; yardsToGo=10; speak("First down!"); }
-          else{ down++; if(down>4){ speak("Turnover on downs."); down=1; yardsToGo=10; ballOn=25; } }
-          if(ballOn>=100){ homeScore+=7; speak("Touchdown! 7 points."); ballOn=25; down=1; yardsToGo=10; }
+          // check if the play would go beyond the endzone
+          if(ballOn + yards >= 100){
+            homeScore += 7;
+            speak("Touchdown! 7 points.");
+            ballOn = 25; down = 1; yardsToGo = 10;
+          } else {
+            ballOn += yards;
+            yardsToGo -= yards;
+            if(yardsToGo<=0){
+              down = 1; yardsToGo = 10;
+              speak("First down!");
+            } else {
+              down++;
+              if(down>4){
+                speak("Turnover on downs.");
+                down = 1; yardsToGo = 10; ballOn = 25;
+              }
+            }
+          }
         }
+
         updateScoreboard();
         updateDownInfo();
       });
