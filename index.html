@@ -82,16 +82,17 @@ let lastAnnouncedHomeScore=0, lastAnnouncedAwayScore=0;
 let possession="home", currentDown=1, yardsToFirst=10, ballPosition=25, quarter=1;
 let defenseChoice="zone", quarterTime=15*60, quarterInterval=null;
 let weather="Clear";
-const audioCtx=new (window.AudioContext||window.webkitAudioContext)();
 
-// Unlock audio
-document.body.addEventListener('click',()=>{if(audioCtx.state==='suspended') audioCtx.resume();},{once:true});
+// Hosted audio files
+const sounds={
+  whistle:"https://cdn.pixabay.com/download/audio/2023/03/20/audio_d1f019a63f.mp3?filename=whistle-6287.mp3",
+  crowdFirstDown:"https://cdn.pixabay.com/download/audio/2023/03/20/audio_6b2f015d13.mp3?filename=crowd-cheer-1st-down-6290.mp3",
+  crowdTD:"https://cdn.pixabay.com/download/audio/2023/03/20/audio_1c0d7dbde4.mp3?filename=crowd-cheer-touchdown-6291.mp3",
+  tackle:"https://cdn.pixabay.com/download/audio/2023/03/20/audio_9a8b4b6c48.mp3?filename=tackle-6288.mp3",
+  kick:"https://cdn.pixabay.com/download/audio/2023/03/20/audio_4ef9f3e3f0.mp3?filename=kick-6289.mp3"
+};
 
-// Sound functions
-function playWhistle(){let o=audioCtx.createOscillator(),g=audioCtx.createGain();o.type='square';o.frequency.setValueAtTime(1000,audioCtx.currentTime);g.gain.setValueAtTime(0.2,audioCtx.currentTime);o.connect(g).connect(audioCtx.destination);o.start();o.stop(audioCtx.currentTime+0.2);}
-function playTackle(){let o=audioCtx.createOscillator(),g=audioCtx.createGain();o.type='square';o.frequency.setValueAtTime(60,audioCtx.currentTime);g.gain.setValueAtTime(0.5,audioCtx.currentTime);o.connect(g).connect(audioCtx.destination);o.start();o.stop(audioCtx.currentTime+0.15);}
-function playKick(){let o=audioCtx.createOscillator(),g=audioCtx.createGain();o.type='triangle';o.frequency.setValueAtTime(400,audioCtx.currentTime);g.gain.setValueAtTime(0.3,audioCtx.currentTime);o.connect(g).connect(audioCtx.destination);o.start();o.stop(audioCtx.currentTime+0.25);}
-function playCrowd(type){let o=audioCtx.createOscillator(),g=audioCtx.createGain();o.type='sawtooth';g.gain.setValueAtTime(type==='touchdown'?0.3:0.15,audioCtx.currentTime);o.frequency.setValueAtTime(type==='touchdown'?300:200,audioCtx.currentTime);o.connect(g).connect(audioCtx.destination);o.start();o.stop(audioCtx.currentTime+(type==='touchdown'?1:0.5));}
+function playSound(url){let a=new Audio(url); a.play();}
 
 function announce(msg,ai=false){const t=ai?document.getElementById('aiAnnounce'):document.getElementById('situation'); t.innerText=msg;}
 function updateScore(announceScore=false){document.getElementById('scoreboard').innerText=`${homeTeam} ${homeScore} - ${awayScore} ${awayTeam}`; if(announceScore){if(homeScore!==lastAnnouncedHomeScore||awayScore!==lastAnnouncedAwayScore){announce(`Score Update: ${homeTeam} ${homeScore}, ${awayTeam} ${awayScore}`); lastAnnouncedHomeScore=homeScore; lastAnnouncedAwayScore=awayScore;}}}
@@ -109,13 +110,13 @@ document.getElementById('offensePlays').style.display='block';
 document.getElementById('defensePlays').style.display='none';
 announce(`Game starting. ${homeTeam} vs ${awayTeam}. ${homeTeam} has the ball at the ${ballPosition} yard line. Weather: ${weather}`);
 startQuarterClock();
-playWhistle();
+playSound(sounds.whistle);
 }
 
 function startQuarterClock(){if(quarterInterval) clearInterval(quarterInterval); quarterInterval=setInterval(()=>{quarterTime--; let min=Math.floor(quarterTime/60), sec=quarterTime%60; document.getElementById('quarterClock').innerText=`Quarter ${quarter}, Time Remaining: ${min}:${sec<10?'0'+sec:sec}`; if([300,120,30].includes(quarterTime)) announce(`${min} minutes remaining in Quarter ${quarter}`); if(quarterTime<=0){nextQuarter();}},1000);}
 
 function nextQuarter(){
-quarter++; if(quarter===3){announce("Halftime Show!"); showStats(); playCrowd('firstDown'); quarterTime=15*60;}
+quarter++; if(quarter===3){announce("Halftime Show!"); showStats(); playSound(sounds.crowdFirstDown); quarterTime=15*60;}
 else if(quarter>4){announce(`Game Over! Final Score: ${homeTeam} ${homeScore}, ${awayTeam} ${awayScore}`); clearInterval(quarterInterval);}
 else{announce(`Starting Quarter ${quarter}`); quarterTime=15*60;}
 }
@@ -135,12 +136,12 @@ ballPosition+=yards; yardsToFirst-=yards;
 
 let msg=`${(possession==="home"?homeTeam:awayTeam)} gained ${yards} yards. `;
 let scored=false;
-if(ballPosition>=100){msg+="Touchdown!"; scored=true; playCrowd('touchdown'); if(possession==="home") homeScore+=7; else awayScore+=7; changePossession(true);}
-else if(yardsToFirst<=0){currentDown=1; yardsToFirst=10; msg+="First down!"; playCrowd('firstDown');}
+if(ballPosition>=100){msg+="Touchdown!"; scored=true; playSound(sounds.crowdTD); if(possession==="home") homeScore+=7; else awayScore+=7; changePossession(true);}
+else if(yardsToFirst<=0){currentDown=1; yardsToFirst=10; msg+="First down!"; playSound(sounds.crowdFirstDown);}
 else{currentDown++; if(currentDown>4){msg+="Turnover on downs."; changePossession();}}
 
 updateSituation(); announce(msg+` Current down: ${currentDown}, ${yardsToFirst} yards to first down, ball at ${ballPosition} yard line.`,ai);
-playTackle(); if(scored) updateScore(true);
+playSound(sounds.tackle); if(scored) updateScore(true);
 
 if(possession!=="home"&&!ai) autoPlay();
 }
@@ -149,26 +150,26 @@ function autoPlay(){if(possession==="home") return; const plays=['run','shortPas
 
 function changePossession(reset=false){possession=(possession==="home")?"away":"home"; currentDown=1; yardsToFirst=10; ballPosition=reset?25:100-ballPosition; updateSituation(); if(possession!=="home") autoPlay();}
 
-function punt(){let puntYards=Math.floor(Math.random()*20)+40; ballPosition=100-puntYards; changePossession(); announce(`Punt goes ${puntYards} yards. ${(possession==="home"?homeTeam:awayTeam)} takes over at the ${ballPosition} yard line.`,true); playKick();}
-function fieldGoal(){if(ballPosition>=60){announce("Field goal is good!",true); playKick(); if(possession==="home") homeScore+=3; else awayScore+=3; updateScore(true);} else announce("Field goal is no good.",true); changePossession(true);}
+function punt(){let puntYards=Math.floor(Math.random()*20)+40; ballPosition=100-puntYards; changePossession(); announce(`Punt goes ${puntYards} yards. ${(possession==="home"?homeTeam:awayTeam)} takes over at the ${ballPosition} yard line.`,true); playSound(sounds.kick);}
+function fieldGoal(){if(ballPosition>=60){announce("Field goal is good!",true); playSound(sounds.kick); if(possession==="home") homeScore+=3; else awayScore+=3; updateScore(true);} else announce("Field goal is no good.",true); changePossession(true);}
 function startFranchise(){announce("Franchise Mode coming soon!");}
 
 // Buttons
 document.getElementById('quickPlayBtn').onclick=startQuickPlay;
 document.getElementById('franchiseBtn').onclick=startFranchise;
 document.getElementById('startGameBtn').onclick=startGame;
-document.getElementById('runPlayBtn').onclick=()=>{playWhistle(); callPlay('run');};
-document.getElementById('shortPassBtn').onclick=()=>{playWhistle(); callPlay('shortPass');};
-document.getElementById('longPassBtn').onclick=()=>{playWhistle(); callPlay('longPass');};
-document.getElementById('drawBtn').onclick=()=>{playWhistle(); callPlay('draw');};
-document.getElementById('playActionBtn').onclick=()=>{playWhistle(); callPlay('playAction');};
+document.getElementById('runPlayBtn').onclick=()=>{playSound(sounds.whistle); callPlay('run');};
+document.getElementById('shortPassBtn').onclick=()=>{playSound(sounds.whistle); callPlay('shortPass');};
+document.getElementById('longPassBtn').onclick=()=>{playSound(sounds.whistle); callPlay('longPass');};
+document.getElementById('drawBtn').onclick=()=>{playSound(sounds.whistle); callPlay('draw');};
+document.getElementById('playActionBtn').onclick=()=>{playSound(sounds.whistle); callPlay('playAction');};
 document.getElementById('blitzBtn').onclick=()=>{defenseChoice='blitz'; document.getElementById('defensePlays').style.display='none'; document.getElementById('offensePlays').style.display='block'; announce('Blitz defense set.');};
 document.getElementById('zoneBtn').onclick=()=>{defenseChoice='zone'; document.getElementById('defensePlays').style.display='none'; document.getElementById('offensePlays').style.display='block'; announce('Zone defense set.');};
 document.getElementById('manBtn').onclick=()=>{defenseChoice='man'; document.getElementById('defensePlays').style.display='none'; document.getElementById('offensePlays').style.display='block'; announce('Man coverage defense set.');};
 document.getElementById('preventBtn').onclick=()=>{defenseChoice='prevent'; document.getElementById('defensePlays').style.display='none'; document.getElementById('offensePlays').style.display='block'; announce('Prevent defense set.');};
 document.getElementById('fieldGoalBtn').onclick=fieldGoal;
 document.getElementById('puntBtn').onclick=punt;
-document.getElementById('goForItBtn').onclick=()=>{playWhistle(); callPlay('goForIt');};
+document.getElementById('goForItBtn').onclick=()=>{playSound(sounds.whistle); callPlay('goForIt');};
 
 }
 </script>
