@@ -3,41 +3,77 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Blind Accessible Madden – Franchise Mode</title>
+<title>Blind Accessible Madden</title>
 <style>
 body { margin:0; font-family:system-ui, Segoe UI, Roboto, Arial, sans-serif; background:#000; color:#fff; }
 header { padding:16px; text-align:center; font-weight:700; font-size:1.5rem; }
 main { padding:16px; display:flex; flex-direction:column; align-items:center; min-height:calc(100vh - 64px); }
 button, select, input[type=range] { width:100%; padding:16px 20px; margin:10px 0; font-size:1.25rem; border-radius:14px; border:2px solid #fff; background:#111; color:#fff; }
 button:focus, select:focus, input:focus { outline:3px solid #ffbf00; outline-offset:2px; }
+button:active { transform:scale(.98); }
 .hidden { display:none; }
 .sr-only { position:absolute; width:1px; height:1px; margin:-1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; border:0; }
 label { display:block; margin:10px 0 5px; }
 </style>
 </head>
 <body>
-<header aria-live="polite" aria-atomic="true">Madden – Franchise Mode</header>
+<header aria-live="polite" aria-atomic="true">Madden Game</header>
 
-<main id="franchiseMainMenu">
+<!-- Main Menu -->
+<main id="mainMenu">
+  <button role="menuitem" data-action="quick">Quick Play</button>
+  <button role="menuitem" data-action="franchise">Franchise</button>
+  <button role="menuitem" data-action="mut">Ultimate Team</button>
+  <button role="menuitem" data-action="practice">Practice</button>
+  <button role="menuitem" data-action="settings">Settings</button>
+</main>
+
+<!-- Quick Play Menu -->
+<main id="quickPlayMenu" class="hidden" aria-hidden="true">
+  <label for="homeTeam">Home Team</label>
+  <select id="homeTeam">
+    <option>49ers</option><option>Chiefs</option><option>Cowboys</option><option>Eagles</option>
+  </select>
+  <label for="awayTeam">Away Team</label>
+  <select id="awayTeam">
+    <option>Packers</option><option>Bills</option><option>Ravens</option><option>Dolphins</option>
+  </select>
+  <button id="startQuick">Start Game</button>
+  <button id="backMainFromQuick">Back to Main Menu</button>
+</main>
+
+<!-- Game Settings Menu -->
+<main id="gameSettingsMenu" class="hidden" aria-hidden="true">
+  <label for="quarterLength">Quarter Length (1–15 mins)</label>
+  <input type="range" id="quarterLength" min="1" max="15" value="5">
+  <label for="eventType">Event Type</label>
+  <select id="eventType">
+    <option>Pre-Season</option><option>Regular Season</option><option>Playoffs</option><option>Super Bowl</option>
+  </select>
+  <label for="weather">Weather</label>
+  <select id="weather">
+    <option>Clear</option><option>Cloudy</option><option>Sunny</option>
+    <option>Rain</option><option>Heavy Rain</option><option>Snow</option><option>Heavy Snow</option>
+  </select>
+  <label for="stadium">Stadium</label>
+  <select id="stadium">
+    <option>Home</option><option>Away</option>
+  </select>
+  <button id="confirmGame">Confirm & Start</button>
+  <button id="backQuick">Back to Quick Play</button>
+</main>
+
+<!-- Franchise Mode Menu -->
+<main id="franchiseMainMenu" class="hidden" aria-hidden="true">
   <button id="newSeason">Start New Season</button>
   <button id="continueSeason">Continue Season</button>
-  <button id="backMain">Back to Main Menu</button>
+  <button id="backMainFromFranchise">Back to Main Menu</button>
 </main>
 
 <main id="teamSelectionMenu" class="hidden" aria-hidden="true">
   <label for="franchiseTeam">Select Your Team</label>
   <select id="franchiseTeam">
-    <option>Arizona Cardinals</option><option>Atlanta Falcons</option><option>Baltimore Ravens</option>
-    <option>Buffalo Bills</option><option>Carolina Panthers</option><option>Chicago Bears</option>
-    <option>Cincinnati Bengals</option><option>Cleveland Browns</option><option>Dallas Cowboys</option>
-    <option>Denver Broncos</option><option>Detroit Lions</option><option>Green Bay Packers</option>
-    <option>Houston Texans</option><option>Indianapolis Colts</option><option>Jacksonville Jaguars</option>
-    <option>Kansas City Chiefs</option><option>Las Vegas Raiders</option><option>Los Angeles Chargers</option>
-    <option>Los Angeles Rams</option><option>Miami Dolphins</option><option>Minnesota Vikings</option>
-    <option>New England Patriots</option><option>New Orleans Saints</option><option>New York Giants</option>
-    <option>New York Jets</option><option>Philadelphia Eagles</option><option>Pittsburgh Steelers</option>
-    <option>San Francisco 49ers</option><option>Seattle Seahawks</option><option>Tampa Bay Buccaneers</option>
-    <option>Tennessee Titans</option><option>Washington Commanders</option>
+    <option>49ers</option><option>Chiefs</option><option>Cowboys</option><option>Eagles</option>
   </select>
   <button id="selectTeam">Select Team</button>
   <button id="backFranchiseMain">Back</button>
@@ -55,11 +91,7 @@ label { display:block; margin:10px 0 5px; }
   <h2>Draft System</h2>
   <label for="draftPick">Choose Your Draft Pick</label>
   <select id="draftPick">
-    <option>Quarterback</option>
-    <option>Running Back</option>
-    <option>Wide Receiver</option>
-    <option>Linebacker</option>
-    <option>Defensive End</option>
+    <option>Quarterback</option><option>Running Back</option><option>Wide Receiver</option><option>Linebacker</option><option>Defensive End</option>
   </select>
   <button id="confirmDraft">Confirm Draft</button>
   <button id="backRoster">Back to Roster</button>
@@ -68,85 +100,112 @@ label { display:block; margin:10px 0 5px; }
 <div class="sr-only" aria-live="polite" id="live"></div>
 
 <script>
-// References
 const live = document.getElementById('live');
+const mainMenu = document.getElementById('mainMenu');
+const quickPlayMenu = document.getElementById('quickPlayMenu');
+const gameSettingsMenu = document.getElementById('gameSettingsMenu');
 const franchiseMainMenu = document.getElementById('franchiseMainMenu');
 const teamSelectionMenu = document.getElementById('teamSelectionMenu');
 const rosterMenu = document.getElementById('rosterMenu');
 const draftMenu = document.getElementById('draftMenu');
+
 const teamSelect = document.getElementById('franchiseTeam');
 const teamNameDisplay = document.getElementById('teamNameDisplay');
 
-// Utility function to show/hide menus
 function showMenu(show, ...hideMenus){
-  show.classList.remove('hidden');
-  show.setAttribute('aria-hidden','false');
+  show.classList.remove('hidden'); show.setAttribute('aria-hidden','false');
   show.querySelector('button, select, input')?.focus();
-  hideMenus.forEach(menu=>{
-    if(menu){ menu.classList.add('hidden'); menu.setAttribute('aria-hidden','true'); }
-  });
+  hideMenus.forEach(menu=>{ if(menu){ menu.classList.add('hidden'); menu.setAttribute('aria-hidden','true'); }});
 }
 
-// Live announce
 function speak(msg){ live.textContent = msg; }
 
-// Main Menu
+// Main Menu Buttons
+mainMenu.querySelectorAll('button').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    if(btn.dataset.action==='quick'){
+      showMenu(quickPlayMenu, mainMenu, gameSettingsMenu, franchiseMainMenu);
+      speak("Quick Play menu opened. Choose Home and Away teams.");
+    } else if(btn.dataset.action==='franchise'){
+      showMenu(franchiseMainMenu, mainMenu, quickPlayMenu, gameSettingsMenu);
+      speak("Franchise Mode opened. Start a new season or continue a season.");
+    } else {
+      speak(btn.textContent + " activated");
+    }
+  });
+});
+
+// Quick Play Buttons
+document.getElementById('backMainFromQuick').addEventListener('click', ()=>{
+  showMenu(mainMenu, quickPlayMenu);
+  speak("Main Menu");
+});
+document.getElementById('startQuick').addEventListener('click', ()=>{
+  showMenu(gameSettingsMenu, mainMenu, quickPlayMenu);
+  speak("Game Settings menu opened. Adjust your settings.");
+});
+document.getElementById('backQuick').addEventListener('click', ()=>{
+  showMenu(quickPlayMenu, gameSettingsMenu);
+  speak("Quick Play menu");
+});
+document.getElementById('confirmGame').addEventListener('click', ()=>{
+  const home = document.getElementById('homeTeam').value;
+  const away = document.getElementById('awayTeam').value;
+  const quarter = document.getElementById('quarterLength').value;
+  const eventType = document.getElementById('eventType').value;
+  const weather = document.getElementById('weather').value;
+  const stadium = document.getElementById('stadium').value;
+  speak(`Game starting. ${away} at ${home}. ${eventType}, ${quarter} minute quarters, weather: ${weather}, stadium: ${stadium}`);
+});
+document.getElementById('quarterLength').addEventListener('input', ()=>{
+  speak("Quarter length set to "+document.getElementById('quarterLength').value+" minutes");
+});
+
+// Franchise Mode Buttons
+document.getElementById('backMainFromFranchise').addEventListener('click', ()=>{
+  showMenu(mainMenu, franchiseMainMenu);
+  speak("Main Menu");
+});
 document.getElementById('newSeason').addEventListener('click', ()=>{
   showMenu(teamSelectionMenu, franchiseMainMenu);
   speak("Select your team for the new season");
 });
-
 document.getElementById('continueSeason').addEventListener('click', ()=>{
   showMenu(rosterMenu, franchiseMainMenu);
   speak("Continuing season. Viewing roster");
 });
-
-// Back button
-document.getElementById('backMain').addEventListener('click', ()=>{
-  speak("Returning to main menu");
-});
-
-// Team Selection
 document.getElementById('selectTeam').addEventListener('click', ()=>{
   const team = teamSelect.value;
   teamNameDisplay.textContent = `Team: ${team}`;
   showMenu(rosterMenu, teamSelectionMenu);
   speak(`Team selected: ${team}. Viewing roster`);
 });
-
 document.getElementById('backFranchiseMain').addEventListener('click', ()=>{
   showMenu(franchiseMainMenu, teamSelectionMenu);
   speak("Back to Franchise Main Menu");
 });
-
-// Roster Menu
 document.getElementById('simulateWeek').addEventListener('click', ()=>{
   speak("Week simulated. Check weekly scores in roster menu.");
 });
-
 document.getElementById('draftPlayer').addEventListener('click', ()=>{
   showMenu(draftMenu, rosterMenu);
   speak("Draft menu opened. Choose a player to draft");
 });
-
 document.getElementById('backTeamSelection').addEventListener('click', ()=>{
   showMenu(teamSelectionMenu, rosterMenu);
   speak("Back to team selection");
 });
-
-// Draft Menu
 document.getElementById('confirmDraft').addEventListener('click', ()=>{
   const pick = document.getElementById('draftPick').value;
   speak(`Drafted player: ${pick}`);
 });
-
 document.getElementById('backRoster').addEventListener('click', ()=>{
   showMenu(rosterMenu, draftMenu);
   speak("Back to roster menu");
 });
 
 // Start focus
-franchiseMainMenu.querySelector('button').focus();
+mainMenu.querySelector('button').focus();
 </script>
 </body>
 </html>
