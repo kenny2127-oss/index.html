@@ -241,10 +241,10 @@ const App = () => {
             <div className="menu-card">
                 <h1 className="menu-title">My Madden Game</h1>
                 <div className="flex flex-col space-y-4">
-                    <button onClick={() => handleButtonClick('quick-play')} className="menu-button">Quick Play</button>
-                    <button onClick={() => handleButtonClick('franchise')} className="menu-button">Franchise Mode</button>
-                    <button onClick={() => handleButtonClick('settings')} className="menu-button">Settings</button>
-                    <button onClick={() => showMessage("Exiting... just kidding! You're in a browser.")} className="menu-button">Exit Game</button>
+                    <button onClick={() => handleButtonClick('quick-play')} className="menu-base-button quick-play-button">Quick Play</button>
+                    <button onClick={() => handleButtonClick('franchise')} className="menu-base-button franchise-button">Franchise Mode</button>
+                    <button onClick={() => handleButtonClick('settings')} className="menu-base-button settings-button">Settings</button>
+                    <button onClick={() => showMessage("Exiting... just kidding! You're in a browser.")} className="menu-base-button exit-button">Exit Game</button>
                 </div>
                 {message && <MessageBox message={message} onClose={() => setMessage(null)} />}
             </div>
@@ -524,14 +524,7 @@ const App = () => {
                     width: 100%;
                     max-width: 450px;
                 }
-                .menu-title {
-                    font-size: 2.25rem;
-                    font-weight: 700;
-                    text-align: center;
-                    margin-bottom: 1.5rem;
-                    color: #63b3ed;
-                }
-                .menu-button {
+                .menu-base-button {
                     width: 100%;
                     padding: 1rem 2rem;
                     margin-bottom: 1rem;
@@ -545,14 +538,19 @@ const App = () => {
                     cursor: pointer;
                     border: none;
                 }
-                .menu-button:hover {
+                .menu-base-button:hover {
                     transform: translateY(-2px);
                     box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
                 }
-                .menu-button:active {
+                .menu-base-button:active {
                     transform: translateY(1px);
                     box-shadow: none;
                 }
+                /* You can now add specific styles for each button if you want */
+                .quick-play-button { background: linear-gradient(135deg, #4299e1, #3182ce); }
+                .franchise-button { background: linear-gradient(135deg, #63b3ed, #4a91c6); }
+                .settings-button { background: linear-gradient(135deg, #a0aec0, #718096); }
+                .exit-button { background: linear-gradient(135deg, #f56565, #e53e3e); }
             `}</style>
         </div>
     );
