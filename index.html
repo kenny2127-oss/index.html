@@ -86,7 +86,6 @@ window.onload = function() {
   let ballPosition = 25;
   let quarter = 1;
   let defenseChoice = "zone";
-  let defenseActive = false;
 
   function announce(msg, ai=false) {
     const target = ai ? document.getElementById('aiAnnounce') : document.getElementById('situation');
@@ -108,7 +107,6 @@ window.onload = function() {
     let teamWithBall = (possession === "home") ? homeTeam : awayTeam;
     document.getElementById('situation').innerText =
       `${currentDown} and ${yardsToFirst} at the ${ballPosition} yard line. ${teamWithBall} ball.`;
-    updateScore();
   }
 
   function startQuickPlay() {
@@ -182,11 +180,9 @@ window.onload = function() {
     }
 
     updateSituation();
-    // Only announce score if there was a score change
     announce(msg + ` Current down: ${currentDown}, ${yardsToFirst} yards to first down, ball at ${ballPosition} yard line.`, ai);
     if(scored) updateScore(true);
 
-    // AI auto play
     if(possession!=="home" && !ai) autoPlay();
   }
 
