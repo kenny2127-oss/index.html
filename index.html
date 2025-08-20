@@ -92,7 +92,12 @@ const sounds={
   kick:"https://cdn.pixabay.com/download/audio/2023/03/20/audio_4ef9f3e3f0.mp3?filename=kick-6289.mp3"
 };
 
-function playSound(url){let a=new Audio(url); a.play();}
+// Preload audio
+let audioElements={};
+for(let key in sounds){audioElements[key]=new Audio(sounds[key]);}
+
+// Play sound helper
+function playSound(key){let a=audioElements[key]; a.currentTime=0; a.play();}
 
 function announce(msg,ai=false){const t=ai?document.getElementById('aiAnnounce'):document.getElementById('situation'); t.innerText=msg;}
 function updateScore(announceScore=false){document.getElementById('scoreboard').innerText=`${homeTeam} ${homeScore} - ${awayScore} ${awayTeam}`; if(announceScore){if(homeScore!==lastAnnouncedHomeScore||awayScore!==lastAnnouncedAwayScore){announce(`Score Update: ${homeTeam} ${homeScore}, ${awayTeam} ${awayScore}`); lastAnnouncedHomeScore=homeScore; lastAnnouncedAwayScore=awayScore;}}}
@@ -110,15 +115,29 @@ document.getElementById('offensePlays').style.display='block';
 document.getElementById('defensePlays').style.display='none';
 announce(`Game starting. ${homeTeam} vs ${awayTeam}. ${homeTeam} has the ball at the ${ballPosition} yard line. Weather: ${weather}`);
 startQuarterClock();
-playSound(sounds.whistle);
+playSound('whistle');
 }
 
-function startQuarterClock(){if(quarterInterval) clearInterval(quarterInterval); quarterInterval=setInterval(()=>{quarterTime--; let min=Math.floor(quarterTime/60), sec=quarterTime%60; document.getElementById('quarterClock').innerText=`Quarter ${quarter}, Time Remaining: ${min}:${sec<10?'0'+sec:sec}`; if([300,120,30].includes(quarterTime)) announce(`${min} minutes remaining in Quarter ${quarter}`); if(quarterTime<=0){nextQuarter();}},1000);}
+function startQuarterClock(){
+if(quarterInterval) clearInterval(quarterInterval);
+quarterInterval=setInterval(()=>{
+quarterTime--;
+let min=Math.floor(quarterTime/60), sec=quarterTime%60;
+document.getElementById('quarterClock').innerText=`Quarter ${quarter}, Time Remaining: ${min}:${sec<10?'0'+sec:sec}`;
+if([300,120,30].includes(quarterTime)){announce(`${min} minutes remaining in Quarter ${quarter}`);}
+if(quarterTime<=0){nextQuarter();}
+},1000);
+}
 
 function nextQuarter(){
-quarter++; if(quarter===3){announce("Halftime Show!"); showStats(); playSound(sounds.crowdFirstDown); quarterTime=15*60;}
-else if(quarter>4){announce(`Game Over! Final Score: ${homeTeam} ${homeScore}, ${awayTeam} ${awayScore}`); clearInterval(quarterInterval);}
-else{announce(`Starting Quarter ${quarter}`); quarterTime=15*60;}
+quarter++; 
+if(quarter===3){
+announce("Halftime Show!"); showStats(); playSound('crowdFirstDown'); quarterTime=15*60;
+} else if(quarter>4){
+announce(`Game Over! Final Score: ${homeTeam} ${homeScore}, ${awayTeam} ${awayScore}`); clearInterval(quarterInterval);
+} else{
+announce(`Starting Quarter ${quarter}`); quarterTime=15*60;
+}
 }
 
 function showStats(){announce(`Halftime stats: ${homeTeam} ${homeScore}, ${awayTeam} ${awayScore}. Ball at ${ballPosition}`);}
@@ -132,16 +151,17 @@ else if(playType==='draw'){yards=Math.floor(Math.random()*3)+2;}
 else if(playType==='playAction'){yards=Math.floor(Math.random()*11)+10;}
 else if(playType==='goForIt'){yards=Math.floor(Math.random()*10)+1;}
 if(yards<0) yards=0;
+
 ballPosition+=yards; yardsToFirst-=yards;
 
 let msg=`${(possession==="home"?homeTeam:awayTeam)} gained ${yards} yards. `;
 let scored=false;
-if(ballPosition>=100){msg+="Touchdown!"; scored=true; playSound(sounds.crowdTD); if(possession==="home") homeScore+=7; else awayScore+=7; changePossession(true);}
-else if(yardsToFirst<=0){currentDown=1; yardsToFirst=10; msg+="First down!"; playSound(sounds.crowdFirstDown);}
+if(ballPosition>=100){msg+="Touchdown!"; scored=true; playSound('crowdTD'); if(possession==="home") homeScore+=7; else awayScore+=7; changePossession(true);}
+else if(yardsToFirst<=0){currentDown=1; yardsToFirst=10; msg+="First down!"; playSound('crowdFirstDown');}
 else{currentDown++; if(currentDown>4){msg+="Turnover on downs."; changePossession();}}
 
 updateSituation(); announce(msg+` Current down: ${currentDown}, ${yardsToFirst} yards to first down, ball at ${ballPosition} yard line.`,ai);
-playSound(sounds.tackle); if(scored) updateScore(true);
+playSound('tackle'); if(scored) updateScore(true);
 
 if(possession!=="home"&&!ai) autoPlay();
 }
@@ -150,26 +170,26 @@ function autoPlay(){if(possession==="home") return; const plays=['run','shortPas
 
 function changePossession(reset=false){possession=(possession==="home")?"away":"home"; currentDown=1; yardsToFirst=10; ballPosition=reset?25:100-ballPosition; updateSituation(); if(possession!=="home") autoPlay();}
 
-function punt(){let puntYards=Math.floor(Math.random()*20)+40; ballPosition=100-puntYards; changePossession(); announce(`Punt goes ${puntYards} yards. ${(possession==="home"?homeTeam:awayTeam)} takes over at the ${ballPosition} yard line.`,true); playSound(sounds.kick);}
-function fieldGoal(){if(ballPosition>=60){announce("Field goal is good!",true); playSound(sounds.kick); if(possession==="home") homeScore+=3; else awayScore+=3; updateScore(true);} else announce("Field goal is no good.",true); changePossession(true);}
+function punt(){let puntYards=Math.floor(Math.random()*20)+40; ballPosition=100-puntYards; changePossession(); announce(`Punt goes ${puntYards} yards. ${(possession==="home"?homeTeam:awayTeam)} takes over at the ${ballPosition} yard line.`,true); playSound('kick');}
+function fieldGoal(){if(ballPosition>=60){announce("Field goal is good!",true); playSound('kick'); if(possession==="home") homeScore+=3; else awayScore+=3; updateScore(true);} else announce("Field goal is no good.",true); changePossession(true);}
 function startFranchise(){announce("Franchise Mode coming soon!");}
 
 // Buttons
 document.getElementById('quickPlayBtn').onclick=startQuickPlay;
 document.getElementById('franchiseBtn').onclick=startFranchise;
 document.getElementById('startGameBtn').onclick=startGame;
-document.getElementById('runPlayBtn').onclick=()=>{playSound(sounds.whistle); callPlay('run');};
-document.getElementById('shortPassBtn').onclick=()=>{playSound(sounds.whistle); callPlay('shortPass');};
-document.getElementById('longPassBtn').onclick=()=>{playSound(sounds.whistle); callPlay('longPass');};
-document.getElementById('drawBtn').onclick=()=>{playSound(sounds.whistle); callPlay('draw');};
-document.getElementById('playActionBtn').onclick=()=>{playSound(sounds.whistle); callPlay('playAction');};
+document.getElementById('runPlayBtn').onclick=()=>{playSound('whistle'); callPlay('run');};
+document.getElementById('shortPassBtn').onclick=()=>{playSound('whistle'); callPlay('shortPass');};
+document.getElementById('longPassBtn').onclick=()=>{playSound('whistle'); callPlay('longPass');};
+document.getElementById('drawBtn').onclick=()=>{playSound('whistle'); callPlay('draw');};
+document.getElementById('playActionBtn').onclick=()=>{playSound('whistle'); callPlay('playAction');};
 document.getElementById('blitzBtn').onclick=()=>{defenseChoice='blitz'; document.getElementById('defensePlays').style.display='none'; document.getElementById('offensePlays').style.display='block'; announce('Blitz defense set.');};
 document.getElementById('zoneBtn').onclick=()=>{defenseChoice='zone'; document.getElementById('defensePlays').style.display='none'; document.getElementById('offensePlays').style.display='block'; announce('Zone defense set.');};
 document.getElementById('manBtn').onclick=()=>{defenseChoice='man'; document.getElementById('defensePlays').style.display='none'; document.getElementById('offensePlays').style.display='block'; announce('Man coverage defense set.');};
 document.getElementById('preventBtn').onclick=()=>{defenseChoice='prevent'; document.getElementById('defensePlays').style.display='none'; document.getElementById('offensePlays').style.display='block'; announce('Prevent defense set.');};
 document.getElementById('fieldGoalBtn').onclick=fieldGoal;
 document.getElementById('puntBtn').onclick=punt;
-document.getElementById('goForItBtn').onclick=()=>{playSound(sounds.whistle); callPlay('goForIt');};
+document.getElementById('goForItBtn').onclick=()=>{playSound('whistle'); callPlay('goForIt');};
 
 }
 </script>
