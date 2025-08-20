@@ -3,56 +3,7 @@
 <head>
   <title>Madden Style Football</title>
   <style>
-    body {
-      font-family: sans-serif;
-      text-align: center;
-      background-color: #f0f0f0;
-      padding: 20px;
-    }
-    h1 {
-      color: #333;
-    }
-    button, select {
-      display: block;
-      margin: 10px auto;
-      padding: 10px;
-      font-size: 18px;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      background-color: #007bff;
-      color: white;
-      transition: background-color 0.3s;
-    }
-    button:hover {
-      background-color: #0056b3;
-    }
-    label {
-      font-size: 16px;
-      margin-top: 15px;
-      display: block;
-    }
-    select {
-      background-color: #fff;
-      color: #333;
-      border: 1px solid #ccc;
-    }
-    #game {
-      max-width: 600px;
-      margin: auto;
-      background-color: #fff;
-      padding: 20px;
-      border-radius: 10px;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-    }
-    #scoreboard, #situation {
-      font-size: 24px;
-      font-weight: bold;
-      margin-bottom: 20px;
-    }
-    #offensePlays, #defensePlays, #fourthDownOptions {
-      margin-top: 20px;
-    }
+    button, select { display:block; margin:10px; font-size:18px; }
   </style>
 </head>
 <body>
@@ -127,6 +78,8 @@ window.onload = function() {
   let awayTeam = "Eagles";
   let homeScore = 0;
   let awayScore = 0;
+  let lastAnnouncedHomeScore = 0;
+  let lastAnnouncedAwayScore = 0;
   let possession = "home";
   let currentDown = 1;
   let yardsToFirst = 10;
@@ -134,37 +87,88 @@ window.onload = function() {
   let quarter = 1;
   let defenseChoice = "zone";
 
-  // Function to announce messages for screen readers.
+  // Sound setup
+  const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+  function playWhistle(){
+    let osc = audioCtx.createOscillator();
+    let gain = audioCtx.createGain();
+    osc.type = 'square';
+    osc.frequency.setValueAtTime(1000, audioCtx.currentTime);
+    gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+    osc.connect(gain).connect(audioCtx.destination);
+    osc.start();
+    osc.stop(audioCtx.currentTime + 0.2);
+  }
+
+  function playTackle(){
+    let osc = audioCtx.createOscillator();
+    let gain = audioCtx.createGain();
+    osc.type='square';
+    osc.frequency.setValueAtTime(60, audioCtx.currentTime);
+    gain.gain.setValueAtTime(0.5, audioCtx.currentTime);
+    osc.connect(gain).connect(audioCtx.destination);
+    osc.start();
+    osc.stop(audioCtx.currentTime + 0.15);
+  }
+
+  function playKick(){
+    let osc = audioCtx.createOscillator();
+    let gain = audioCtx.createGain();
+    osc.type='triangle';
+    osc.frequency.setValueAtTime(400, audioCtx.currentTime);
+    gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+    osc.connect(gain).connect(audioCtx.destination);
+    osc.start();
+    osc.stop(audioCtx.currentTime + 0.25);
+  }
+
+  function playCrowd(type){
+    let osc = audioCtx.createOscillator();
+    let gain = audioCtx.createGain();
+    osc.type='sawtooth';
+    gain.gain.setValueAtTime(type==='touchdown'?0.3:0.15, audioCtx.currentTime);
+    osc.frequency.setValueAtTime(type==='touchdown'?300:200, audioCtx.currentTime);
+    osc.connect(gain).connect(audioCtx.destination);
+    osc.start();
+    osc.stop(audioCtx.currentTime + (type==='touchdown'?1:0.5));
+  }
+
   function announce(msg, ai=false) {
     const target = ai ? document.getElementById('aiAnnounce') : document.getElementById('situation');
     target.innerText = msg;
   }
 
-  // Function to update the visual scoreboard.
-  function updateScoreboard() {
+  function updateScore(announceScore=false) {
     document.getElementById('scoreboard').innerText = `${homeTeam} ${homeScore} - ${awayScore} ${awayTeam}`;
+    if(announceScore){
+      if(homeScore !== lastAnnouncedHomeScore || awayScore !== lastAnnouncedAwayScore){
+        announce(`Score Update: ${homeTeam} ${homeScore}, ${awayTeam} ${awayScore}`);
+        lastAnnouncedHomeScore = homeScore;
+        lastAnnouncedAwayScore = awayScore;
+      }
+    }
   }
 
-  // Function to update the on-screen situation text.
   function updateSituation() {
     let teamWithBall = (possession === "home") ? homeTeam : awayTeam;
     document.getElementById('situation').innerText =
       `${currentDown} and ${yardsToFirst} at the ${ballPosition} yard line. ${teamWithBall} ball.`;
   }
 
-  // Starts a quick play game.
   function startQuickPlay() {
     document.getElementById('menu').style.display = 'none';
     document.getElementById('teamSelection').style.display = 'block';
     announce("Quick Play selected. Choose your home and away teams.");
   }
 
-  // Starts the game with selected teams.
   function startGame() {
     homeTeam = document.getElementById('homeTeamSelect').value;
     awayTeam = document.getElementById('awayTeamSelect').value;
     homeScore = 0;
     awayScore = 0;
+    lastAnnouncedHomeScore = 0;
+    lastAnnouncedAwayScore = 0;
     possession = "home";
     currentDown = 1;
     yardsToFirst = 10;
@@ -177,17 +181,15 @@ window.onload = function() {
     document.getElementById('defensePlays').style.display = 'none';
     updateSituation();
     announce(`Game starting. ${homeTeam} vs ${awayTeam}. ${homeTeam} has the ball at the ${ballPosition} yard line.`);
+    playWhistle();
   }
 
-  // Placeholder for Franchise mode.
   function startFranchise() {
     announce("Franchise Mode coming soon!");
   }
 
-  // Handles the logic for a single play.
   function callPlay(playType, ai=false) {
     let yards = 0;
-    // Calculate yards based on play type and defense.
     if(playType==='run'){
       yards = Math.floor(Math.random()*3)+2;
       if(defenseChoice==="blitz") yards-=1;
@@ -202,9 +204,6 @@ window.onload = function() {
     }
     if(yards<0) yards=0;
 
-    let homeScoreBeforePlay = homeScore;
-    let awayScoreBeforePlay = awayScore;
-
     ballPosition += yards;
     yardsToFirst -= yards;
 
@@ -214,12 +213,14 @@ window.onload = function() {
     if(ballPosition>=100){
       msg+="Touchdown!";
       scored=true;
+      playCrowd('touchdown');
       if(possession==="home") homeScore+=7; else awayScore+=7;
       changePossession(true);
     } else if(yardsToFirst<=0){
       currentDown=1;
       yardsToFirst=10;
       msg+="First down!";
+      playCrowd('firstDown');
     } else {
       currentDown++;
       if(currentDown>4){
@@ -227,22 +228,15 @@ window.onload = function() {
         changePossession();
       }
     }
-    
-    // Add score announcement to the message if the score changed.
-    if (homeScore !== homeScoreBeforePlay || awayScore !== awayScoreBeforePlay) {
-      msg += ` New score: ${homeTeam} ${homeScore}, ${awayTeam} ${awayScore}.`;
-      updateScoreboard();
-    }
-    
-    // Update the UI and make the announcement.
-    updateSituation();
-    announce(msg, ai);
 
-    // AI logic for the opponent.
+    updateSituation();
+    announce(msg + ` Current down: ${currentDown}, ${yardsToFirst} yards to first down, ball at ${ballPosition} yard line.`, ai);
+    playTackle();
+    if(scored) updateScore(true);
+
     if(possession!=="home" && !ai) autoPlay();
   }
 
-  // Handles the logic for the AI opponent's turn.
   function autoPlay(){
     if(possession==="home") return;
     const plays=['run','shortPass','longPass'];
@@ -251,7 +245,6 @@ window.onload = function() {
     setTimeout(autoPlay,1000);
   }
 
-  // Changes possession of the ball.
   function changePossession(reset=false){
     possession = (possession==="home") ? "away" : "home";
     currentDown=1;
@@ -261,27 +254,24 @@ window.onload = function() {
     if(possession!=="home") autoPlay();
   }
 
-  // Logic for a punt play.
   function punt(){
     let puntYards=Math.floor(Math.random()*20)+40;
     ballPosition=100-puntYards;
     changePossession();
     announce(`Punt goes ${puntYards} yards. ${(possession==="home"?homeTeam:awayTeam)} takes over at the ${ballPosition} yard line.`,true);
+    playKick();
   }
 
-  // Logic for a field goal play.
   function fieldGoal(){
     if(ballPosition>=60){
-      announce(`Field goal is good! New score: ${homeTeam} ${homeScore + 3}, ${awayTeam} ${awayScore}.`,true);
+      announce("Field goal is good!",true);
+      playKick();
       if(possession==="home") homeScore+=3; else awayScore+=3;
-      updateScoreboard();
-    } else {
-      announce("Field goal is no good.",true);
-    }
+      updateScore(true);
+    } else announce("Field goal is no good.",true);
     changePossession(true);
   }
 
-  // Advances to the next quarter.
   function nextQuarter(){
     quarter++;
     if(quarter===3) announce("Halftime show starting!");
@@ -289,19 +279,19 @@ window.onload = function() {
     else announce(`Starting Quarter ${quarter}`);
   }
 
-  // Event listeners for all buttons.
+  // Buttons
   document.getElementById('quickPlayBtn').onclick=startQuickPlay;
   document.getElementById('franchiseBtn').onclick=startFranchise;
   document.getElementById('startGameBtn').onclick=startGame;
-  document.getElementById('runPlayBtn').onclick=()=>callPlay('run');
-  document.getElementById('shortPassBtn').onclick=()=>callPlay('shortPass');
-  document.getElementById('longPassBtn').onclick=()=>callPlay('longPass');
+  document.getElementById('runPlayBtn').onclick=()=>{playWhistle(); callPlay('run');};
+  document.getElementById('shortPassBtn').onclick=()=>{playWhistle(); callPlay('shortPass');};
+  document.getElementById('longPassBtn').onclick=()=>{playWhistle(); callPlay('longPass');};
   document.getElementById('blitzBtn').onclick=()=>{defenseChoice='blitz'; document.getElementById('defensePlays').style.display='none'; document.getElementById('offensePlays').style.display='block'; announce('Blitz defense set.');};
   document.getElementById('zoneBtn').onclick=()=>{defenseChoice='zone'; document.getElementById('defensePlays').style.display='none'; document.getElementById('offensePlays').style.display='block'; announce('Zone defense set.');};
   document.getElementById('manBtn').onclick=()=>{defenseChoice='man'; document.getElementById('defensePlays').style.display='none'; document.getElementById('offensePlays').style.display='block'; announce('Man coverage defense set.');};
   document.getElementById('fieldGoalBtn').onclick=fieldGoal;
   document.getElementById('puntBtn').onclick=punt;
-  document.getElementById('goForItBtn').onclick=()=>callPlay('goForIt');
+  document.getElementById('goForItBtn').onclick=()=>{playWhistle(); callPlay('goForIt');};
   document.getElementById('nextQuarterBtn').onclick=nextQuarter;
 
 }
