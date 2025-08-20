@@ -1,111 +1,79 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8">
-  <title>Madden Style Accessible Game</title>
+  <title>Madden Style Football</title>
   <style>
-    body { font-family: Arial, sans-serif; }
-    .menu, .submenu, .game-screen { display: none; margin-top: 20px; }
-    button { display: block; margin: 10px 0; font-size: 18px; }
+    button { display:block; margin:10px; font-size:18px; }
   </style>
 </head>
 <body>
-  <h1>Main Menu</h1>
-  <div id="mainMenu" class="menu" style="display:block;">
-    <button onclick="openMenu('quickPlayMenu')">Quick Play</button>
-    <button onclick="openMenu('franchiseMenu')">Franchise</button>
-    <button onclick="announce('Ultimate Team Activated')">Ultimate Team</button>
-    <button onclick="announce('Practice Mode Activated')">Practice</button>
-    <button onclick="announce('Settings Activated')">Settings</button>
+  <h1>Madden Style Football</h1>
+  <div id="menu">
+    <button onclick="startQuickPlay()">Quick Play</button>
+    <button onclick="startFranchise()">Franchise</button>
   </div>
 
-  <!-- Quick Play Menu -->
-  <div id="quickPlayMenu" class="submenu">
-    <h2>Quick Play</h2>
-    <label>Home Team:
-      <select id="homeTeam">
-        <option value="Eagles">Eagles</option>
-        <option value="Chiefs">Chiefs</option>
-        <option value="Cowboys">Cowboys</option>
-      </select>
-    </label><br>
-    <label>Away Team:
-      <select id="awayTeam">
-        <option value="Bills">Bills</option>
-        <option value="49ers">49ers</option>
-        <option value="Packers">Packers</option>
-      </select>
-    </label><br>
-    <button onclick="openMenu('gameSettingsMenu')">Start Game</button>
-    <button onclick="backToMain()">Back</button>
-  </div>
+  <div id="game" style="display:none;">
+    <div id="scoreboard"></div>
+    <div id="situation"></div>
 
-  <!-- Game Settings -->
-  <div id="gameSettingsMenu" class="submenu">
-    <h2>Game Settings</h2>
-    <label>Quarter Length:
-      <select id="quarterLength">
-        <option value="5">5 Minutes</option>
-        <option value="10">10 Minutes</option>
-        <option value="15">15 Minutes</option>
-      </select>
-    </label><br>
-    <button onclick="startGame()">Kickoff</button>
-    <button onclick="openMenu('quickPlayMenu')">Back</button>
-  </div>
-
-  <!-- Game Screen -->
-  <div id="gameScreen" class="game-screen">
-    <h2 id="scoreboard">Home 0 - 0 Away</h2>
-    <p id="situation">1st and 10 at the 25 yard line.</p>
-    <div id="offensePlays">
+    <div id="offensePlays" style="display:none;">
+      <h3>Offensive Playbook</h3>
       <button onclick="callPlay('run')">Run Play</button>
       <button onclick="callPlay('shortPass')">Short Pass</button>
       <button onclick="callPlay('longPass')">Long Pass</button>
     </div>
+
+    <div id="defensePlays" style="display:none;">
+      <h3>Defensive Playbook</h3>
+      <button onclick="chooseDefense('blitz')">Blitz</button>
+      <button onclick="chooseDefense('zone')">Zone</button>
+      <button onclick="chooseDefense('man')">Man Coverage</button>
+    </div>
+
     <div id="fourthDownOptions" style="display:none;">
+      <h3>Fourth Down Options</h3>
+      <button onclick="fieldGoal()">Kick Field Goal</button>
       <button onclick="punt()">Punt</button>
-      <button onclick="fieldGoal()">Field Goal</button>
       <button onclick="callPlay('goForIt')">Go For It</button>
     </div>
-    <button onclick="endQuarter()">End Quarter</button>
-    <button onclick="backToMain()">Quit to Main Menu</button>
+
+    <button onclick="nextQuarter()">Next Quarter</button>
   </div>
 
   <script>
-    let homeTeam, awayTeam, homeScore, awayScore;
-    let ballPosition, currentDown, yardsToFirst, possession; // "home" or "away"
+    let homeTeam = "Cowboys";
+    let awayTeam = "Eagles";
+    let homeScore = 0;
+    let awayScore = 0;
+    let possession = "home";
+    let currentDown = 1;
+    let yardsToFirst = 10;
+    let ballPosition = 25;
+    let quarter = 1;
+    let defenseChoice = "zone";
 
-    function announce(msg) {
-      alert(msg);
+    function announce(message) {
+      alert(message); // Screen reader will pick this up
     }
 
-    function openMenu(menuId) {
-      document.querySelectorAll('.menu, .submenu, .game-screen').forEach(el => el.style.display = 'none');
-      document.getElementById(menuId).style.display = 'block';
-      announce(document.getElementById(menuId).querySelector('h2')?.innerText || menuId + " Activated");
-    }
-
-    function backToMain() {
-      document.querySelectorAll('.menu, .submenu, .game-screen').forEach(el => el.style.display = 'none');
-      document.getElementById('mainMenu').style.display = 'block';
-    }
-
-    function startGame() {
-      homeTeam = document.getElementById('homeTeam').value;
-      awayTeam = document.getElementById('awayTeam').value;
-      homeScore = 0; awayScore = 0;
-      possession = "home";
-      ballPosition = 25;
-      currentDown = 1;
-      yardsToFirst = 10;
+    function startQuickPlay() {
+      document.getElementById('menu').style.display = 'none';
+      document.getElementById('game').style.display = 'block';
+      announce("Quick Play starting");
       updateSituation();
-      openMenu('gameScreen');
+      document.getElementById('offensePlays').style.display = 'block';
+    }
+
+    function startFranchise() {
+      announce("Franchise Mode coming soon!");
     }
 
     function updateSituation() {
+      let teamWithBall = (possession === "home") ? homeTeam : awayTeam;
       document.getElementById('scoreboard').innerText = `${homeTeam} ${homeScore} - ${awayScore} ${awayTeam}`;
-      document.getElementById('situation').innerText = `${currentDown} and ${yardsToFirst} at the ${ballPosition} yard line.,  ${possession === "home" ? homeTeam : awayTeam} ball.`;
+      document.getElementById('situation').innerText =
+        `${currentDown} and ${yardsToFirst} at the ${ballPosition} yard line. ${teamWithBall} ball.`;
 
       if (currentDown === 4 && yardsToFirst > 0) {
         document.getElementById('offensePlays').style.display = 'none';
@@ -116,9 +84,14 @@
       }
     }
 
+    function chooseDefense(choice) {
+      defenseChoice = choice;
+      announce(`Defense sets ${choice}`);
+    }
+
     function callPlay(playType) {
       let yards = 0;
-      let defense = chooseDefense();
+      let defense = defenseChoice;
 
       if (playType === 'run') {
         yards = Math.floor(Math.random() * 3) + 2; // 2-4 yards
@@ -143,7 +116,7 @@
       if (ballPosition >= 100) {
         msg += "Touchdown!";
         if (possession === "home") homeScore += 7; else awayScore += 7;
-        changePossession(true);
+        changePossession(true); // kickoff after TD
       } else if (yardsToFirst <= 0) {
         currentDown = 1;
         yardsToFirst = 10;
@@ -164,24 +137,20 @@
       let puntYards = Math.floor(Math.random() * 20) + 40;
       ballPosition = 100 - puntYards;
       changePossession();
-      announce(`Punt goes ${puntYards} yards. ${possession === "home" ? homeTeam : awayTeam} takes over.`);
+      let teamWithBall = (possession === "home") ? homeTeam : awayTeam;
+      announce(`Punt goes ${puntYards} yards. ${teamWithBall} takes over.`);
       updateSituation();
     }
 
     function fieldGoal() {
-      if (ballPosition >= 65 && ballPosition <= 95) {
+      if (ballPosition >= 60) {
         announce("Field goal is good!");
         if (possession === "home") homeScore += 3; else awayScore += 3;
       } else {
-        announce("Field goal missed!");
+        announce("Field goal is no good.");
       }
-      changePossession();
+      changePossession(true);
       updateSituation();
-    }
-
-    function chooseDefense() {
-      const plays = ["blitz", "zone", "man"];
-      return plays[Math.floor(Math.random() * plays.length)];
     }
 
     function changePossession(reset=false) {
@@ -191,9 +160,17 @@
       ballPosition = reset ? 25 : 100 - ballPosition;
     }
 
-    function endQuarter() {
-      announce("Quarter ended.");
+    function nextQuarter() {
+      quarter++;
+      if (quarter === 3) {
+        announce("Halftime show starting!");
+      } else if (quarter > 4) {
+        announce("Game Over! Final score " +
+          `${homeTeam} ${homeScore}, ${awayTeam} ${awayScore}`);
+      } else {
+        announce(`Starting Quarter ${quarter}`);
+      }
     }
   </script>
 </body>
-</html>, In,  list
+</html>
