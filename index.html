@@ -29,8 +29,8 @@ label { display:block; margin:10px 0 5px; }
   <button role="menuitem" data-action="settings">Settings</button>
 </main>
 
-<!-- Quick Play Menu -->
-<main id="quickPlayMenu" class="hidden" aria-hidden="true">
+<!-- Quick Play Team Selection -->
+<main id="quickPlaySelect" class="hidden" aria-hidden="true">
   <label for="homeTeam">Home Team</label>
   <select id="homeTeam">
     <option>49ers</option><option>Chiefs</option><option>Cowboys</option><option>Eagles</option>
@@ -42,13 +42,18 @@ label { display:block; margin:10px 0 5px; }
   <label for="quarterLength">Quarter Length (minutes)</label>
   <input type="range" id="quarterLength" min="1" max="15" value="5">
   <button id="startQuick">Start Game</button>
-  <div class="scoreboard" id="scoreboard">Score: Home 0 - Away 0 | Quarter 1</div>
+  <button id="backMainFromQuickSelect">Back to Main Menu</button>
+</main>
+
+<!-- Quick Play Gameplay -->
+<main id="quickPlayGame" class="hidden" aria-hidden="true">
+  <div class="scoreboard" id="scoreboard">Score: 0 - 0 | Quarter 1</div>
   <button id="homeScore3">Home +3</button>
   <button id="homeScore7">Home +7</button>
   <button id="awayScore3">Away +3</button>
   <button id="awayScore7">Away +7</button>
   <button id="nextQuarter">Next Quarter</button>
-  <button id="backMainFromQuick">Back to Main Menu</button>
+  <button id="backMainFromQuickGame">Back to Main Menu</button>
 </main>
 
 <!-- Franchise Mode Menu -->
@@ -79,4 +84,149 @@ label { display:block; margin:10px 0 5px; }
   <h2>Draft System</h2>
   <label for="draftPick">Choose Your Draft Pick</label>
   <select id="draftPick">
-    <option>Quarterback</option
+    <option>Quarterback</option><option>Running Back</option><option>Wide Receiver</option><option>Linebacker</option><option>Defensive End</option>
+  </select>
+  <button id="confirmDraft">Confirm Draft</button>
+  <button id="backRoster">Back to Roster</button>
+</main>
+
+<div class="sr-only" aria-live="polite" id="live"></div>
+
+<script>
+const live = document.getElementById('live');
+const mainMenu = document.getElementById('mainMenu');
+const quickPlaySelect = document.getElementById('quickPlaySelect');
+const quickPlayGame = document.getElementById('quickPlayGame');
+const franchiseMainMenu = document.getElementById('franchiseMainMenu');
+const teamSelectionMenu = document.getElementById('teamSelectionMenu');
+const rosterMenu = document.getElementById('rosterMenu');
+const draftMenu = document.getElementById('draftMenu');
+
+const homeTeam = document.getElementById('homeTeam');
+const awayTeam = document.getElementById('awayTeam');
+const scoreboard = document.getElementById('scoreboard');
+let homeScore = 0;
+let awayScore = 0;
+let quarter = 1;
+
+// Function to update scoreboard
+function updateScoreboard() {
+  scoreboard.textContent = `Score: ${homeTeam.value} ${homeScore} - ${awayTeam.value} ${awayScore} | Quarter ${quarter}`;
+}
+
+// Function to speak messages
+function speak(msg){ live.textContent = msg; }
+
+// Menu switching
+function showMenu(show, ...hideMenus){
+  show.classList.remove('hidden'); show.setAttribute('aria-hidden','false');
+  show.querySelector('button, select, input')?.focus();
+  hideMenus.forEach(menu=>{ if(menu){ menu.classList.add('hidden'); menu.setAttribute('aria-hidden','true'); }});
+}
+
+// Main Menu Buttons
+mainMenu.querySelectorAll('button').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    if(btn.dataset.action==='quick'){
+      showMenu(quickPlaySelect, mainMenu, franchiseMainMenu);
+      speak("Quick Play menu opened. Choose Home and Away teams.");
+    } else if(btn.dataset.action==='franchise'){
+      showMenu(franchiseMainMenu, mainMenu, quickPlaySelect, quickPlayGame);
+      speak("Franchise Mode opened. Start a new season or continue a season.");
+    } else {
+      speak(btn.textContent + " activated");
+    }
+  });
+});
+
+// Quick Play Team Selection
+document.getElementById('startQuick').addEventListener('click', ()=>{
+  homeScore = 0; awayScore = 0; quarter = 1; updateScoreboard();
+  showMenu(quickPlayGame, quickPlaySelect);
+  speak(`Quick Play started. ${awayTeam.value} at ${homeTeam.value}. Quarter 1. Score is 0 to 0.`);
+});
+document.getElementById('backMainFromQuickSelect').addEventListener('click', ()=>{
+  showMenu(mainMenu, quickPlaySelect);
+  speak("Main Menu");
+});
+
+// Quick Play Gameplay Buttons
+document.getElementById('homeScore3').addEventListener('click', ()=>{
+  homeScore += 3; updateScoreboard();
+  speak(`${homeTeam.value} scored 3 points. Score is now ${homeTeam.value} ${homeScore} - ${awayTeam.value} ${awayScore}`);
+});
+document.getElementById('homeScore7').addEventListener('click', ()=>{
+  homeScore += 7; updateScoreboard();
+  speak(`${homeTeam.value} scored a touchdown. Score is now ${homeTeam.value} ${homeScore} - ${awayTeam.value} ${awayScore}`);
+});
+document.getElementById('awayScore3').addEventListener('click', ()=>{
+  awayScore += 3; updateScoreboard();
+  speak(`${awayTeam.value} scored 3 points. Score is now ${homeTeam.value} ${homeScore} - ${awayTeam.value} ${awayScore}`);
+});
+document.getElementById('awayScore7').addEventListener('click', ()=>{
+  awayScore += 7; updateScoreboard();
+  speak(`${awayTeam.value} scored a touchdown. Score is now ${homeTeam.value} ${homeScore} - ${awayTeam.value} ${awayScore}`);
+});
+document.getElementById('nextQuarter').addEventListener('click', ()=>{
+  if(quarter < 4){
+    quarter++; updateScoreboard();
+    speak(`Quarter advanced to ${quarter}`);
+  } else {
+    speak(`Game over. Final score: ${homeTeam.value} ${homeScore} - ${awayTeam.value} ${awayScore}`);
+  }
+});
+document.getElementById('backMainFromQuickGame').addEventListener('click', ()=>{
+  showMenu(mainMenu, quickPlayGame);
+  homeScore = 0; awayScore = 0; quarter = 1; updateScoreboard();
+  speak("Main Menu");
+});
+
+// Franchise Mode Buttons (unchanged)
+document.getElementById('backMainFromFranchise').addEventListener('click', ()=>{
+  showMenu(mainMenu, franchiseMainMenu);
+  speak("Main Menu");
+});
+document.getElementById('newSeason').addEventListener('click', ()=>{
+  showMenu(teamSelectionMenu, franchiseMainMenu);
+  speak("Select your team for the new season");
+});
+document.getElementById('continueSeason').addEventListener('click', ()=>{
+  showMenu(rosterMenu, franchiseMainMenu);
+  speak("Continuing season. Viewing roster");
+});
+document.getElementById('selectTeam').addEventListener('click', ()=>{
+  const team = document.getElementById('franchiseTeam').value;
+  document.getElementById('teamNameDisplay').textContent = `Team: ${team}`;
+  showMenu(rosterMenu, teamSelectionMenu);
+  speak(`Team selected: ${team}. Viewing roster`);
+});
+document.getElementById('backFranchiseMain').addEventListener('click', ()=>{
+  showMenu(franchiseMainMenu, teamSelectionMenu);
+  speak("Back to Franchise Main Menu");
+});
+document.getElementById('simulateWeek').addEventListener('click', ()=>{
+  speak("Week simulated. Check weekly scores in roster menu.");
+});
+document.getElementById('draftPlayer').addEventListener('click', ()=>{
+  showMenu(draftMenu, rosterMenu);
+  speak("Draft menu opened. Choose a player to draft");
+});
+document.getElementById('backTeamSelection').addEventListener('click', ()=>{
+  showMenu(teamSelectionMenu, rosterMenu);
+  speak("Back to team selection");
+});
+document.getElementById('confirmDraft').addEventListener('click', ()=>{
+  const pick = document.getElementById('draftPick').value;
+  speak(`Drafted player: ${pick}`);
+});
+document.getElementById('backRoster').addEventListener('click', ()=>{
+  showMenu(rosterMenu, draftMenu);
+  speak("Back to roster menu");
+});
+
+// Start focus
+mainMenu.querySelector('button').focus();
+updateScoreboard();
+</script>
+</body>
+</html>
