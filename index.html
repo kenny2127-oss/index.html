@@ -77,6 +77,8 @@
       let awayTeam = "Eagles";
       let homeScore = 0;
       let awayScore = 0;
+      let lastHomeScore = 0;
+      let lastAwayScore = 0;
       let possession = "home";
       let currentDown = 1;
       let yardsToFirst = 10;
@@ -90,11 +92,21 @@
         liveRegion.innerText = message;
       }
 
+      function updateScore() {
+        document.getElementById('scoreboard').innerText = `${homeTeam} ${homeScore} - ${awayScore} ${awayTeam}`;
+        // Announce only when score changes
+        if (homeScore !== lastHomeScore || awayScore !== lastAwayScore) {
+          announce(`Score Update: ${homeTeam} ${homeScore}, ${awayTeam} ${awayScore}`);
+          lastHomeScore = homeScore;
+          lastAwayScore = awayScore;
+        }
+      }
+
       function updateSituation() {
         let teamWithBall = (possession === "home") ? homeTeam : awayTeam;
-        document.getElementById('scoreboard').innerText = `${homeTeam} ${homeScore} - ${awayScore} ${awayTeam}`;
         document.getElementById('situation').innerText =
           `${currentDown} and ${yardsToFirst} at the ${ballPosition} yard line. ${teamWithBall} ball.`;
+        updateScore();
       }
 
       function startQuickPlay() {
@@ -106,8 +118,8 @@
       function startGame() {
         homeTeam = document.getElementById('homeTeamSelect').value;
         awayTeam = document.getElementById('awayTeamSelect').value;
-        homeScore = 0;
-        awayScore = 0;
+        homeScore = lastHomeScore = 0;
+        awayScore = lastAwayScore = 0;
         possession = "home";
         currentDown = 1;
         yardsToFirst = 10;
@@ -139,12 +151,15 @@
         document.getElementById('defensePlays').style.display = 'none';
         document.getElementById('offensePlays').style.display = 'block';
         announce(`Defense sets ${choice}. Now it's ${(possession === "home" ? homeTeam : awayTeam)} turn on offense.`);
+        if (possession !== "home") {
+          // Automatically run opponent plays
+          autoPlay(possession);
+        }
       }
 
-      function callPlay(playType) {
+      function callPlay(playType, auto=false) {
         let yards = 0;
 
-        // Adjust yards based on offensive play and defense
         if (playType === 'run') {
           yards = Math.floor(Math.random() * 3) + 2;
           if (defenseChoice === "blitz") yards -= 1;
@@ -182,12 +197,24 @@
         }
 
         updateSituation();
-        announce(`${msg} Current down: ${currentDown}, ${yardsToFirst} yards to first down, ball at ${ballPosition} yard line.`);
+        if (!auto) announce(`${msg} Current down: ${currentDown}, ${yardsToFirst} yards to first down, ball at ${ballPosition} yard line.`);
 
-        // If possession switched, let player choose defensive play
-        if (defenseActive === false && currentDown === 1 && possession === (possession === "home" ? "away" : "home")) {
+        // If possession switched, show defensive plays or auto opponent
+        if (!auto && possession !== "home") {
           showDefensePlays();
         }
+      }
+
+      function autoPlay(team) {
+        const plays = ['run', 'shortPass', 'longPass'];
+        let numPlays = 1;
+        function nextAutoPlay() {
+          if (possession !== team) return; // stop if possession changes
+          let play = plays[Math.floor(Math.random()*plays.length)];
+          callPlay(play, true);
+          setTimeout(nextAutoPlay, 1000);
+        }
+        nextAutoPlay();
       }
 
       function punt() {
@@ -197,7 +224,7 @@
         let teamWithBall = (possession === "home") ? homeTeam : awayTeam;
         announce(`Punt goes ${puntYards} yards. ${teamWithBall} takes over at the ${ballPosition} yard line.`);
         updateSituation();
-        showDefensePlays();
+        if (possession !== "home") autoPlay(possession);
       }
 
       function fieldGoal() {
@@ -209,7 +236,7 @@
         }
         changePossession(true);
         updateSituation();
-        showDefensePlays();
+        if (possession !== "home") autoPlay(possession);
       }
 
       function changePossession(reset=false) {
