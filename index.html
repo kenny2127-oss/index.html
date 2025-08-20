@@ -1,507 +1,561 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Complete Football Game</title>
-  <!-- Load Tailwind CSS for simple, responsive styling -->
-  <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Use Inter font for a clean look -->
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap">
-  <style>
-    body {
-      font-family: 'Inter', sans-serif;
-    }
-    .custom-shadow {
-      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-    }
-    .status-box-visible {
-      opacity: 1;
-    }
-    .status-box-hidden {
-      opacity: 0;
-    }
-  </style>
-</head>
-<body class="bg-gray-900 text-white min-h-screen flex items-center justify-center p-4">
+import React, { useState, useEffect, useRef } from 'react';
+import { initializeApp } from 'firebase/app';
+import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from 'firebase/auth';
+import { getFirestore, doc, setDoc, onSnapshot } from 'firebase/firestore';
 
-  <!-- Main Game Container -->
-  <div class="bg-gray-800 p-8 md:p-12 rounded-3xl custom-shadow w-full max-w-2xl">
-    <h1 class="text-3xl md:text-4xl font-bold text-center mb-6">NFL Football Game</h1>
-    <p class="text-center text-gray-400 mb-8">
-      A simple game with organized controls, save/load functionality, and team rosters.
-    </p>
+// Main App component
+const App = () => {
+    // State variables for managing app state
+    const [db, setDb] = useState(null);
+    const [auth, setAuth] = useState(null);
+    const [userId, setUserId] = useState(null);
+    const [isLoading, setIsLoading] = useState(true);
+    const [page, setPage] = useState('main-menu'); // State for page navigation
+    const [franchiseData, setFranchiseData] = useState(null);
+    const [franchisePage, setFranchisePage] = useState('hub');
+    const [error, setError] = useState(null);
+    const audioPlayer = useRef(null);
 
-    <!-- Game Information Display -->
-    <div class="flex flex-wrap justify-center items-center gap-6 md:gap-12 mb-8">
-      <!-- Score Display -->
-      <div class="text-center">
-        <h2 class="text-xl font-medium text-gray-300">Score</h2>
-        <p id="score-display" class="text-5xl md:text-6xl font-extrabold text-green-400 mt-2">0</p>
-      </div>
-      <!-- Quarter Length Display -->
-      <div class="text-center">
-        <h2 class="text-xl font-medium text-gray-300">Quarter Length</h2>
-        <p id="quarter-length-display" class="text-5xl md:text-6xl font-extrabold text-green-400 mt-2">15 min</p>
-      </div>
-    </div>
+    // --- Firebase Initialization and Authentication ---
+    useEffect(() => {
+        const initFirebase = async () => {
+            try {
+                // Get global variables provided by the Canvas environment
+                const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+                const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
+                const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
 
-    <!-- Controls Container -->
-    <div class="space-y-6">
+                // Initialize Firebase app and services
+                const app = initializeApp(firebaseConfig);
+                const firestoreDb = getFirestore(app);
+                const firebaseAuth = getAuth(app);
+                setDb(firestoreDb);
+                setAuth(firebaseAuth);
 
-      <!-- Score Controls Section -->
-      <div class="bg-gray-700 p-6 rounded-2xl">
-        <h3 class="text-2xl font-semibold mb-4 text-center">Score Controls</h3>
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <button id="add-score-btn" class="bg-green-600 hover:bg-green-500 transition-all text-white font-bold py-4 rounded-xl shadow-lg">
-            Add Touchdown (6 pts)
-          </button>
-          <button id="add-extra-point-btn" class="bg-green-600 hover:bg-green-500 transition-all text-white font-bold py-4 rounded-xl shadow-lg">
-            Add Extra Point (1 pt)
-          </button>
-          <button id="add-field-goal-btn" class="bg-green-600 hover:bg-green-500 transition-all text-white font-bold py-4 rounded-xl shadow-lg">
-            Add Field Goal (3 pts)
-          </button>
-        </div>
-      </div>
+                // Set up the authentication state listener
+                const unsubscribe = onAuthStateChanged(firebaseAuth, async (user) => {
+                    if (user) {
+                        setUserId(user.uid);
+                    } else {
+                        await signInAnonymously(firebaseAuth);
+                    }
+                    setIsLoading(false); // Authentication check is complete
+                });
 
-      <!-- Quarter & Save/Load Controls Section -->
-      <div class="bg-gray-700 p-6 rounded-2xl">
-        <h3 class="text-2xl font-semibold mb-4 text-center">Game Controls</h3>
-        <div class="flex flex-col sm:flex-row items-center gap-4 mb-4">
-          <label for="quarter-length-input" class="text-gray-300 whitespace-nowrap">Set Quarter Length (min):</label>
-          <input type="number" id="quarter-length-input" value="15" min="1" max="60"
-                 class="flex-grow bg-gray-600 text-white px-4 py-2 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500">
-        </div>
-        
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <button id="save-btn" class="bg-blue-600 hover:bg-blue-500 transition-all text-white font-bold py-4 rounded-xl shadow-lg">
-            Save Game
-          </button>
-          <button id="load-btn" class="bg-purple-600 hover:bg-purple-500 transition-all text-white font-bold py-4 rounded-xl shadow-lg">
-            Load Game
-          </button>
-        </div>
-      </div>
+                if (initialAuthToken) {
+                    await signInWithCustomToken(firebaseAuth, initialAuthToken);
+                }
 
-    </div>
+                return () => unsubscribe();
+            } catch (err) {
+                console.error("Firebase initialization or auth failed:", err);
+                setError("Failed to initialize the app. Please try again.");
+                setIsLoading(false);
+            }
+        };
 
-    <!-- Status/Message Box -->
-    <div id="status-box" class="mt-8 p-4 rounded-xl text-center font-medium transition-all duration-300 status-box-hidden"></div>
-  </div>
+        initFirebase();
+    }, []);
 
-  <script>
-    // This is the NFL roster data you requested.
-    const nflRosters2024 = {
-      // AFC EAST
-      "Buffalo Bills": {
-        division: "AFC East",
-        roster: {
-          qbs: ["Josh Allen"],
-          rbs: ["James Cook"],
-          wrs: ["Khalil Shakir", "Keon Coleman"],
-          tes: ["Dalton Kincaid", "Dawson Knox"]
+    // --- Firestore Data Listener ---
+    useEffect(() => {
+        if (!db || !userId) return; // Wait until Firebase and user are ready
+
+        // Define the path for the franchise data. This is a private collection for the user.
+        const franchiseDocPath = `artifacts/${__app_id}/users/${userId}/franchise/myFranchise`;
+        const franchiseDocRef = doc(db, franchiseDocPath);
+
+        // Set up a real-time listener for the franchise data
+        const unsubscribe = onSnapshot(franchiseDocRef, (docSnap) => {
+            if (docSnap.exists()) {
+                // Document exists, update state with data
+                setFranchiseData(docSnap.data());
+                console.log("Franchise data loaded:", docSnap.data());
+            } else {
+                // Document does not exist, initialize with a message
+                console.log("No franchise data found for user. Ready to create.");
+                setFranchiseData(null);
+            }
+        }, (err) => {
+            console.error("Error fetching franchise data:", err);
+            setError("Failed to load franchise data. Please check your network connection.");
+        });
+
+        // Clean up the listener on component unmount
+        return () => unsubscribe();
+    }, [db, userId]);
+
+    // --- Audio Helper Functions ---
+    // Converts a base64 string to an ArrayBuffer
+    const base64ToArrayBuffer = (base64) => {
+        const binaryString = window.atob(base64);
+        const len = binaryString.length;
+        const bytes = new Uint8Array(len);
+        for (let i = 0; i < len; i++) {
+            bytes[i] = binaryString.charCodeAt(i);
         }
-      },
-      "Miami Dolphins": {
-        division: "AFC East",
-        roster: {
-          qbs: ["Tua Tagovailoa"],
-          rbs: ["Raheem Mostert"],
-          wrs: ["Tyreek Hill", "Jaylen Waddle"],
-          tes: ["Jonnu Smith"]
-        }
-      },
-      "New England Patriots": {
-        division: "AFC East",
-        roster: {
-          qbs: ["Jacoby Briscomb", "Drake Maye"],
-          rbs: ["Rhamondre Stevenson"],
-          wrs: ["Kendrick Bourne", "DeMario Douglas"],
-          tes: ["Hunter Henry"]
-        }
-      },
-      "New York Jets": {
-        division: "AFC East",
-        roster: {
-          qbs: ["Aaron Rodgers"],
-          rbs: ["Breece Hall"],
-          wrs: ["Garrett Wilson", "Mike Williams"],
-          tes: ["Tyler Conklin"]
-        }
-      },
-      // AFC NORTH
-      "Baltimore Ravens": {
-        division: "AFC North",
-        roster: {
-          qbs: ["Lamar Jackson"],
-          rbs: ["Derrick Henry"],
-          wrs: ["Zay Flowers", "Rashod Bateman"],
-          tes: ["Mark Andrews"]
-        }
-      },
-      "Cincinnati Bengals": {
-        division: "AFC North",
-        roster: {
-          qbs: ["Joe Burrow"],
-          rbs: ["Zack Moss"],
-          wrs: ["Ja'Marr Chase", "Tee Higgins"],
-          tes: ["Mike Gesicki"]
-        }
-      },
-      "Cleveland Browns": {
-        division: "AFC North",
-        roster: {
-          qbs: ["Deshaun Watson"],
-          rbs: ["Nick Chubb"],
-          wrs: ["Amari Cooper", "Jerry Jeudy"],
-          tes: ["David Njoku"]
-        }
-      },
-      "Pittsburgh Steelers": {
-        division: "AFC North",
-        roster: {
-          qbs: ["Russell Wilson", "Justin Fields"],
-          rbs: ["Najee Harris", "Jaylen Warren"],
-          wrs: ["George Pickens", "Roman Wilson"],
-          tes: ["Pat Freiermuth"]
-        }
-      },
-      // AFC SOUTH
-      "Houston Texans": {
-        division: "AFC South",
-        roster: {
-          qbs: ["C.J. Stroud"],
-          rbs: ["Joe Mixon"],
-          wrs: ["Nico Collins", "Tank Dell", "Stefon Diggs"],
-          tes: ["Dalton Schultz"]
-        }
-      },
-      "Indianapolis Colts": {
-        division: "AFC South",
-        roster: {
-          qbs: ["Anthony Richardson"],
-          rbs: ["Jonathan Taylor"],
-          wrs: ["Michael Pittman Jr.", "Josh Downs"],
-          tes: ["Mo Alie-Cox"]
-        }
-      },
-      "Jacksonville Jaguars": {
-        division: "AFC South",
-        roster: {
-          qbs: ["Trevor Lawrence"],
-          rbs: ["Travis Etienne Jr."],
-          wrs: ["Christian Kirk", "Gabe Davis", "Brian Thomas Jr."],
-          tes: ["Evan Engram"]
-        }
-      },
-      "Tennessee Titans": {
-        division: "AFC South",
-        roster: {
-          qbs: ["Will Levis"],
-          rbs: ["Tony Pollard"],
-          wrs: ["Calvin Ridley", "DeAndre Hopkins"],
-          tes: ["Chigoziem Okonkwo"]
-        }
-      },
-      // AFC WEST
-      "Denver Broncos": {
-        division: "AFC West",
-        roster: {
-          qbs: ["Bo Nix"],
-          rbs: ["Javonte Williams"],
-          wrs: ["Courtland Sutton", "Troy Franklin"],
-          tes: ["Greg Dulcich"]
-        }
-      },
-      "Kansas City Chiefs": {
-        division: "AFC West",
-        roster: {
-          qbs: ["Patrick Mahomes"],
-          rbs: ["Isiah Pacheco"],
-          wrs: ["Hollywood Brown", "Rashee Rice"],
-          tes: ["Travis Kelce"]
-        }
-      },
-      "Las Vegas Raiders": {
-        division: "AFC West",
-        roster: {
-          qbs: ["Gardner Minshew", "Aidan O'Connell"],
-          rbs: ["Zamir White"],
-          wrs: ["Davante Adams", "Jakobi Meyers"],
-          tes: ["Michael Mayer"]
-        }
-      },
-      "Los Angeles Chargers": {
-        division: "AFC West",
-        roster: {
-          qbs: ["Justin Herbert"],
-          rbs: ["Gus Edwards"],
-          wrs: ["Ladd McConkey", "Quentin Johnston"],
-          tes: ["Hayden Hurst"]
-        }
-      },
-      // NFC EAST
-      "Dallas Cowboys": {
-        division: "NFC East",
-        roster: {
-          qbs: ["Dak Prescott"],
-          rbs: ["Ezekiel Elliott"],
-          wrs: ["CeeDee Lamb"],
-          tes: ["Jake Ferguson"]
-        }
-      },
-      "New York Giants": {
-        division: "NFC East",
-        roster: {
-          qbs: ["Daniel Jones", "Drew Lock"],
-          rbs: ["Devin Singletary"],
-          wrs: ["Malik Nabers"],
-          tes: ["Darren Waller"]
-        }
-      },
-      "Philadelphia Eagles": {
-        division: "NFC East",
-        roster: {
-          qbs: ["Jalen Hurts"],
-          rbs: ["Saquon Barkley"],
-          wrs: ["A.J. Brown", "DeVonta Smith"],
-          tes: ["Dallas Goedert"]
-        }
-      },
-      "Washington Commanders": {
-        division: "NFC East",
-        roster: {
-          qbs: ["Jayden Daniels"],
-          rbs: ["Brian Robinson Jr."],
-          wrs: ["Terry McLaurin", "Jahan Dotson"],
-          tes: ["Zach Ertz"]
-        }
-      },
-      // NFC NORTH
-      "Chicago Bears": {
-        division: "NFC North",
-        roster: {
-          qbs: ["Caleb Williams"],
-          rbs: ["D'Andre Swift"],
-          wrs: ["D.J. Moore", "Keenan Allen", "Rome Odunze"],
-          tes: ["Cole Kmet"]
-        }
-      },
-      "Detroit Lions": {
-        division: "NFC North",
-        roster: {
-          qbs: ["Jared Goff"],
-          rbs: ["Jahmyr Gibbs", "David Montgomery"],
-          wrs: ["Amon-Ra St. Brown", "Jameson Williams"],
-          tes: ["Sam LaPorta"]
-        }
-      },
-      "Green Bay Packers": {
-        division: "NFC North",
-        roster: {
-          qbs: ["Jordan Love"],
-          rbs: ["Josh Jacobs"],
-          wrs: ["Christian Watson", "Romeo Doubs", "Jayden Reed"],
-          tes: ["Tucker Kraft", "Luke Musgrave"]
-        }
-      },
-      "Minnesota Vikings": {
-        division: "NFC North",
-        roster: {
-          qbs: ["J.J. McCarthy"],
-          rbs: ["Aaron Jones"],
-          wrs: ["Justin Jefferson", "Jordan Addison"],
-          tes: ["T.J. Hockenson"]
-        }
-      },
-      // NFC SOUTH
-      "Atlanta Falcons": {
-        division: "NFC South",
-        roster: {
-          qbs: ["Kirk Cousins"],
-          rbs: ["Bijan Robinson", "Tyler Allgeier"],
-          wrs: ["Drake London", "Darnell Mooney"],
-          tes: ["Kyle Pitts"]
-        }
-      },
-      "Carolina Panthers": {
-        division: "NFC South",
-        roster: {
-          qbs: ["Bryce Young"],
-          rbs: ["Jonathon Brooks"],
-          wrs: ["Adam Thielen", "Diontae Johnson"],
-          tes: ["Ja'Tavion Sanders"]
-        }
-      },
-      "New Orleans Saints": {
-        division: "NFC South",
-        roster: {
-          qbs: ["Derek Carr"],
-          rbs: ["Alvin Kamara"],
-          wrs: ["Chris Olave", "Rashid Shaheed"],
-          tes: ["Juwan Johnson"]
-        }
-      },
-      "Tampa Bay Buccaneers": {
-        division: "NFC South",
-        roster: {
-          qbs: ["Baker Mayfield"],
-          rbs: ["Rachaad White"],
-          wrs: ["Mike Evans", "Chris Godwin"],
-          tes: ["Cade Otton"]
-        }
-      },
-      // NFC WEST
-      "Arizona Cardinals": {
-        division: "NFC West",
-        roster: {
-          qbs: ["Kyler Murray"],
-          rbs: ["James Conner"],
-          wrs: ["Marvin Harrison Jr."],
-          tes: ["Trey McBride"]
-        }
-      },
-      "Los Angeles Rams": {
-        division: "NFC West",
-        roster: {
-          qbs: ["Matthew Stafford"],
-          rbs: ["Kyren Williams"],
-          wrs: ["Cooper Kupp", "Puka Nacua"],
-          tes: ["Tyler Higbee"]
-        }
-      },
-      "San Francisco 49ers": {
-        division: "NFC West",
-        roster: {
-          qbs: ["Brock Purdy"],
-          rbs: ["Christian McCaffrey"],
-          wrs: ["Deebo Samuel", "Brandon Aiyuk"],
-          tes: ["George Kittle"]
-        }
-      },
-      "Seattle Seahawks": {
-        division: "NFC West",
-        roster: {
-          qbs: ["Geno Smith"],
-          rbs: ["Kenneth Walker III"],
-          wrs: ["D.K. Metcalf", "Tyler Lockett"],
-          tes: ["Noah Fant"]
-        }
-      }
+        return bytes.buffer;
     };
 
-    // Get all the necessary HTML elements
-    const scoreDisplay = document.getElementById('score-display');
-    const quarterLengthDisplay = document.getElementById('quarter-length-display');
-    const quarterLengthInput = document.getElementById('quarter-length-input');
-    const addScoreBtn = document.getElementById('add-score-btn');
-    const addExtraPointBtn = document.getElementById('add-extra-point-btn');
-    const addFieldGoalBtn = document.getElementById('add-field-goal-btn');
-    const saveBtn = document.getElementById('save-btn');
-    const loadBtn = document.getElementById('load-btn');
-    const statusBox = document.getElementById('status-box');
+    // Converts PCM audio data to a WAV Blob
+    const pcmToWav = (pcm16, sampleRate) => {
+        const numChannels = 1;
+        const bitsPerSample = 16;
+        const byteRate = (sampleRate * numChannels * bitsPerSample) / 8;
+        const blockAlign = (numChannels * bitsPerSample) / 8;
+        const dataLength = pcm16.length * 2; // 2 bytes per sample (Int16Array)
 
-    // Initialize game state variables
-    let score = 0;
-    let quarterLength = 15;
+        const buffer = new ArrayBuffer(44 + dataLength);
+        const view = new DataView(buffer);
 
-    /**
-     * Updates the UI to show the current score and quarter length.
-     */
-    function updateUI() {
-      if (scoreDisplay) scoreDisplay.textContent = score;
-      if (quarterLengthDisplay) quarterLengthDisplay.textContent = `${quarterLength} min`;
-      if (quarterLengthInput) quarterLengthInput.value = quarterLength;
-    }
+        let offset = 0;
+        const writeString = (str) => {
+            for (let i = 0; i < str.length; i++) {
+                view.setUint8(offset++, str.charCodeAt(i));
+            }
+        };
 
-    /**
-     * Displays a message in the status box with a specific style.
-     * @param {string} message - The message to display.
-     * @param {string} type - The type of message ('success', 'error', 'info').
-     */
-    function showStatus(message, type) {
-      if (!statusBox) return;
-      statusBox.textContent = message;
-      statusBox.classList.remove('status-box-hidden', 'bg-green-800', 'text-green-200', 'bg-blue-800', 'text-blue-200', 'bg-red-800', 'text-red-200');
-      statusBox.classList.add('status-box-visible');
+        // RIFF header
+        writeString('RIFF');
+        view.setUint32(offset, 36 + dataLength, true); offset += 4;
+        writeString('WAVE');
 
-      if (type === 'success') {
-        statusBox.classList.add('bg-green-800', 'text-green-200');
-      } else if (type === 'info') {
-        statusBox.classList.add('bg-blue-800', 'text-blue-200');
-      } else {
-        statusBox.classList.add('bg-red-800', 'text-red-200');
-      }
+        // fmt sub-chunk
+        writeString('fmt ');
+        view.setUint32(offset, 16, true); offset += 4; // Sub-chunk size
+        view.setUint16(offset, 1, true); offset += 2;  // Audio format (1 = PCM)
+        view.setUint16(offset, numChannels, true); offset += 2;
+        view.setUint32(offset, sampleRate, true); offset += 4;
+        view.setUint32(offset, byteRate, true); offset += 4;
+        view.setUint16(offset, blockAlign, true); offset += 2;
+        view.setUint16(offset, bitsPerSample, true); offset += 2;
 
-      setTimeout(() => {
-        statusBox.classList.remove('status-box-visible');
-        statusBox.classList.add('status-box-hidden');
-      }, 3000);
-    }
+        // data sub-chunk
+        writeString('data');
+        view.setUint32(offset, dataLength, true); offset += 4;
 
-    /**
-     * Saves the current game state to localStorage.
-     */
-    function saveGameState() {
-      try {
-        const gameState = { score: score, quarterLength: quarterLength };
-        localStorage.setItem('footballGameState', JSON.stringify(gameState));
-        showStatus('Game saved successfully!', 'success');
-      } catch (error) {
-        showStatus('Failed to save game.', 'error');
-        console.error("Error saving game state:", error);
-      }
-    }
-
-    /**
-     * Loads the game state from localStorage.
-     */
-    function loadGameState() {
-      try {
-        const savedData = localStorage.getItem('footballGameState');
-        if (savedData) {
-          const gameState = JSON.parse(savedData);
-          score = gameState.score;
-          quarterLength = gameState.quarterLength;
-          updateUI();
-          showStatus('Game loaded successfully!', 'info');
-          return true;
-        } else {
-          showStatus('No saved game found.', 'info');
-          return false;
+        // Write PCM data
+        for (let i = 0; i < pcm16.length; i++) {
+            view.setInt16(offset, pcm16[i], true);
+            offset += 2;
         }
-      } catch (error) {
-        showStatus('Failed to load game.', 'error');
-        console.error("Error loading game state:", error);
-        return false;
-      }
+
+        return new Blob([view], { type: 'audio/wav' });
+    };
+
+    // Function to generate and play TTS audio
+    const playTts = async (text) => {
+        if (audioPlayer.current) {
+            audioPlayer.current.pause();
+            audioPlayer.current.removeAttribute('src');
+            audioPlayer.current.load();
+        }
+
+        const payload = {
+            contents: [{
+                parts: [{ text: text }]
+            }],
+            generationConfig: {
+                responseModalities: ["AUDIO"],
+                speechConfig: {
+                    voiceConfig: {
+                        prebuiltVoiceConfig: { voiceName: "Rasalgethi" }
+                    }
+                }
+            },
+            model: "gemini-2.5-flash-preview-tts"
+        };
+
+        const apiKey = "";
+        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent?key=${apiKey}`;
+
+        try {
+            const response = await fetch(apiUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            const result = await response.json();
+            const part = result?.candidates?.[0]?.content?.parts?.[0];
+            const audioData = part?.inlineData?.data;
+            const mimeType = part?.inlineData?.mimeType;
+
+            if (audioData && mimeType && mimeType.startsWith("audio/")) {
+                const sampleRate = parseInt(mimeType.match(/rate=(\d+)/)[1], 10);
+                const pcmData = base64ToArrayBuffer(audioData);
+                const pcm16 = new Int16Array(pcmData);
+                const wavBlob = pcmToWav(pcm16, sampleRate);
+                const audioUrl = URL.createObjectURL(wavBlob);
+                
+                audioPlayer.current.src = audioUrl;
+                audioPlayer.current.play();
+            } else {
+                console.error("TTS API response error:", result);
+                setError("Failed to generate audio. Please try again.");
+            }
+        } catch (e) {
+            console.error("TTS API call failed:", e);
+            setError("Failed to generate audio due to a network or API error.");
+        }
+    };
+
+    // --- UI Components ---
+    const LoadingScreen = () => (
+        <div className="flex justify-center items-center h-screen bg-gray-900 text-white">
+            <div className="animate-pulse text-lg">Loading...</div>
+        </div>
+    );
+
+    const MessageBox = ({ message, onClose }) => (
+        <div className="fixed inset-0 bg-gray-900 bg-opacity-70 flex justify-center items-center z-50">
+            <div className="bg-gray-800 p-8 rounded-xl shadow-lg w-11/12 md:w-1/3 text-center">
+                <p className="text-xl mb-4">{message}</p>
+                <button onClick={onClose} className="bg-blue-600 text-white py-2 px-6 rounded-lg hover:bg-blue-700">OK</button>
+            </div>
+        </div>
+    );
+
+    const MainMenu = () => {
+        const [message, setMessage] = useState(null);
+        
+        const showMessage = (msg) => {
+            setMessage(msg);
+        };
+
+        const handleButtonClick = (action) => {
+            if (action === 'quick-play') {
+                setPage('quick-play');
+            } else if (action === 'franchise') {
+                if (userId) {
+                    setPage('franchise');
+                } else {
+                    showMessage("Authenticating... Please wait.");
+                }
+            } else {
+                showMessage(`"${action.replace('-', ' ')}" is not yet implemented.`);
+            }
+        };
+
+        return (
+            <div className="menu-card">
+                <h1 className="menu-title">My Madden Game</h1>
+                <div className="flex flex-col space-y-4">
+                    <button onClick={() => handleButtonClick('quick-play')} className="menu-button">Quick Play</button>
+                    <button onClick={() => handleButtonClick('franchise')} className="menu-button">Franchise Mode</button>
+                    <button onClick={() => handleButtonClick('settings')} className="menu-button">Settings</button>
+                    <button onClick={() => showMessage("Exiting... just kidding! You're in a browser.")} className="menu-button">Exit Game</button>
+                </div>
+                {message && <MessageBox message={message} onClose={() => setMessage(null)} />}
+            </div>
+        );
+    };
+
+    const QuickPlay = () => {
+        const [message, setMessage] = useState(null);
+        const teams = [
+            'Kansas City Chiefs', 'San Francisco 49ers', 'Buffalo Bills', 'Dallas Cowboys',
+            'Philadelphia Eagles', 'Green Bay Packers', 'New Orleans Saints', 'New York Jets',
+            'New England Patriots', 'Las Vegas Raiders', 'Miami Dolphins', 'Detroit Lions',
+            'Baltimore Ravens', 'Cincinnati Bengals', 'Los Angeles Rams', 'Atlanta Falcons'
+        ];
+
+        const handlePlayGame = () => {
+            const homeTeam = document.getElementById('team-1').value;
+            const awayTeam = document.getElementById('team-2').value;
+            const quarterLength = document.getElementById('quarter-length').value;
+            const difficulty = document.getElementById('difficulty').value;
+            const gameStyle = document.getElementById('game-style').value;
+            const eventType = document.getElementById('event-type').value;
+
+            if (homeTeam === awayTeam) {
+                setMessage("You must select two different teams to play a game.");
+                return;
+            }
+
+            const gameInfo = `A game between the ${homeTeam} and the ${awayTeam} is about to begin!
+            - Quarter Length: ${quarterLength} minutes
+            - Difficulty: ${difficulty}
+            - Game Style: ${gameStyle}
+            - Event Type: ${eventType}`;
+            setMessage(gameInfo);
+        };
+
+        return (
+            <div className="quick-play-card">
+                <h1 className="menu-title">Quick Play</h1>
+                <div className="space-y-6">
+                    <div className="flex flex-col md:flex-row items-center justify-between space-y-4 md:space-y-0 md:space-x-4">
+                        <div className="w-full md:w-1/2">
+                            <label htmlFor="team-1" className="block text-lg font-semibold mb-2">Home Team:</label>
+                            <select id="team-1" className="w-full p-3 rounded-lg bg-gray-700 text-white border-none focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                {teams.map(team => <option key={team} value={team}>{team}</option>)}
+                            </select>
+                        </div>
+                        <div className="text-xl font-bold">VS</div>
+                        <div className="w-full md:w-1/2">
+                            <label htmlFor="team-2" className="block text-lg font-semibold mb-2">Away Team:</label>
+                            <select id="team-2" className="w-full p-3 rounded-lg bg-gray-700 text-white border-none focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                {teams.map(team => <option key={team} value={team}>{team}</option>)}
+                            </select>
+                        </div>
+                    </div>
+                    <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label htmlFor="quarter-length" className="block font-semibold mb-2">Quarter Length:</label>
+                            <select id="quarter-length" className="w-full p-3 rounded-lg bg-gray-700 text-white border-none focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                <option value="5">5 Minutes</option>
+                                <option value="8">8 Minutes</option>
+                                <option value="10">10 Minutes</option>
+                                <option value="15">15 Minutes</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label htmlFor="difficulty" className="block font-semibold mb-2">Difficulty:</label>
+                            <select id="difficulty" className="w-full p-3 rounded-lg bg-gray-700 text-white border-none focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                <option value="rookie">Rookie</option>
+                                <option value="pro">Pro</option>
+                                <option value="all-pro">All-Pro</option>
+                                <option value="all-madden">All-Madden</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label htmlFor="game-style" className="block font-semibold mb-2">Game Style:</label>
+                            <select id="game-style" className="w-full p-3 rounded-lg bg-gray-700 text-white border-none focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                <option value="simulation">Simulation</option>
+                                <option value="competitive">Competitive</option>
+                                <option value="arcade">Arcade</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label htmlFor="event-type" className="block font-semibold mb-2">Event Type:</label>
+                            <select id="event-type" className="w-full p-3 rounded-lg bg-gray-700 text-white border-none focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                <option value="exhibition">Exhibition</option>
+                                <option value="pro-bowl">Pro Bowl</option>
+                                <option value="super-bowl">Super Bowl</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div className="flex flex-col mt-8 space-y-4">
+                    <button onClick={handlePlayGame} className="menu-button">Play Game</button>
+                    <button onClick={() => setPage('main-menu')} className="menu-button bg-gray-700 hover:bg-gray-600">Back</button>
+                </div>
+                {message && <MessageBox message={message} onClose={() => setMessage(null)} />}
+            </div>
+        );
+    };
+
+    // New Franchise Page
+    const NewFranchise = () => {
+        const [selectedTeam, setSelectedTeam] = useState('Kansas City Chiefs');
+        const [message, setMessage] = useState(null);
+        const teams = [
+            'Kansas City Chiefs', 'San Francisco 49ers', 'Buffalo Bills', 'Dallas Cowboys',
+            'Philadelphia Eagles', 'Green Bay Packers', 'New Orleans Saints', 'New York Jets',
+            'New England Patriots', 'Las Vegas Raiders', 'Miami Dolphins', 'Detroit Lions',
+            'Baltimore Ravens', 'Cincinnati Bengals', 'Los Angeles Rams', 'Atlanta Falcons'
+        ];
+
+        const handleCreateFranchise = async () => {
+            if (!db || !userId) {
+                setMessage("Database not ready. Please try again in a moment.");
+                return;
+            }
+
+            try {
+                // Define the path for the franchise document
+                const franchiseDocPath = `artifacts/${__app_id}/users/${userId}/franchise/myFranchise`;
+                const franchiseDocRef = doc(db, franchiseDocPath);
+
+                // Data to save
+                const newFranchiseData = {
+                    teamName: selectedTeam,
+                    season: 1,
+                    wins: 0,
+                    losses: 0,
+                    createdAt: new Date().toISOString()
+                };
+
+                // Save the data to Firestore
+                await setDoc(franchiseDocRef, newFranchiseData);
+                setMessage("New franchise created successfully!");
+                console.log("Franchise data saved:", newFranchiseData);
+                setFranchisePage('hub'); // Navigate back to the hub
+            } catch (e) {
+                console.error("Error creating franchise:", e);
+                setMessage("Failed to create franchise. Please try again.");
+            }
+        };
+
+        return (
+            <div className="quick-play-card">
+                <h1 className="menu-title">New Franchise</h1>
+                <div className="space-y-4">
+                    <div>
+                        <label htmlFor="franchise-team" className="block text-lg font-semibold mb-2">Select Your Team:</label>
+                        <select id="franchise-team" value={selectedTeam} onChange={(e) => setSelectedTeam(e.target.value)} className="w-full p-3 rounded-lg bg-gray-700 text-white border-none focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            {teams.map(team => <option key={team} value={team}>{team}</option>)}
+                        </select>
+                    </div>
+                    <button onClick={handleCreateFranchise} className="menu-button">Create Franchise</button>
+                </div>
+                <div className="flex flex-col mt-8 space-y-4">
+                    <button onClick={() => setFranchisePage('hub')} className="menu-button bg-gray-700 hover:bg-gray-600">Back</button>
+                </div>
+                {message && <MessageBox message={message} onClose={() => setMessage(null)} />}
+            </div>
+        );
+    };
+
+    // Franchise Hub component
+    const FranchiseHub = () => {
+        const [message, setMessage] = useState(null);
+
+        const handleTestCommentary = () => {
+            const commentary = "First and ten, ball on the twenty-five yard line. The quarterback is in shotgun formation.";
+            playTts(commentary);
+            setMessage("Playing commentary... Listen closely!");
+        };
+
+        return (
+            <div className="quick-play-card">
+                <h1 className="menu-title">Franchise Hub</h1>
+                {error ? (
+                    <div className="text-red-400">{error}</div>
+                ) : franchiseData ? (
+                    <div className="space-y-4">
+                        <p className="text-center">Welcome, <span className="font-bold">{franchiseData.teamName}</span> fan!</p>
+                        <p className="text-center text-sm text-gray-400 break-words">User ID: {userId}</p>
+                        <div className="mt-4 p-4 bg-gray-700 rounded-lg">
+                            <h2 className="text-lg font-semibold text-center mb-2">Franchise Info</h2>
+                            <p>Season: {franchiseData.season}</p>
+                            <p>Record: {franchiseData.wins} - {franchiseData.losses}</p>
+                        </div>
+                        <button onClick={handleTestCommentary} className="menu-button mt-4">Test Commentary</button>
+                    </div>
+                ) : (
+                    <div className="space-y-4 text-center">
+                        <p>No franchise found. Start a new one to begin your journey!</p>
+                        <button onClick={() => setFranchisePage('new-franchise')} className="menu-button">Start New Franchise</button>
+                    </div>
+                )}
+                <div className="flex flex-col mt-8 space-y-4">
+                    <button onClick={() => setPage('main-menu')} className="menu-button bg-gray-700 hover:bg-gray-600">Back</button>
+                </div>
+                {message && <MessageBox message={message} onClose={() => setMessage(null)} />}
+                <audio ref={audioPlayer} />
+            </div>
+        );
+    };
+
+    // --- Main Rendering Logic ---
+    if (isLoading) {
+        return <LoadingScreen />;
     }
 
-    // --- Event Listeners ---
-    if (addScoreBtn) addScoreBtn.addEventListener('click', () => { score += 6; updateUI(); });
-    if (addExtraPointBtn) addExtraPointBtn.addEventListener('click', () => { score += 1; updateUI(); });
-    if (addFieldGoalBtn) addFieldGoalBtn.addEventListener('click', () => { score += 3; updateUI(); });
-    
-    if (quarterLengthInput) quarterLengthInput.addEventListener('input', (event) => {
-      const newLength = parseInt(event.target.value, 10);
-      if (!isNaN(newLength) && newLength > 0 && newLength <= 60) {
-        quarterLength = newLength;
-        updateUI();
-      }
-    });
+    let pageContent;
+    switch (page) {
+        case 'main-menu':
+            pageContent = <MainMenu />;
+            break;
+        case 'quick-play':
+            pageContent = <QuickPlay />;
+            break;
+        case 'franchise':
+            if (franchisePage === 'new-franchise') {
+                pageContent = <NewFranchise />;
+            } else {
+                pageContent = <FranchiseHub />;
+            }
+            break;
+        default:
+            pageContent = <MainMenu />;
+    }
 
-    if (saveBtn) saveBtn.addEventListener('click', saveGameState);
-    if (loadBtn) loadBtn.addEventListener('click', loadGameState);
+    return (
+        <div className="relative min-h-screen bg-gray-900 text-white font-sans">
+            <div className="bg-animation"></div>
+            <div className="main-container">
+                {pageContent}
+            </div>
 
-    // Initial load logic
-    document.addEventListener('DOMContentLoaded', () => {
-      const loaded = loadGameState();
-      if (!loaded) {
-        updateUI();
-      }
-    });
-  </script>
-</body>
-</html>
+            {/* Global Styles */}
+            <style jsx global>{`
+                body {
+                    font-family: 'Inter', sans-serif;
+                    background-color: #1a202c;
+                    color: #e2e8f0;
+                    margin: 0;
+                    padding: 0;
+                    overflow: hidden;
+                }
+                .main-container {
+                    min-height: 100vh;
+                    display: flex;
+                    flex-direction: column;
+                    justify-content: center;
+                    align-items: center;
+                    position: relative;
+                    z-index: 10;
+                }
+                .bg-animation {
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    background: linear-gradient(-45deg, #2b6cb0, #4299e1, #3182ce, #1c3d5a);
+                    background-size: 400% 400%;
+                    animation: gradient-shift 15s ease infinite;
+                    z-index: 1;
+                }
+                @keyframes gradient-shift {
+                    0% { background-position: 0% 50%; }
+                    50% { background-position: 100% 50%; }
+                    100% { background-position: 0% 50%; }
+                }
+                .menu-card, .quick-play-card {
+                    background-color: rgba(26, 32, 44, 0.9);
+                    border-radius: 1rem;
+                    padding: 2rem;
+                    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+                    max-width: 90%;
+                    width: 100%;
+                    max-width: 450px;
+                }
+                .menu-title {
+                    font-size: 2.25rem;
+                    font-weight: 700;
+                    text-align: center;
+                    margin-bottom: 1.5rem;
+                    color: #63b3ed;
+                }
+                .menu-button {
+                    width: 100%;
+                    padding: 1rem 2rem;
+                    margin-bottom: 1rem;
+                    border-radius: 0.75rem;
+                    font-size: 1.125rem;
+                    font-weight: 700;
+                    color: #ffffff;
+                    background: linear-gradient(135deg, #4299e1, #3182ce);
+                    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+                    transition: transform 0.2s, box-shadow 0.2s;
+                    cursor: pointer;
+                    border: none;
+                }
+                .menu-button:hover {
+                    transform: translateY(-2px);
+                    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+                }
+                .menu-button:active {
+                    transform: translateY(1px);
+                    box-shadow: none;
+                }
+            `}</style>
+        </div>
+    );
+};
 
+export default App;
