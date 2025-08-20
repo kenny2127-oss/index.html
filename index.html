@@ -2,196 +2,198 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Accessible Madden Game</title>
+  <title>Madden Style Accessible Game</title>
   <style>
-    body { font-family: Arial, sans-serif; background:#111; color:white; text-align:center; }
-    .menu, .submenu, .gameplay, .halftime, .postgame { display:none; margin-top:20px; }
-    button { display:block; margin:10px auto; padding:10px 20px; font-size:18px; border-radius:8px; }
+    body { font-family: Arial, sans-serif; }
+    .menu, .submenu, .game-screen { display: none; margin-top: 20px; }
+    button { display: block; margin: 10px 0; font-size: 18px; }
   </style>
 </head>
 <body>
-  <h1>Accessible Madden Game</h1>
-
-  <!-- Main Menu -->
+  <h1>Main Menu</h1>
   <div id="mainMenu" class="menu" style="display:block;">
-    <button id="quickPlayBtn">Quick Play</button>
-    <button id="franchiseBtn">Franchise</button>
-    <button id="ultimateBtn">Ultimate Team</button>
-    <button id="practiceBtn">Practice</button>
-    <button id="settingsBtn">Settings</button>
+    <button onclick="openMenu('quickPlayMenu')">Quick Play</button>
+    <button onclick="openMenu('franchiseMenu')">Franchise</button>
+    <button onclick="announce('Ultimate Team Activated')">Ultimate Team</button>
+    <button onclick="announce('Practice Mode Activated')">Practice</button>
+    <button onclick="announce('Settings Activated')">Settings</button>
   </div>
 
   <!-- Quick Play Menu -->
   <div id="quickPlayMenu" class="submenu">
     <h2>Quick Play</h2>
-    <label>Home Team: <input type="text" id="homeTeam" value="Home Team"></label><br>
-    <label>Away Team: <input type="text" id="awayTeam" value="Away Team"></label><br>
-    <button id="startGameBtn">Start Game</button>
-    <button onclick="goBack()">Back</button>
+    <label>Home Team:
+      <select id="homeTeam">
+        <option value="Eagles">Eagles</option>
+        <option value="Chiefs">Chiefs</option>
+        <option value="Cowboys">Cowboys</option>
+      </select>
+    </label><br>
+    <label>Away Team:
+      <select id="awayTeam">
+        <option value="Bills">Bills</option>
+        <option value="49ers">49ers</option>
+        <option value="Packers">Packers</option>
+      </select>
+    </label><br>
+    <button onclick="openMenu('gameSettingsMenu')">Start Game</button>
+    <button onclick="backToMain()">Back</button>
   </div>
 
-  <!-- Gameplay -->
-  <div id="gameplay" class="gameplay">
-    <h2 id="scoreBoard">Home 0 - Away 0</h2>
-    <p id="quarterInfo">Quarter: 1</p>
-    <p id="ballInfo">Ball on the 25 yard line</p>
-
-    <h3>Offensive Playbook</h3>
-    <button onclick="runPlay()">Run Play</button>
-    <button onclick="passPlay()">Pass Play</button>
-    <button onclick="longPassPlay()">Long Pass</button>
-    <button onclick="fieldGoal()">Field Goal</button>
-    <button onclick="twoPoint()">Two Point Conversion</button>
-
-    <button onclick="nextQuarter()">Next Quarter</button>
+  <!-- Game Settings -->
+  <div id="gameSettingsMenu" class="submenu">
+    <h2>Game Settings</h2>
+    <label>Quarter Length:
+      <select id="quarterLength">
+        <option value="5">5 Minutes</option>
+        <option value="10">10 Minutes</option>
+        <option value="15">15 Minutes</option>
+      </select>
+    </label><br>
+    <button onclick="startGame()">Kickoff</button>
+    <button onclick="openMenu('quickPlayMenu')">Back</button>
   </div>
 
-  <!-- Halftime -->
-  <div id="halftime" class="halftime">
-    <h2>Halftime Show</h2>
-    <p id="halftimeScore"></p>
-    <button onclick="startSecondHalf()">Start 3rd Quarter</button>
+  <!-- Game Screen -->
+  <div id="gameScreen" class="game-screen">
+    <h2 id="scoreboard">Home 0 - 0 Away</h2>
+    <p id="situation">1st and 10 at the 25 yard line.</p>
+    <div id="offensePlays">
+      <button onclick="callPlay('run')">Run Play</button>
+      <button onclick="callPlay('shortPass')">Short Pass</button>
+      <button onclick="callPlay('longPass')">Long Pass</button>
+    </div>
+    <div id="fourthDownOptions" style="display:none;">
+      <button onclick="punt()">Punt</button>
+      <button onclick="fieldGoal()">Field Goal</button>
+      <button onclick="callPlay('goForIt')">Go For It</button>
+    </div>
+    <button onclick="endQuarter()">End Quarter</button>
+    <button onclick="backToMain()">Quit to Main Menu</button>
   </div>
 
-  <!-- Postgame -->
-  <div id="postgame" class="postgame">
-    <h2>Postgame Show</h2>
-    <p id="finalScore"></p>
-    <button onclick="goHome()">Return to Main Menu</button>
-  </div>
+  <script>
+    let homeTeam, awayTeam, homeScore, awayScore;
+    let ballPosition, currentDown, yardsToFirst, possession; // "home" or "away"
 
-<script>
-document.addEventListener("DOMContentLoaded", function() {
-  let homeScore = 0;
-  let awayScore = 0;
-  let quarter = 1;
-  let ballPosition = 25; // starting field position
+    function announce(msg) {
+      alert(msg);
+    }
 
-  const scoreBoard = document.getElementById("scoreBoard");
-  const quarterInfo = document.getElementById("quarterInfo");
-  const ballInfo = document.getElementById("ballInfo");
+    function openMenu(menuId) {
+      document.querySelectorAll('.menu, .submenu, .game-screen').forEach(el => el.style.display = 'none');
+      document.getElementById(menuId).style.display = 'block';
+      announce(document.getElementById(menuId).querySelector('h2')?.innerText || menuId + " Activated");
+    }
 
-  function speak(msg) {
-    let utter = new SpeechSynthesisUtterance(msg);
-    speechSynthesis.speak(utter);
-  }
+    function backToMain() {
+      document.querySelectorAll('.menu, .submenu, .game-screen').forEach(el => el.style.display = 'none');
+      document.getElementById('mainMenu').style.display = 'block';
+    }
 
-  // Navigation
-  document.getElementById("quickPlayBtn").onclick = () => {
-    document.getElementById("mainMenu").style.display = "none";
-    document.getElementById("quickPlayMenu").style.display = "block";
-    speak("Quick Play Menu opened. Select your teams.");
-  };
-
-  document.getElementById("startGameBtn").onclick = () => {
-    document.getElementById("quickPlayMenu").style.display = "none";
-    document.getElementById("gameplay").style.display = "block";
-    resetGame();
-    speak("Game starting. Ball on the 25 yard line.");
-  };
-
-  window.goBack = function() {
-    document.getElementById("quickPlayMenu").style.display = "none";
-    document.getElementById("mainMenu").style.display = "block";
-  };
-
-  window.goHome = function() {
-    document.getElementById("postgame").style.display = "none";
-    document.getElementById("mainMenu").style.display = "block";
-  };
-
-  // Reset game
-  function resetGame() {
-    homeScore = 0;
-    awayScore = 0;
-    quarter = 1;
-    ballPosition = 25;
-    updateScore();
-    quarterInfo.innerText = "Quarter: 1";
-    ballInfo.innerText = "Ball on the 25 yard line";
-  }
-
-  // Update score display
-  function updateScore() {
-    scoreBoard.innerText = `Home ${homeScore} - Away ${awayScore}`;
-  }
-
-  // Plays
-  window.runPlay = function() {
-    let gain = Math.floor(Math.random() * 2) + 2; // 2-3 yards
-    ballPosition += gain;
-    checkPlayResult("Run play", gain);
-  };
-
-  window.passPlay = function() {
-    let gain = Math.floor(Math.random() * 6) + 10; // 10-15 yards
-    ballPosition += gain;
-    checkPlayResult("Pass play", gain);
-  };
-
-  window.longPassPlay = function() {
-    let gain = Math.floor(Math.random() * 11) + 30; // 30-40 yards
-    ballPosition += gain;
-    checkPlayResult("Long pass", gain);
-  };
-
-  window.fieldGoal = function() {
-    homeScore += 3;
-    updateScore();
-    speak("Field Goal is good! 3 points added.");
-    ballPosition = 25;
-    ballInfo.innerText = "Ball on the 25 yard line";
-  };
-
-  window.twoPoint = function() {
-    homeScore += 2;
-    updateScore();
-    speak("Two point conversion successful!");
-    ballPosition = 25;
-    ballInfo.innerText = "Ball on the 25 yard line";
-  };
-
-  // Play result logic
-  function checkPlayResult(playType, gain) {
-    if (ballPosition >= 100) {
-      homeScore += 7;
-      updateScore();
-      speak(`Touchdown! ${playType} gained ${gain} yards. Home team scores 7 points.`);
+    function startGame() {
+      homeTeam = document.getElementById('homeTeam').value;
+      awayTeam = document.getElementById('awayTeam').value;
+      homeScore = 0; awayScore = 0;
+      possession = "home";
       ballPosition = 25;
-      ballInfo.innerText = "Ball on the 25 yard line";
-    } else {
-      ballInfo.innerText = `Ball on the ${ballPosition} yard line`;
-      speak(`${playType} gained ${gain} yards. Ball on the ${ballPosition} yard line.`);
+      currentDown = 1;
+      yardsToFirst = 10;
+      updateSituation();
+      openMenu('gameScreen');
     }
-  }
 
-  // Quarters
-  window.nextQuarter = function() {
-    if (quarter === 2) {
-      document.getElementById("gameplay").style.display = "none";
-      document.getElementById("halftime").style.display = "block";
-      document.getElementById("halftimeScore").innerText = `Halftime Score: Home ${homeScore} - Away ${awayScore}`;
-      speak("Halftime show. " + document.getElementById("halftimeScore").innerText);
-    } else if (quarter === 4) {
-      document.getElementById("gameplay").style.display = "none";
-      document.getElementById("postgame").style.display = "block";
-      document.getElementById("finalScore").innerText = `Final Score: Home ${homeScore} - Away ${awayScore}`;
-      speak("Game over. " + document.getElementById("finalScore").innerText);
-    } else {
-      quarter++;
-      quarterInfo.innerText = "Quarter: " + quarter;
-      speak("Quarter " + quarter);
+    function updateSituation() {
+      document.getElementById('scoreboard').innerText = `${homeTeam} ${homeScore} - ${awayScore} ${awayTeam}`;
+      document.getElementById('situation').innerText = `${currentDown} and ${yardsToFirst} at the ${ballPosition} yard line.,  ${possession === "home" ? homeTeam : awayTeam} ball.`;
+
+      if (currentDown === 4 && yardsToFirst > 0) {
+        document.getElementById('offensePlays').style.display = 'none';
+        document.getElementById('fourthDownOptions').style.display = 'block';
+      } else {
+        document.getElementById('offensePlays').style.display = 'block';
+        document.getElementById('fourthDownOptions').style.display = 'none';
+      }
     }
-  };
 
-  window.startSecondHalf = function() {
-    document.getElementById("halftime").style.display = "none";
-    document.getElementById("gameplay").style.display = "block";
-    quarter = 3;
-    quarterInfo.innerText = "Quarter: 3";
-    speak("Starting 3rd quarter.");
-  };
-});
-</script>
+    function callPlay(playType) {
+      let yards = 0;
+      let defense = chooseDefense();
+
+      if (playType === 'run') {
+        yards = Math.floor(Math.random() * 3) + 2; // 2-4 yards
+        if (defense === "blitz") yards -= 1;
+      } else if (playType === 'shortPass') {
+        yards = Math.floor(Math.random() * 6) + 10; // 10-15 yards
+        if (defense === "zone") yards -= 5;
+      } else if (playType === 'longPass') {
+        yards = Math.floor(Math.random() * 11) + 30; // 30-40 yards
+        if (defense === "man") yards -= 10;
+      } else if (playType === 'goForIt') {
+        yards = Math.floor(Math.random() * 10) + 1;
+      }
+
+      if (yards < 0) yards = 0;
+
+      ballPosition += yards;
+      yardsToFirst -= yards;
+
+      let msg = `${playType} gains ${yards} yards. `;
+
+      if (ballPosition >= 100) {
+        msg += "Touchdown!";
+        if (possession === "home") homeScore += 7; else awayScore += 7;
+        changePossession(true);
+      } else if (yardsToFirst <= 0) {
+        currentDown = 1;
+        yardsToFirst = 10;
+        msg += "First down!";
+      } else {
+        currentDown++;
+        if (currentDown > 4) {
+          msg += "Turnover on downs.";
+          changePossession();
+        }
+      }
+
+      announce(msg);
+      updateSituation();
+    }
+
+    function punt() {
+      let puntYards = Math.floor(Math.random() * 20) + 40;
+      ballPosition = 100 - puntYards;
+      changePossession();
+      announce(`Punt goes ${puntYards} yards. ${possession === "home" ? homeTeam : awayTeam} takes over.`);
+      updateSituation();
+    }
+
+    function fieldGoal() {
+      if (ballPosition >= 65 && ballPosition <= 95) {
+        announce("Field goal is good!");
+        if (possession === "home") homeScore += 3; else awayScore += 3;
+      } else {
+        announce("Field goal missed!");
+      }
+      changePossession();
+      updateSituation();
+    }
+
+    function chooseDefense() {
+      const plays = ["blitz", "zone", "man"];
+      return plays[Math.floor(Math.random() * plays.length)];
+    }
+
+    function changePossession(reset=false) {
+      possession = (possession === "home") ? "away" : "home";
+      currentDown = 1;
+      yardsToFirst = 10;
+      ballPosition = reset ? 25 : 100 - ballPosition;
+    }
+
+    function endQuarter() {
+      announce("Quarter ended.");
+    }
+  </script>
 </body>
-</html>
+</html>, In,  list
