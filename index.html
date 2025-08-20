@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Madden Accessible Game</title>
+  <title>Blind Accessible Madden</title>
   <style>
     body {
       margin: 0;
@@ -11,11 +11,21 @@
       background: #000;
       color: #fff;
     }
+    a.skip {
+      position: absolute;
+      left: -9999px;
+    }
+    a.skip:focus {
+      position: static;
+      padding: .5rem;
+      background: #ffbf00;
+      color: #000;
+    }
     header {
       padding: 16px;
       text-align: center;
-      font-size: 1.5rem;
       font-weight: 700;
+      font-size: 1.5rem;
     }
     main {
       display: flex;
@@ -28,9 +38,9 @@
       width: 100%;
       max-width: 520px;
     }
-    button, select, input {
+    button, select, input[type=range] {
       width: 100%;
-      padding: 18px 20px;
+      padding: 16px 20px;
       margin: 10px 0;
       font-size: 1.25rem;
       border-radius: 14px;
@@ -45,33 +55,7 @@
     button:active {
       transform: scale(.98);
     }
-    @media (prefers-reduced-motion:no-preference) {
-      button {
-        transition: transform .08s ease;
-      }
-    }
-    section {
-      margin-bottom: 20px;
-    }
-    label {
-      display: block;
-      margin: 10px 0 5px;
-    }
-    dialog {
-      border: none;
-      border-radius: 12px;
-      padding: 20px;
-      max-width: 500px;
-      width: 90%;
-      background: #111;
-      color: #fff;
-    }
-    dialog::backdrop {
-      background: rgba(0,0,0,.7);
-    }
-    .hidden {
-      display: none;
-    }
+    .hidden { display: none; }
     .sr-only {
       position: absolute;
       width: 1px;
@@ -86,49 +70,47 @@
 </head>
 <body>
   <a class="skip" href="#menu">Skip to menu</a>
-  <header id="title">Madden – Main Menu</header>
-
-  <!-- Main Menu -->
-  <main id="mainMenu">
-    <nav id="menu" aria-label="Main Menu" role="menu">
+  <header aria-live="polite" aria-atomic="true">Madden – Main Menu</header>
+  <main>
+    <!-- Main Menu -->
+    <nav id="mainMenu" aria-label="Main Menu" role="menu">
       <button role="menuitem" data-action="quick">Quick Play</button>
       <button role="menuitem" data-action="franchise">Franchise</button>
       <button role="menuitem" data-action="mut">Ultimate Team</button>
       <button role="menuitem" data-action="practice">Practice</button>
       <button role="menuitem" data-action="settings">Settings</button>
-      <div class="sr-only" aria-live="polite" id="live"></div>
     </nav>
-  </main>
 
-  <!-- Quick Play Menu -->
-  <main id="quickPlayMenu" class="hidden">
-    <section>
+    <!-- Quick Play Menu -->
+    <nav id="quickPlayMenu" class="hidden" aria-label="Quick Play Menu" role="menu">
       <label for="homeTeam">Home Team</label>
-      <input type="range" id="homeTeam" min="0" max="31" value="0">
-      <div id="homeTeamName">Team 1</div>
-    </section>
+      <select id="homeTeam">
+        <option>49ers</option>
+        <option>Chiefs</option>
+        <option>Cowboys</option>
+        <option>Eagles</option>
+      </select>
 
-    <section>
       <label for="awayTeam">Away Team</label>
-      <input type="range" id="awayTeam" min="0" max="31" value="1">
-      <div id="awayTeamName">Team 2</div>
-    </section>
+      <select id="awayTeam">
+        <option>Packers</option>
+        <option>Bills</option>
+        <option>Ravens</option>
+        <option>Dolphins</option>
+      </select>
 
-    <button id="startBtn">Start Game</button>
-  </main>
+      <button id="startQuick" role="menuitem">Start Game</button>
+      <button id="backMain" role="menuitem">Back to Main Menu</button>
+    </nav>
 
-  <!-- Game Settings Dialog -->
-  <dialog id="settingsDialog">
-    <form method="dialog">
-      <h2>Game Settings</h2>
-
-      <label for="quarter">Quarter Length (1–15 min)</label>
-      <input type="range" id="quarter" min="1" max="15" value="5">
-      <div id="quarterVal">5 minutes</div>
-
-      <label for="event">Event Type</label>
-      <select id="event">
-        <option>Pre-season</option>
+    <!-- Game Settings Menu -->
+    <nav id="gameSettingsMenu" class="hidden" aria-label="Game Settings" role="menu">
+      <label for="quarterLength">Quarter Length (1–15 mins)</label>
+      <input type="range" id="quarterLength" min="1" max="15" value="5">
+      
+      <label for="eventType">Event Type</label>
+      <select id="eventType">
+        <option>Pre-Season</option>
         <option>Regular Season</option>
         <option>Playoffs</option>
         <option>Super Bowl</option>
@@ -151,77 +133,73 @@
         <option>Away</option>
       </select>
 
-      <button value="start">Confirm & Begin</button>
-      <button,  value="cancel">Cancel</button>
-    </form>
-  </dialog>
+      <button id="confirmGame" role="menuitem">Confirm & Start</button>
+      <button id="backQuick" role="menuitem">Back to Quick Play</button>
+    </nav>
+
+    <div class="sr-only" aria-live="polite" id="live"></div>
+ ,  </main>
 
   <script>
-    // Menu navigation
-    const mainMenu = document.getElementById("mainMenu");
-    const quickPlayMenu = document.getElementById("quickPlayMenu");
-    const title = document.getElementById("title");
-    const menu = document.querySelector('#menu');
-    const items = [...menu.querySelectorAll('button[role="menuitem"]')];
+    const mainMenu = document.getElementById('mainMenu');
+    const quickPlayMenu = document.getElementById('quickPlayMenu');
+    const gameSettingsMenu = document.getElementById('gameSettingsMenu');
     const live = document.getElementById('live');
 
-    function speak(t) {
-      live.textContent = t;
-    }
+    function speak(msg) { live.textContent = msg; }
 
-    items.forEach((btn) => {
-      btn.addEventListener('focus', () => speak(btn.textContent + ' selected'));
+    // Handle Main Menu buttons
+    mainMenu.querySelectorAll('button').forEach(btn => {
       btn.addEventListener('click', () => {
-        speak(btn.textContent + ' activated');
-        if (btn.dataset.action === "quick") {
-          mainMenu.classList.add("hidden");
-          quickPlayMenu.classList.remove("hidden");
-          title.textContent = "Quick Play";
+        if (btn.dataset.action === 'quick') {
+          mainMenu.classList.add('hidden');
+          quickPlayMenu.classList.remove('hidden');
+          quickPlayMenu.querySelector('select').focus();
+          speak("Quick Play menu opened. Choose Home and Away teams.");
+        } else {
+          speak(btn.textContent + " activated");
         }
       });
     });
 
-    menu.addEventListener('keydown', e => {
-      const i = document.activeElement ? items.indexOf(document.activeElement) : -1;
-      if (['ArrowDown', 'ArrowRight'].includes(e.key)) {
-        e.preventDefault();
-        (items[i + 1] || items[0]).focus();
-      }
-      if (['ArrowUp', 'ArrowLeft'].includes(e.key)) {
-        e.preventDefault();
-        (items[i - 1] || items[items.length - 1]).focus();
-      }
+    // Back to Main Menu
+    document.getElementById('backMain').addEventListener('click', () => {
+      quickPlayMenu.classList.add('hidden');
+      mainMenu.classList.remove('hidden');
+      mainMenu.querySelector('button').focus();
+      speak("Main Menu");
     });
 
-    items[0].focus();
-
-    // Quick Play logic
-    const teams = Array.from({length: 32}, (_, i) => "Team " + (i + 1));
-    const homeSlider = document.getElementById("homeTeam");
-    const awaySlider = document.getElementById("awayTeam");
-    const homeName = document.getElementById("homeTeamName");
-    const awayName = document.getElementById("awayTeamName");
-
-    function updateTeam(slider, el, label) {
-      const t = teams[slider.value];
-      el.textContent = t;
-      live.textContent = label + " set to " + t;
-    }
-
-    homeSlider.addEventListener("input", () => updateTeam(homeSlider, homeName, "Home Team"));
-    awaySlider.addEventListener("input", () => updateTeam(awaySlider, awayName, "Away Team"));
-
-    document.getElementById("startBtn").addEventListener("click", () => {
-      document.getElementById("settingsDialog").showModal();
-      live.textContent = "Game settings opened";
+    // Start Game from Quick Play → goes to Game Settings
+    document.getElementById('startQuick').addEventListener('click', () => {
+      quickPlayMenu.classList.add('hidden');
+      gameSettingsMenu.classList.remove('hidden');
+      gameSettingsMenu.querySelector('#quarterLength').focus();
+      speak("Game Settings menu opened. Adjust your settings.");
     });
 
-    const quarter = document.getElementById("quarter");
-    const quarterVal = document.getElementById("quarterVal");
-    quarter.addEventListener("input", () => {
-      quarterVal.textContent = quarter.value + " minutes";
-      live.textContent = "Quarter length set to " + quarter.value + " minutes";
+    // Back to Quick Play
+    document.getElementById('backQuick').addEventListener('click', () => {
+      gameSettingsMenu.classList.add('hidden');
+      quickPlayMenu.classList.remove('hidden');
+      quickPlayMenu.querySelector('#homeTeam').focus();
+      speak("Quick Play menu");
     });
- ,  </script>
+
+    // Confirm Game Settings
+    document.getElementById('confirmGame').addEventListener('click', () => {
+      const home = document.getElementById('homeTeam').value;
+      const away = document.getElementById('awayTeam').value;
+      const quarter = document.getElementById('quarterLength').value;
+      const eventType = document.getElementById('eventType').value;
+      const weather = document.getElementById('weather').value;
+      const stadium = document.getElementById('stadium').value;
+
+      speak(`Game starting. ${away} at ${home}. ${eventType}, ${quarter} minute quarters, weather: ${weather}, stadium: ${stadium}`);
+    });
+
+    // Start with focus on first main menu button
+    mainMenu.querySelector('button').focus();
+  </script>
 </body>
-</html>
+</html>, In,  list
