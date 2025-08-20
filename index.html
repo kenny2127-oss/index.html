@@ -94,6 +94,7 @@ label { display:block; margin:10px 0 5px; }
 
 <script>
 document.addEventListener('DOMContentLoaded', () => {
+
   const live = document.getElementById('live');
   const mainMenu = document.getElementById('mainMenu');
   const quickPlaySelect = document.getElementById('quickPlaySelect');
@@ -124,6 +125,7 @@ document.addEventListener('DOMContentLoaded', () => {
     hideMenus.forEach(menu=>{ if(menu){ menu.classList.add('hidden'); menu.setAttribute('aria-hidden','true'); }});
   }
 
+  // Main menu button events
   mainMenu.querySelectorAll('button').forEach(btn=>{
     btn.addEventListener('click', ()=>{
       if(btn.dataset.action==='quick'){
@@ -138,106 +140,58 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
+  // Quick Play flow
   document.getElementById('startQuick').addEventListener('click', ()=>{
     homeScore = 0; awayScore = 0; quarter = 1; quarterLength = parseInt(document.getElementById('quarterLength').value);
     updateScoreboard();
     showMenu(quickPlayGame, quickPlaySelect);
     speak(`Quick Play started. ${awayTeam.value} at ${homeTeam.value}. Quarter 1. Score is 0 to 0.`);
   });
+  document.getElementById('backMainFromQuickSelect').addEventListener('click', ()=>{ showMenu(mainMenu, quickPlaySelect); speak("Main Menu"); });
+  document.getElementById('backMainFromQuickGame').addEventListener('click', ()=>{ showMenu(mainMenu, quickPlayGame); homeScore=0; awayScore=0; quarter=1; updateScoreboard(); speak("Main Menu"); });
 
-  document.getElementById('backMainFromQuickSelect').addEventListener('click', ()=>{
-    showMenu(mainMenu, quickPlaySelect);
-    speak("Main Menu");
-  });
-
+  // Offensive plays
   function offensivePlay(type){
     const defense = Math.random();
-    let points = 0;
-    let message = "";
-    if(type === "run"){
-      if(Math.random() < 0.8 - 0.3*defense){ points = 7; message = "Run play successful! Touchdown!"; } 
-      else { message = "Run play stopped by defense."; }
-    } else if(type === "pass"){
-      if(Math.random() < 0.5 - 0.3*defense){ points = 7; message = "Pass completed! Touchdown!"; } 
-      else { message = "Pass incomplete or intercepted."; }
-    } else if(type === "fieldGoal"){
-      if(Math.random() < 0.9){ points = 3; message = "Field Goal good!"; } 
-      else { message = "Field Goal missed."; }
-    } else if(type === "twoPoint"){
-      if(Math.random() < 0.6){ points = 2; message = "2-Point Conversion successful!"; } 
-      else { message = "2-Point Conversion failed."; }
-    }
-    homeScore += points;
-    updateScoreboard();
-    speak(message + ` Score is ${homeTeam.value} ${homeScore} - ${awayTeam.value} ${awayScore}`);
+    let points = 0; let message = "";
+    if(type==="run"){ if(Math.random()<0.8-0.3*defense){points=7; message="Run play successful! Touchdown!";} else message="Run play stopped by defense."; }
+    else if(type==="pass"){ if(Math.random()<0.5-0.3*defense){points=7; message="Pass completed! Touchdown!";} else message="Pass incomplete or intercepted."; }
+    else if(type==="fieldGoal"){ if(Math.random()<0.9){points=3; message="Field Goal good!";} else message="Field Goal missed."; }
+    else if(type==="twoPoint"){ if(Math.random()<0.6){points=2; message="2-Point Conversion successful!";} else message="2-Point Conversion failed."; }
+    homeScore+=points; updateScoreboard(); speak(message + ` Score is ${homeTeam.value} ${homeScore} - ${awayTeam.value} ${awayScore}`);
   }
-
   document.getElementById('runPlay').addEventListener('click', ()=>offensivePlay("run"));
   document.getElementById('passPlay').addEventListener('click', ()=>offensivePlay("pass"));
   document.getElementById('fieldGoal').addEventListener('click', ()=>offensivePlay("fieldGoal"));
   document.getElementById('twoPoint').addEventListener('click', ()=>offensivePlay("twoPoint"));
 
+  // Next Quarter
   document.getElementById('nextQuarter').addEventListener('click', ()=>{
-    if(quarter === 2){ speak("Halftime show! Take a short break."); }
-    if(quarter < 4){
-      quarter++; updateScoreboard();
-      speak(`Quarter advanced to ${quarter}`);
-    } else {
-      speak(`Postgame show! Final score: ${homeTeam.value} ${homeScore} - ${awayTeam.value} ${awayScore}`);
-    }
+    if(quarter===2){ speak("Halftime show! Take a short break."); }
+    if(quarter<4){ quarter++; updateScoreboard(); speak(`Quarter advanced to ${quarter}`); }
+    else{ speak(`Postgame show! Final score: ${homeTeam.value} ${homeScore} - ${awayTeam.value} ${awayScore}`); }
   });
 
-  document.getElementById('backMainFromQuickGame').addEventListener('click', ()=>{
-    showMenu(mainMenu, quickPlayGame);
-    homeScore = 0; awayScore = 0; quarter = 1; updateScoreboard();
-    speak("Main Menu");
-  });
-
-  // Franchise Mode
-  document.getElementById('backMainFromFranchise').addEventListener('click', ()=>{
-    showMenu(mainMenu, franchiseMainMenu);
-    speak("Main Menu");
-  });
-  document.getElementById('newSeason').addEventListener('click', ()=>{
-    showMenu(teamSelectionMenu, franchiseMainMenu);
-    speak("Select your team for the new season");
-  });
-  document.getElementById('continueSeason').addEventListener('click', ()=>{
-    showMenu(rosterMenu, franchiseMainMenu);
-    speak("Continuing season. Viewing roster");
-  });
+  // Franchise mode events
+  document.getElementById('backMainFromFranchise').addEventListener('click', ()=>{ showMenu(mainMenu, franchiseMainMenu); speak("Main Menu"); });
+  document.getElementById('newSeason').addEventListener('click', ()=>{ showMenu(teamSelectionMenu, franchiseMainMenu); speak("Select your team for the new season"); });
+  document.getElementById('continueSeason').addEventListener('click', ()=>{ showMenu(rosterMenu, franchiseMainMenu); speak("Continuing season. Viewing roster"); });
   document.getElementById('selectTeam').addEventListener('click', ()=>{
     const team = document.getElementById('franchiseTeam').value;
     document.getElementById('teamNameDisplay').textContent = `Team: ${team}`;
     showMenu(rosterMenu, teamSelectionMenu);
     speak(`Team selected: ${team}. Viewing roster`);
   });
-  document.getElementById('backFranchiseMain').addEventListener('click', ()=>{
-    showMenu(franchiseMainMenu, teamSelectionMenu);
-    speak("Back to Franchise Main Menu");
-  });
-  document.getElementById('simulateWeek').addEventListener('click', ()=>{
-    speak("Week simulated. Check weekly scores in roster menu.");
-  });
-  document.getElementById('draftPlayer').addEventListener('click', ()=>{
-    showMenu(draftMenu, rosterMenu);
-    speak("Draft menu opened. Choose a player to draft");
-  });
-  document.getElementById('backTeamSelection').addEventListener('click', ()=>{
-    showMenu(teamSelectionMenu, rosterMenu);
-    speak("Back to team selection");
-  });
-  document.getElementById('confirmDraft').addEventListener('click', ()=>{
-    const pick = document.getElementById('draftPick').value;
-    speak(`Drafted player: ${pick}`);
-  });
-  document.getElementById('backRoster').addEventListener('click', ()=>{
-    showMenu(rosterMenu, draftMenu);
-    speak("Back to roster menu");
-  });
+  document.getElementById('backFranchiseMain').addEventListener('click', ()=>{ showMenu(franchiseMainMenu, teamSelectionMenu); speak("Back to Franchise Main Menu"); });
+  document.getElementById('simulateWeek').addEventListener('click', ()=>{ speak("Week simulated. Check weekly scores in roster menu."); });
+  document.getElementById('draftPlayer').addEventListener('click', ()=>{ showMenu(draftMenu, rosterMenu); speak("Draft menu opened. Choose a player to draft"); });
+  document.getElementById('backTeamSelection').addEventListener('click', ()=>{ showMenu(teamSelectionMenu, rosterMenu); speak("Back to team selection"); });
+  document.getElementById('confirmDraft').addEventListener('click', ()=>{ const pick=document.getElementById('draftPick').value; speak(`Drafted player: ${pick}`); });
+  document.getElementById('backRoster').addEventListener('click', ()=>{ showMenu(rosterMenu, draftMenu); speak("Back to roster menu"); });
 
   mainMenu.querySelector('button').focus();
   updateScoreboard();
+
 });
 </script>
 </body>
