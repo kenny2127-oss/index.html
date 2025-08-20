@@ -14,6 +14,7 @@ button:active { transform:scale(.98); }
 .hidden { display:none; }
 .sr-only { position:absolute; width:1px; height:1px; margin:-1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; border:0; }
 label { display:block; margin:10px 0 5px; }
+.scoreboard { margin:10px 0; font-size:1.25rem; }
 </style>
 </head>
 <body>
@@ -38,29 +39,15 @@ label { display:block; margin:10px 0 5px; }
   <select id="awayTeam">
     <option>Packers</option><option>Bills</option><option>Ravens</option><option>Dolphins</option>
   </select>
-  <button id="startQuick">Start Game</button>
-  <button id="backMainFromQuick">Back to Main Menu</button>
-</main>
-
-<!-- Game Settings Menu -->
-<main id="gameSettingsMenu" class="hidden" aria-hidden="true">
-  <label for="quarterLength">Quarter Length (1–15 mins)</label>
+  <label for="quarterLength">Quarter Length (minutes)</label>
   <input type="range" id="quarterLength" min="1" max="15" value="5">
-  <label for="eventType">Event Type</label>
-  <select id="eventType">
-    <option>Pre-Season</option><option>Regular Season</option><option>Playoffs</option><option>Super Bowl</option>
-  </select>
-  <label for="weather">Weather</label>
-  <select id="weather">
-    <option>Clear</option><option>Cloudy</option><option>Sunny</option>
-    <option>Rain</option><option>Heavy Rain</option><option>Snow</option><option>Heavy Snow</option>
-  </select>
-  <label for="stadium">Stadium</label>
-  <select id="stadium">
-    <option>Home</option><option>Away</option>
-  </select>
-  <button id="confirmGame">Confirm & Start</button>
-  <button id="backQuick">Back to Quick Play</button>
+  <div class="scoreboard" id="scoreboard">Score: Home 0 - Away 0 | Quarter 1</div>
+  <button id="homeScore3">Home +3</button>
+  <button id="homeScore7">Home +7</button>
+  <button id="awayScore3">Away +3</button>
+  <button id="awayScore7">Away +7</button>
+  <button id="nextQuarter">Next Quarter</button>
+  <button id="backMainFromQuick">Back to Main Menu</button>
 </main>
 
 <!-- Franchise Mode Menu -->
@@ -103,31 +90,41 @@ label { display:block; margin:10px 0 5px; }
 const live = document.getElementById('live');
 const mainMenu = document.getElementById('mainMenu');
 const quickPlayMenu = document.getElementById('quickPlayMenu');
-const gameSettingsMenu = document.getElementById('gameSettingsMenu');
 const franchiseMainMenu = document.getElementById('franchiseMainMenu');
 const teamSelectionMenu = document.getElementById('teamSelectionMenu');
 const rosterMenu = document.getElementById('rosterMenu');
 const draftMenu = document.getElementById('draftMenu');
 
-const teamSelect = document.getElementById('franchiseTeam');
-const teamNameDisplay = document.getElementById('teamNameDisplay');
+const homeTeam = document.getElementById('homeTeam');
+const awayTeam = document.getElementById('awayTeam');
+const scoreboard = document.getElementById('scoreboard');
+let homeScore = 0;
+let awayScore = 0;
+let quarter = 1;
 
+// Function to update scoreboard
+function updateScoreboard() {
+  scoreboard.textContent = `Score: ${homeTeam.value} ${homeScore} - ${awayTeam.value} ${awayScore} | Quarter ${quarter}`;
+}
+
+// Function to speak messages
+function speak(msg){ live.textContent = msg; }
+
+// Menu switching
 function showMenu(show, ...hideMenus){
   show.classList.remove('hidden'); show.setAttribute('aria-hidden','false');
   show.querySelector('button, select, input')?.focus();
   hideMenus.forEach(menu=>{ if(menu){ menu.classList.add('hidden'); menu.setAttribute('aria-hidden','true'); }});
 }
 
-function speak(msg){ live.textContent = msg; }
-
 // Main Menu Buttons
 mainMenu.querySelectorAll('button').forEach(btn=>{
   btn.addEventListener('click', ()=>{
     if(btn.dataset.action==='quick'){
-      showMenu(quickPlayMenu, mainMenu, gameSettingsMenu, franchiseMainMenu);
+      showMenu(quickPlayMenu, mainMenu, franchiseMainMenu);
       speak("Quick Play menu opened. Choose Home and Away teams.");
     } else if(btn.dataset.action==='franchise'){
-      showMenu(franchiseMainMenu, mainMenu, quickPlayMenu, gameSettingsMenu);
+      showMenu(franchiseMainMenu, mainMenu, quickPlayMenu);
       speak("Franchise Mode opened. Start a new season or continue a season.");
     } else {
       speak(btn.textContent + " activated");
@@ -138,74 +135,17 @@ mainMenu.querySelectorAll('button').forEach(btn=>{
 // Quick Play Buttons
 document.getElementById('backMainFromQuick').addEventListener('click', ()=>{
   showMenu(mainMenu, quickPlayMenu);
+  homeScore = 0; awayScore = 0; quarter = 1; updateScoreboard();
   speak("Main Menu");
 });
-document.getElementById('startQuick').addEventListener('click', ()=>{
-  showMenu(gameSettingsMenu, mainMenu, quickPlayMenu);
-  speak("Game Settings menu opened. Adjust your settings.");
+document.getElementById('homeScore3').addEventListener('click', ()=>{
+  homeScore += 3; updateScoreboard();
+  speak(`${homeTeam.value} scored 3 points. Score is now ${homeTeam.value} ${homeScore} - ${awayTeam.value} ${awayScore}`);
 });
-document.getElementById('backQuick').addEventListener('click', ()=>{
-  showMenu(quickPlayMenu, gameSettingsMenu);
-  speak("Quick Play menu");
+document.getElementById('homeScore7').addEventListener('click', ()=>{
+  homeScore += 7; updateScoreboard();
+  speak(`${homeTeam.value} scored a touchdown. Score is now ${homeTeam.value} ${homeScore} - ${awayTeam.value} ${awayScore}`);
 });
-document.getElementById('confirmGame').addEventListener('click', ()=>{
-  const home = document.getElementById('homeTeam').value;
-  const away = document.getElementById('awayTeam').value;
-  const quarter = document.getElementById('quarterLength').value;
-  const eventType = document.getElementById('eventType').value;
-  const weather = document.getElementById('weather').value;
-  const stadium = document.getElementById('stadium').value;
-  speak(`Game starting. ${away} at ${home}. ${eventType}, ${quarter} minute quarters, weather: ${weather}, stadium: ${stadium}`);
-});
-document.getElementById('quarterLength').addEventListener('input', ()=>{
-  speak("Quarter length set to "+document.getElementById('quarterLength').value+" minutes");
-});
-
-// Franchise Mode Buttons
-document.getElementById('backMainFromFranchise').addEventListener('click', ()=>{
-  showMenu(mainMenu, franchiseMainMenu);
-  speak("Main Menu");
-});
-document.getElementById('newSeason').addEventListener('click', ()=>{
-  showMenu(teamSelectionMenu, franchiseMainMenu);
-  speak("Select your team for the new season");
-});
-document.getElementById('continueSeason').addEventListener('click', ()=>{
-  showMenu(rosterMenu, franchiseMainMenu);
-  speak("Continuing season. Viewing roster");
-});
-document.getElementById('selectTeam').addEventListener('click', ()=>{
-  const team = teamSelect.value;
-  teamNameDisplay.textContent = `Team: ${team}`;
-  showMenu(rosterMenu, teamSelectionMenu);
-  speak(`Team selected: ${team}. Viewing roster`);
-});
-document.getElementById('backFranchiseMain').addEventListener('click', ()=>{
-  showMenu(franchiseMainMenu, teamSelectionMenu);
-  speak("Back to Franchise Main Menu");
-});
-document.getElementById('simulateWeek').addEventListener('click', ()=>{
-  speak("Week simulated. Check weekly scores in roster menu.");
-});
-document.getElementById('draftPlayer').addEventListener('click', ()=>{
-  showMenu(draftMenu, rosterMenu);
-  speak("Draft menu opened. Choose a player to draft");
-});
-document.getElementById('backTeamSelection').addEventListener('click', ()=>{
-  showMenu(teamSelectionMenu, rosterMenu);
-  speak("Back to team selection");
-});
-document.getElementById('confirmDraft').addEventListener('click', ()=>{
-  const pick = document.getElementById('draftPick').value;
-  speak(`Drafted player: ${pick}`);
-});
-document.getElementById('backRoster').addEventListener('click', ()=>{
-  showMenu(rosterMenu, draftMenu);
-  speak("Back to roster menu");
-});
-
-// Start focus
-mainMenu.querySelector('button').focus();
-</script>
-</body>
-</html> 
+document.getElementById('awayScore3').addEventListener('click', ()=>{
+  awayScore += 3; updateScoreboard();
+  speak(`${awayTeam.value} scored 3 points. Score is now ${homeTeam.value} ${homeScore}
