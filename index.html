@@ -1,205 +1,141 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Blind Accessible Madden</title>
-  <style>
-    body {
-      margin: 0;
-      font-family: system-ui, Segoe UI, Roboto, Arial, sans-serif;
-      background: #000;
-      color: #fff;
-    }
-    a.skip {
-      position: absolute;
-      left: -9999px;
-    }
-    a.skip:focus {
-      position: static;
-      padding: .5rem;
-      background: #ffbf00;
-      color: #000;
-    }
-    header {
-      padding: 16px;
-      text-align: center;
-      font-weight: 700;
-      font-size: 1.5rem;
-    }
-    main {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      min-height: calc(100vh - 64px);
-      padding: 16px;
-    }
-    nav[role=menu] {
-      width: 100%;
-      max-width: 520px;
-    }
-    button, select, input[type=range] {
-      width: 100%;
-      padding: 16px 20px;
-      margin: 10px 0;
-      font-size: 1.25rem;
-      border-radius: 14px;
-      border: 2px solid #fff;
-      background: #111;
-      color: #fff;
-    }
-    button:focus, select:focus, input:focus {
-      outline: 3px solid #ffbf00;
-      outline-offset: 2px;
-    }
-    button:active {
-      transform: scale(.98);
-    }
-    .hidden { display: none; }
-    .sr-only {
-      position: absolute;
-      width: 1px;
-      height: 1px;
-      margin: -1px;
-      overflow: hidden;
-      clip: rect(0 0 0 0);
-      white-space: nowrap;
-      border: 0;
-    }
-  </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Blind Accessible Madden</title>
+<style>
+body { margin:0; font-family:system-ui, Segoe UI, Roboto, Arial, sans-serif; background:#000; color:#fff; }
+header { padding:16px; text-align:center; font-weight:700; font-size:1.5rem; }
+main { padding:16px; display:flex; flex-direction:column; align-items:center; justify-content:flex-start; min-height:calc(100vh - 64px); }
+button, select, input[type=range] { width:100%; padding:16px 20px; margin:10px 0; font-size:1.25rem; border-radius:14px; border:2px solid #fff; background:#111; color:#fff; }
+button:focus, select:focus, input:focus { outline:3px solid #ffbf00; outline-offset:2px; }
+button:active { transform:scale(.98); }
+.hidden { display:none; }
+.sr-only { position:absolute; width:1px; height:1px; margin:-1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; border:0; }
+label { display:block; margin:10px 0 5px; }
+</style>
 </head>
 <body>
-  <a class="skip" href="#menu">Skip to menu</a>
-  <header aria-live="polite" aria-atomic="true">Madden – Main Menu</header>
-  <main>
-    <!-- Main Menu -->
-    <nav id="mainMenu" aria-label="Main Menu" role="menu">
-      <button role="menuitem" data-action="quick">Quick Play</button>
-      <button role="menuitem" data-action="franchise">Franchise</button>
-      <button role="menuitem" data-action="mut">Ultimate Team</button>
-      <button role="menuitem" data-action="practice">Practice</button>
-      <button role="menuitem" data-action="settings">Settings</button>
-    </nav>
+<header aria-live="polite" aria-atomic="true">Madden – Main Menu</header>
 
-    <!-- Quick Play Menu -->
-    <nav id="quickPlayMenu" class="hidden" aria-label="Quick Play Menu" role="menu">
-      <label for="homeTeam">Home Team</label>
-      <select id="homeTeam">
-        <option>49ers</option>
-        <option>Chiefs</option>
-        <option>Cowboys</option>
-        <option>Eagles</option>
-      </select>
+<main id="mainMenu">
+  <button data-action="quick">Quick Play</button>
+  <button data-action="franchise">Franchise</button>
+  <button data-action="mut">Ultimate Team</button>
+  <button data-action="practice">Practice</button>
+  <button data-action="settings">Settings</button>
+</main>
 
-      <label for="awayTeam">Away Team</label>
-      <select id="awayTeam">
-        <option>Packers</option>
-        <option>Bills</option>
-        <option>Ravens</option>
-        <option>Dolphins</option>
-      </select>
+<main id="quickPlayMenu" class="hidden" aria-hidden="true">
+  <label for="homeTeam">Home Team</label>
+  <select id="homeTeam">
+    <option>Arizona Cardinals</option><option>Atlanta Falcons</option><option>Baltimore Ravens</option>
+    <option>Buffalo Bills</option><option>Carolina Panthers</option><option>Chicago Bears</option>
+    <option>Cincinnati Bengals</option><option>Cleveland Browns</option><option>Dallas Cowboys</option>
+    <option>Denver Broncos</option><option>Detroit Lions</option><option>Green Bay Packers</option>
+    <option>Houston Texans</option><option>Indianapolis Colts</option><option>Jacksonville Jaguars</option>
+    <option>Kansas City Chiefs</option><option>Las Vegas Raiders</option><option>Los Angeles Chargers</option>
+    <option>Los Angeles Rams</option><option>Miami Dolphins</option><option>Minnesota Vikings</option>
+    <option>New England Patriots</option><option>New Orleans Saints</option><option>New York Giants</option>
+    <option>New York Jets</option><option>Philadelphia Eagles</option><option>Pittsburgh Steelers</option>
+    <option>San Francisco 49ers</option><option>Seattle Seahawks</option><option>Tampa Bay Buccaneers</option>
+    <option>Tennessee Titans</option><option>Washington Commanders</option>
+  </select>
 
-      <button id="startQuick" role="menuitem">Start Game</button>
-      <button id="backMain" role="menuitem">Back to Main Menu</button>
-    </nav>
+  <label for="awayTeam">Away Team</label>
+  <select id="awayTeam">
+    <option>Arizona Cardinals</option><option>Atlanta Falcons</option><option>Baltimore Ravens</option>
+    <option>Buffalo Bills</option><option>Carolina Panthers</option><option>Chicago Bears</option>
+    <option>Cincinnati Bengals</option><option>Cleveland Browns</option><option>Dallas Cowboys</option>
+    <option>Denver Broncos</option><option>Detroit Lions</option><option>Green Bay Packers</option>
+    <option>Houston Texans</option><option>Indianapolis Colts</option><option>Jacksonville Jaguars</option>
+    <option>Kansas City Chiefs</option><option>Las Vegas Raiders</option><option>Los Angeles Chargers</option>
+    <option>Los Angeles Rams</option><option>Miami Dolphins</option><option>Minnesota Vikings</option>
+    <option>New England Patriots</option><option>New Orleans Saints</option><option>New York Giants</option>
+    <option>New York Jets</option><option>Philadelphia Eagles</option><option>Pittsburgh Steelers</option>
+    <option>San Francisco 49ers</option><option>Seattle Seahawks</option><option>Tampa Bay Buccaneers</option>
+    <option>Tennessee Titans</option><option>Washington Commanders</option>
+  </select>
 
-    <!-- Game Settings Menu -->
-    <nav id="gameSettingsMenu" class="hidden" aria-label="Game Settings" role="menu">
-      <label for="quarterLength">Quarter Length (1–15 mins)</label>
-      <input type="range" id="quarterLength" min="1" max="15" value="5">
-      
-      <label for="eventType">Event Type</label>
-      <select id="eventType">
-        <option>Pre-Season</option>
-        <option>Regular Season</option>
-        <option>Playoffs</option>
-        <option>Super Bowl</option>
-      </select>
+  <button id="startQuick">Start Game</button>
+  <button id="backMain">Back to Main Menu</button>
+</main>
 
-      <label for="weather">Weather</label>
-      <select id="weather">
-        <option>Clear</option>
-        <option>Cloudy</option>
-        <option>Sunny</option>
-        <option>Rain</option>
-        <option>Heavy Rain</option>
-        <option>Snow</option>
-        <option>Heavy Snow</option>
-      </select>
+<main id="gameSettingsMenu" class="hidden" aria-hidden="true">
+  <label for="quarterLength">Quarter Length (1–15 mins)</label>
+  <input type="range" id="quarterLength" min="1" max="15" value="5">
 
-      <label for="stadium">Stadium</label>
-      <select id="stadium">
-        <option>Home</option>
-        <option>Away</option>
-      </select>
+  <label for="eventType">Event Type</label>
+  <select id="eventType">
+    <option>Pre-Season</option><option>Regular Season</option><option>Playoffs</option><option>Super Bowl</option>
+  </select>
 
-      <button id="confirmGame" role="menuitem">Confirm & Start</button>
-      <button id="backQuick" role="menuitem">Back to Quick Play</button>
-    </nav>
+  <label for="weather">Weather</label>
+  <select id="weather">
+    <option>Clear</option><option>Cloudy</option><option>Sunny</option>
+    <option>Rain</option><option>Heavy Rain</option><option>Snow</option><option>Heavy Snow</option>
+  </select>
 
-    <div class="sr-only" aria-live="polite" id="live"></div>
- ,  </main>
+  <label for="stadium">Stadium</label>
+  <select id="stadium">
+    <option>Home</option><option>Away</option>
+  </select>
 
-  <script>
-    const mainMenu = document.getElementById('mainMenu');
-    const quickPlayMenu = document.getElementById('quickPlayMenu');
-    const gameSettingsMenu = document.getElementById('gameSettingsMenu');
-    const live = document.getElementById('live');
+  <button id="confirmGame">Confirm & Start</button>
+  <button id="backQuick">Back to Quick Play</button>
+</main>
 
-    function speak(msg) { live.textContent = msg; }
+<div class="sr-only" aria-live="polite" id="live"></div>
 
-    // Handle Main Menu buttons
-    mainMenu.querySelectorAll('button').forEach(btn => {
-      btn.addEventListener('click', () => {
-        if (btn.dataset.action === 'quick') {
-          mainMenu.classList.add('hidden');
-          quickPlayMenu.classList.remove('hidden');
-          quickPlayMenu.querySelector('select').focus();
-          speak("Quick Play menu opened. Choose Home and Away teams.");
-        } else {
-          speak(btn.textContent + " activated");
-        }
-      });
-    });
+<script>
+const mainMenu = document.getElementById('mainMenu');
+const quickPlayMenu = document.getElementById('quickPlayMenu');
+const gameSettingsMenu = document.getElementById('gameSettingsMenu');
+const live = document.getElementById('live');
 
-    // Back to Main Menu
-    document.getElementById('backMain').addEventListener('click', () => {
-      quickPlayMenu.classList.add('hidden');
-      mainMenu.classList.remove('hidden');
-      mainMenu.querySelector('button').focus();
-      speak("Main Menu");
-    });
+function speak(msg){ live.textContent = msg; }
 
-    // Start Game from Quick Play → goes to Game Settings
-    document.getElementById('startQuick').addEventListener('click', () => {
-      quickPlayMenu.classList.add('hidden');
-      gameSettingsMenu.classList.remove('hidden');
-      gameSettingsMenu.querySelector('#quarterLength').focus();
-      speak("Game Settings menu opened. Adjust your settings.");
-    });
+function showMenu(show, hide1=null, hide2=null){
+  if(show) { show.classList.remove('hidden'); show.setAttribute('aria-hidden','false'); show.querySelector('button, select, input').focus(); }
+  [hide1, hide2].forEach(h=>{ if(h){ h.classList.add('hidden'); h.setAttribute('aria-hidden','true'); }});
+}
 
-    // Back to Quick Play
-    document.getElementById('backQuick').addEventListener('click', () => {
-      gameSettingsMenu.classList.add('hidden');
-      quickPlayMenu.classList.remove('hidden');
-      quickPlayMenu.querySelector('#homeTeam').focus();
-      speak("Quick Play menu");
-    });
+// Main Menu buttons
+mainMenu.querySelectorAll('button').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    if(btn.dataset.action==='quick'){
+      showMenu(quickPlayMenu, mainMenu, gameSettingsMenu);
+      speak("Quick Play menu opened. Choose Home and Away teams.");
+    } else {
+      speak(btn.textContent + " activated");
+    }
+  });
+});
 
-    // Confirm Game Settings
-    document.getElementById('confirmGame').addEventListener('click', () => {
-      const home = document.getElementById('homeTeam').value;
-      const away = document.getElementById('awayTeam').value;
-      const quarter = document.getElementById('quarterLength').value;
-      const eventType = document.getElementById('eventType').value;
-      const weather = document.getElementById('weather').value;
-      const stadium = document.getElementById('stadium').value;
+// Quick Play buttons
+document.getElementById('backMain').addEventListener('click',()=>{ showMenu(mainMenu, quickPlayMenu, gameSettingsMenu); speak("Main Menu"); });
+document.getElementById('startQuick').addEventListener('click',()=>{ showMenu(gameSettingsMenu, mainMenu, quickPlayMenu); speak("Game Settings menu opened. Adjust your settings."); });
 
-      speak(`Game starting. ${away} at ${home}. ${eventType}, ${quarter} minute quarters, weather: ${weather}, stadium: ${stadium}`);
-    });
+// Game Settings buttons
+document.getElementById('backQuick').addEventListener('click',()=>{ showMenu(quickPlayMenu, mainMenu, gameSettingsMenu); speak("Quick Play menu"); });
+document.getElementById('confirmGame').addEventListener('click',()=>{
+  const home = document.getElementById('homeTeam').value;
+  const away = document.getElementById('awayTeam').value;
+  const quarter = document.getElementById('quarterLength').value;
+  const eventType = document.getElementById('eventType').value;
+  const weather = document.getElementById('weather').value;
+  const stadium = document.getElementById('stadium').value;
+  speak(`Game starting. ${away} at ${home}. ${eventType}, ${quarter} minute quarters, weather: ${weather}, stadium: ${stadium}`);
+});
 
-    // Start with focus on first main menu button
-    mainMenu.querySelector('button').focus();
-  </script>
+// Slider updates announced
+document.getElementById('quarterLength').addEventListener('input', ()=>{
+  speak("Quarter length set to "+document.getElementById('quarterLength').value+" minutes");
+});
+
+// Start focus
+mainMenu.querySelector('button').focus();
+</script>
 </body>
-</html>, In,  list
+</html>
