@@ -16,6 +16,14 @@
         body {
             font-family: 'Inter', sans-serif;
         }
+        /* Make sure all screens are initially hidden to prevent a flash of unstyled content */
+        .screen {
+            display: none;
+        }
+        /* The main menu screen should be visible by default on page load */
+        #main-menu-screen {
+            display: block;
+        }
     </style>
 </head>
 <body class="bg-gray-950 text-white flex items-center justify-center min-h-screen p-4">
@@ -28,7 +36,7 @@
 
         <!-- ==================== MAIN MENU SCREEN ==================== -->
         <!-- This div represents the main menu "page". It is shown by default. -->
-        <div id="main-menu-screen">
+        <div id="main-menu-screen" class="screen">
             <!-- Main Title -->
             <h1 class="text-6xl md:text-8xl font-black mb-8 bg-gradient-to-r from-blue-500 to-green-400 text-transparent bg-clip-text drop-shadow-xl">
                 MADDEN
@@ -38,7 +46,7 @@
             <div class="space-y-4 flex flex-col items-stretch">
                 <!-- Button to navigate to the Play Now screen -->
                 <button
-                    id="play-now-button"
+                    data-target="play-now-screen"
                     class="w-full p-4 cursor-pointer rounded-xl transition-all duration-300 ease-in-out transform shadow-lg bg-gray-800 bg-opacity-70 hover:bg-white hover:bg-opacity-10 hover:scale-105">
                     <span class="block text-2xl md:text-3xl font-bold tracking-wider uppercase">PLAY NOW</span>
                 </button>
@@ -67,7 +75,7 @@
 
         <!-- ==================== PLAY NOW SCREEN ==================== -->
         <!-- This div represents the Play Now "page". It is hidden by default. -->
-        <div id="play-now-screen" class="hidden">
+        <div id="play-now-screen" class="screen">
             <!-- Screen Title -->
             <h1 class="text-5xl md:text-7xl font-black mb-8 bg-gradient-to-r from-blue-500 to-green-400 text-transparent bg-clip-text drop-shadow-xl">
                 PLAY NOW
@@ -94,44 +102,41 @@
 
                 <!-- Button to navigate back to the main menu -->
                 <button
-                    id="back-button"
+                    data-target="main-menu-screen"
                     class="w-full p-4 cursor-pointer rounded-xl transition-all duration-300 ease-in-out transform shadow-lg bg-red-800 bg-opacity-70 hover:bg-red-700 hover:scale-105">
                     <span class="block text-2xl md:text-3xl font-bold tracking-wider uppercase">BACK</span>
                 </button>
             </div>
         </div>
-
     </div>
 
     <!-- The JavaScript for navigation -->
     <script>
-        // Get references to the screen divs
-        const mainMenuScreen = document.getElementById('main-menu-screen');
-        const playNowScreen = document.getElementById('play-now-screen');
+        document.addEventListener('DOMContentLoaded', () => {
+            const screens = document.querySelectorAll('.screen');
 
-        // Get references to the buttons
-        const playNowButton = document.getElementById('play-now-button');
-        const backButton = document.getElementById('back-button');
+            // Function to show a specific screen and hide all others.
+            const showScreen = (screenId) => {
+                console.log(`Attempting to show screen: ${screenId}`);
+                screens.forEach(screen => {
+                    if (screen.id === screenId) {
+                        screen.style.display = 'block';
+                        console.log(`Successfully showed screen: ${screenId}`);
+                    } else {
+                        screen.style.display = 'none';
+                    }
+                });
+            };
 
-        /**
-         * Function to show a specific screen and hide all others.
-         * @param {string} screenId The ID of the screen to show.
-         */
-        const showScreen = (screenId) => {
-            // Hide all screens first
-            mainMenuScreen.classList.add('hidden');
-            playNowScreen.classList.add('hidden');
-            
-            // Show the requested screen
-            document.getElementById(screenId).classList.remove('hidden');
-        };
+            // Add event listeners to all buttons that have a data-target attribute.
+            document.querySelectorAll('button[data-target]').forEach(button => {
+                button.addEventListener('click', () => {
+                    const targetScreenId = button.dataset.target;
+                    showScreen(targetScreenId);
+                });
+            });
 
-        // Add event listeners to the buttons to handle navigation
-        playNowButton.addEventListener('click', () => {
-            showScreen('play-now-screen');
-        });
-
-        backButton.addEventListener('click', () => {
+            // Initially show the main menu screen.
             showScreen('main-menu-screen');
         });
     </script>
