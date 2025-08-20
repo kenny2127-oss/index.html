@@ -94,7 +94,6 @@
 
       function updateScore() {
         document.getElementById('scoreboard').innerText = `${homeTeam} ${homeScore} - ${awayScore} ${awayTeam}`;
-        // Announce only when score changes
         if (homeScore !== lastHomeScore || awayScore !== lastAwayScore) {
           announce(`Score Update: ${homeTeam} ${homeScore}, ${awayTeam} ${awayScore}`);
           lastHomeScore = homeScore;
@@ -151,10 +150,7 @@
         document.getElementById('defensePlays').style.display = 'none';
         document.getElementById('offensePlays').style.display = 'block';
         announce(`Defense sets ${choice}. Now it's ${(possession === "home" ? homeTeam : awayTeam)} turn on offense.`);
-        if (possession !== "home") {
-          // Automatically run opponent plays
-          autoPlay(possession);
-        }
+        if (possession !== "home") autoPlay(possession);
       }
 
       function callPlay(playType, auto=false) {
@@ -199,22 +195,17 @@
         updateSituation();
         if (!auto) announce(`${msg} Current down: ${currentDown}, ${yardsToFirst} yards to first down, ball at ${ballPosition} yard line.`);
 
-        // If possession switched, show defensive plays or auto opponent
-        if (!auto && possession !== "home") {
-          showDefensePlays();
-        }
+        if (!auto && possession !== "home") showDefensePlays();
       }
 
       function autoPlay(team) {
+        if (possession !== team) return;
         const plays = ['run', 'shortPass', 'longPass'];
-        let numPlays = 1;
-        function nextAutoPlay() {
-          if (possession !== team) return; // stop if possession changes
-          let play = plays[Math.floor(Math.random()*plays.length)];
-          callPlay(play, true);
-          setTimeout(nextAutoPlay, 1000);
-        }
-        nextAutoPlay();
+        let play = plays[Math.floor(Math.random()*plays.length)];
+        setTimeout(() => callPlay(play, true), 500);
+        setTimeout(() => {
+          if (possession === team) autoPlay(team);
+        }, 1000);
       }
 
       function punt() {
@@ -244,6 +235,7 @@
         currentDown = 1;
         yardsToFirst = 10;
         ballPosition = reset ? 25 : 100 - ballPosition;
+        if (possession !== "home") autoPlay(possession);
       }
 
       function nextQuarter() {
@@ -258,7 +250,6 @@
         }
       }
 
-      // Attach button events
       document.getElementById('quickPlayBtn').onclick = startQuickPlay;
       document.getElementById('franchiseBtn').onclick = startFranchise;
       document.getElementById('startGameBtn').onclick = startGame;
