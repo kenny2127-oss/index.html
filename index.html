@@ -1,559 +1,487 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { initializeApp } from 'firebase/app';
-import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from 'firebase/auth';
-import { getFirestore, doc, setDoc, onSnapshot } from 'firebase/firestore';
-
-// Main App component
-const App = () => {
-    // State variables for managing app state
-    const [db, setDb] = useState(null);
-    const [auth, setAuth] = useState(null);
-    const [userId, setUserId] = useState(null);
-    const [isLoading, setIsLoading] = useState(true);
-    const [page, setPage] = useState('main-menu'); // State for page navigation
-    const [franchiseData, setFranchiseData] = useState(null);
-    const [franchisePage, setFranchisePage] = useState('hub');
-    const [error, setError] = useState(null);
-    const audioPlayer = useRef(null);
-
-    // --- Firebase Initialization and Authentication ---
-    useEffect(() => {
-        const initFirebase = async () => {
-            try {
-                // Get global variables provided by the Canvas environment
-                const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-                const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
-                const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
-
-                // Initialize Firebase app and services
-                const app = initializeApp(firebaseConfig);
-                const firestoreDb = getFirestore(app);
-                const firebaseAuth = getAuth(app);
-                setDb(firestoreDb);
-                setAuth(firebaseAuth);
-
-                // Set up the authentication state listener
-                const unsubscribe = onAuthStateChanged(firebaseAuth, async (user) => {
-                    if (user) {
-                        setUserId(user.uid);
-                    } else {
-                        await signInAnonymously(firebaseAuth);
-                    }
-                    setIsLoading(false); // Authentication check is complete
-                });
-
-                if (initialAuthToken) {
-                    await signInWithCustomToken(firebaseAuth, initialAuthToken);
-                }
-
-                return () => unsubscribe();
-            } catch (err) {
-                console.error("Firebase initialization or auth failed:", err);
-                setError("Failed to initialize the app. Please try again.");
-                setIsLoading(false);
-            }
-        };
-
-        initFirebase();
-    }, []);
-
-    // --- Firestore Data Listener ---
-    useEffect(() => {
-        if (!db || !userId) return; // Wait until Firebase and user are ready
-
-        // Define the path for the franchise data. This is a private collection for the user.
-        const franchiseDocPath = `artifacts/${__app_id}/users/${userId}/franchise/myFranchise`;
-        const franchiseDocRef = doc(db, franchiseDocPath);
-
-        // Set up a real-time listener for the franchise data
-        const unsubscribe = onSnapshot(franchiseDocRef, (docSnap) => {
-            if (docSnap.exists()) {
-                // Document exists, update state with data
-                setFranchiseData(docSnap.data());
-                console.log("Franchise data loaded:", docSnap.data());
-            } else {
-                // Document does not exist, initialize with a message
-                console.log("No franchise data found for user. Ready to create.");
-                setFranchiseData(null);
-            }
-        }, (err) => {
-            console.error("Error fetching franchise data:", err);
-            setError("Failed to load franchise data. Please check your network connection.");
-        });
-
-        // Clean up the listener on component unmount
-        return () => unsubscribe();
-    }, [db, userId]);
-
-    // --- Audio Helper Functions ---
-    // Converts a base64 string to an ArrayBuffer
-    const base64ToArrayBuffer = (base64) => {
-        const binaryString = window.atob(base64);
-        const len = binaryString.length;
-        const bytes = new Uint8Array(len);
-        for (let i = 0; i < len; i++) {
-            bytes[i] = binaryString.charCodeAt(i);
-        }
-        return bytes.buffer;
-    };
-
-    // Converts PCM audio data to a WAV Blob
-    const pcmToWav = (pcm16, sampleRate) => {
-        const numChannels = 1;
-        const bitsPerSample = 16;
-        const byteRate = (sampleRate * numChannels * bitsPerSample) / 8;
-        const blockAlign = (numChannels * bitsPerSample) / 8;
-        const dataLength = pcm16.length * 2; // 2 bytes per sample (Int16Array)
-
-        const buffer = new ArrayBuffer(44 + dataLength);
-        const view = new DataView(buffer);
-
-        let offset = 0;
-        const writeString = (str) => {
-            for (let i = 0; i < str.length; i++) {
-                view.setUint8(offset++, str.charCodeAt(i));
-            }
-        };
-
-        // RIFF header
-        writeString('RIFF');
-        view.setUint32(offset, 36 + dataLength, true); offset += 4;
-        writeString('WAVE');
-
-        // fmt sub-chunk
-        writeString('fmt ');
-        view.setUint32(offset, 16, true); offset += 4; // Sub-chunk size
-        view.setUint16(offset, 1, true); offset += 2;  // Audio format (1 = PCM)
-        view.setUint16(offset, numChannels, true); offset += 2;
-        view.setUint32(offset, sampleRate, true); offset += 4;
-        view.setUint32(offset, byteRate, true); offset += 4;
-        view.setUint16(offset, blockAlign, true); offset += 2;
-        view.setUint16(offset, bitsPerSample, true); offset += 2;
-
-        // data sub-chunk
-        writeString('data');
-        view.setUint32(offset, dataLength, true); offset += 4;
-
-        // Write PCM data
-        for (let i = 0; i < pcm16.length; i++) {
-            view.setInt16(offset, pcm16[i], true);
-            offset += 2;
-        }
-
-        return new Blob([view], { type: 'audio/wav' });
-    };
-
-    // Function to generate and play TTS audio
-    const playTts = async (text) => {
-        if (audioPlayer.current) {
-            audioPlayer.current.pause();
-            audioPlayer.current.removeAttribute('src');
-            audioPlayer.current.load();
-        }
-
-        const payload = {
-            contents: [{
-                parts: [{ text: text }]
-            }],
-            generationConfig: {
-                responseModalities: ["AUDIO"],
-                speechConfig: {
-                    voiceConfig: {
-                        prebuiltVoiceConfig: { voiceName: "Rasalgethi" }
-                    }
-                }
-            },
-            model: "gemini-2.5-flash-preview-tts"
-        };
-
-        const apiKey = "";
-        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent?key=${apiKey}`;
-
-        try {
-            const response = await fetch(apiUrl, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            });
-
-            const result = await response.json();
-            const part = result?.candidates?.[0]?.content?.parts?.[0];
-            const audioData = part?.inlineData?.data;
-            const mimeType = part?.inlineData?.mimeType;
-
-            if (audioData && mimeType && mimeType.startsWith("audio/")) {
-                const sampleRate = parseInt(mimeType.match(/rate=(\d+)/)[1], 10);
-                const pcmData = base64ToArrayBuffer(audioData);
-                const pcm16 = new Int16Array(pcmData);
-                const wavBlob = pcmToWav(pcm16, sampleRate);
-                const audioUrl = URL.createObjectURL(wavBlob);
-                
-                audioPlayer.current.src = audioUrl;
-                audioPlayer.current.play();
-            } else {
-                console.error("TTS API response error:", result);
-                setError("Failed to generate audio. Please try again.");
-            }
-        } catch (e) {
-            console.error("TTS API call failed:", e);
-            setError("Failed to generate audio due to a network or API error.");
-        }
-    };
-
-    // --- UI Components ---
-    const LoadingScreen = () => (
-        <div className="flex justify-center items-center h-screen bg-gray-900 text-white">
-            <div className="animate-pulse text-lg">Loading...</div>
-        </div>
-    );
-
-    const MessageBox = ({ message, onClose }) => (
-        <div className="fixed inset-0 bg-gray-900 bg-opacity-70 flex justify-center items-center z-50">
-            <div className="bg-gray-800 p-8 rounded-xl shadow-lg w-11/12 md:w-1/3 text-center">
-                <p className="text-xl mb-4">{message}</p>
-                <button onClick={onClose} className="bg-blue-600 text-white py-2 px-6 rounded-lg hover:bg-blue-700">OK</button>
-            </div>
-        </div>
-    );
-
-    const MainMenu = () => {
-        const [message, setMessage] = useState(null);
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Madden Game</title>
+    <!-- Tailwind CSS CDN for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- React and ReactDOM CDNs -->
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <!-- Babel for JSX compilation in the browser -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <!-- Firebase CDNs for Firestore -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
         
-        const showMessage = (msg) => {
-            setMessage(msg);
+        // Expose Firebase services to the global window object so our React code can access them
+        window.firebase = {
+            initializeApp,
+            getAuth,
+            signInAnonymously,
+            signInWithCustomToken,
+            onAuthStateChanged,
+            getFirestore,
+            doc,
+            setDoc,
+            onSnapshot
+        };
+    </script>
+    <style>
+        /* Global styles for the body */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #1a202c;
+            color: #e2e8f0;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+        }
+        /* Main container for the app */
+        .main-container {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            z-index: 10;
+        }
+        /* Background animation */
+        .bg-animation {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(-45deg, #2b6cb0, #4299e1, #3182ce, #1c3d5a);
+            background-size: 400% 400%;
+            animation: gradient-shift 15s ease infinite;
+            z-index: 1;
+        }
+        @keyframes gradient-shift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        /* Styles for the menu cards */
+        .menu-card, .quick-play-card {
+            background-color: rgba(26, 32, 44, 0.9);
+            border-radius: 1rem;
+            padding: 2rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            max-width: 90%;
+            width: 100%;
+            max-width: 450px;
+        }
+        /* Title style */
+        .menu-title {
+            font-size: 2.25rem;
+            font-weight: 700;
+            text-align: center;
+            margin-bottom: 1.5rem;
+            color: #63b3ed;
+        }
+        /* Base button styles */
+        .menu-base-button {
+            width: 100%;
+            padding: 1rem 2rem;
+            margin-bottom: 1rem;
+            border-radius: 0.75rem;
+            font-size: 1.125rem;
+            font-weight: 700;
+            color: #ffffff;
+            background: linear-gradient(135deg, #4299e1, #3182ce);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            transition: transform 0.2s, box-shadow 0.2s;
+            cursor: pointer;
+            border: none;
+        }
+        .menu-base-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        .menu-base-button:active {
+            transform: translateY(1px);
+            box-shadow: none;
+        }
+        /* Specific button styles */
+        .quick-play-button { background: linear-gradient(135deg, #4299e1, #3182ce); }
+        .franchise-button { background: linear-gradient(135deg, #63b3ed, #4a91c6); }
+        .settings-button { background: linear-gradient(135deg, #a0aec0, #718096); }
+        .exit-button { background: linear-gradient(135deg, #f56565, #e53e3e); }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useRef } = React;
+        const { initializeApp, getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, getFirestore, doc, setDoc, onSnapshot } = window.firebase;
+
+        // --- Helper functions for audio processing ---
+        const base64ToArrayBuffer = (base64) => {
+            const binaryString = window.atob(base64);
+            const len = binaryString.length;
+            const bytes = new Uint8Array(len);
+            for (let i = 0; i < len; i++) {
+                bytes[i] = binaryString.charCodeAt(i);
+            }
+            return bytes.buffer;
         };
 
-        const handleButtonClick = (action) => {
-            if (action === 'quick-play') {
-                setPage('quick-play');
-            } else if (action === 'franchise') {
-                if (userId) {
-                    setPage('franchise');
-                } else {
-                    showMessage("Authenticating... Please wait.");
-                }
-            } else {
-                showMessage(`"${action.replace('-', ' ')}" is not yet implemented.`);
+        const pcmToWav = (pcm16, sampleRate) => {
+            const numChannels = 1;
+            const bitsPerSample = 16;
+            const byteRate = (sampleRate * numChannels * bitsPerSample) / 8;
+            const blockAlign = (numChannels * bitsPerSample) / 8;
+            const dataLength = pcm16.length * 2;
+            const buffer = new ArrayBuffer(44 + dataLength);
+            const view = new DataView(buffer);
+            let offset = 0;
+            const writeString = (str) => {
+                for (let i = 0; i < str.length; i++) { view.setUint8(offset++, str.charCodeAt(i)); }
+            };
+            writeString('RIFF');
+            view.setUint32(offset, 36 + dataLength, true); offset += 4;
+            writeString('WAVE');
+            writeString('fmt ');
+            view.setUint32(offset, 16, true); offset += 4;
+            view.setUint16(offset, 1, true); offset += 2;
+            view.setUint16(offset, numChannels, true); offset += 2;
+            view.setUint32(offset, sampleRate, true); offset += 4;
+            view.setUint32(offset, byteRate, true); offset += 4;
+            view.setUint16(offset, blockAlign, true); offset += 2;
+            view.setUint16(offset, bitsPerSample, true); offset += 2;
+            writeString('data');
+            view.setUint32(offset, dataLength, true); offset += 4;
+            for (let i = 0; i < pcm16.length; i++) {
+                view.setInt16(offset, pcm16[i], true);
+                offset += 2;
             }
+            return new Blob([view], { type: 'audio/wav' });
         };
-
-        return (
-            <div className="menu-card">
-                <h1 className="menu-title">My Madden Game</h1>
-                <div className="flex flex-col space-y-4">
-                    <button onClick={() => handleButtonClick('quick-play')} className="menu-base-button quick-play-button">Quick Play</button>
-                    <button onClick={() => handleButtonClick('franchise')} className="menu-base-button franchise-button">Franchise Mode</button>
-                    <button onClick={() => handleButtonClick('settings')} className="menu-base-button settings-button">Settings</button>
-                    <button onClick={() => showMessage("Exiting... just kidding! You're in a browser.")} className="menu-base-button exit-button">Exit Game</button>
-                </div>
-                {message && <MessageBox message={message} onClose={() => setMessage(null)} />}
-            </div>
-        );
-    };
-
-    const QuickPlay = () => {
-        const [message, setMessage] = useState(null);
-        const teams = [
-            'Kansas City Chiefs', 'San Francisco 49ers', 'Buffalo Bills', 'Dallas Cowboys',
-            'Philadelphia Eagles', 'Green Bay Packers', 'New Orleans Saints', 'New York Jets',
-            'New England Patriots', 'Las Vegas Raiders', 'Miami Dolphins', 'Detroit Lions',
-            'Baltimore Ravens', 'Cincinnati Bengals', 'Los Angeles Rams', 'Atlanta Falcons'
-        ];
-
-        const handlePlayGame = () => {
-            const homeTeam = document.getElementById('team-1').value;
-            const awayTeam = document.getElementById('team-2').value;
-            const quarterLength = document.getElementById('quarter-length').value;
-            const difficulty = document.getElementById('difficulty').value;
-            const gameStyle = document.getElementById('game-style').value;
-            const eventType = document.getElementById('event-type').value;
-
-            if (homeTeam === awayTeam) {
-                setMessage("You must select two different teams to play a game.");
-                return;
+        
+        const playTts = async (text, audioPlayerRef) => {
+            if (audioPlayerRef.current) {
+                audioPlayerRef.current.pause();
+                audioPlayerRef.current.removeAttribute('src');
+                audioPlayerRef.current.load();
             }
-
-            const gameInfo = `A game between the ${homeTeam} and the ${awayTeam} is about to begin!
-            - Quarter Length: ${quarterLength} minutes
-            - Difficulty: ${difficulty}
-            - Game Style: ${gameStyle}
-            - Event Type: ${eventType}`;
-            setMessage(gameInfo);
-        };
-
-        return (
-            <div className="quick-play-card">
-                <h1 className="menu-title">Quick Play</h1>
-                <div className="space-y-6">
-                    <div className="flex flex-col md:flex-row items-center justify-between space-y-4 md:space-y-0 md:space-x-4">
-                        <div className="w-full md:w-1/2">
-                            <label htmlFor="team-1" className="block text-lg font-semibold mb-2">Home Team:</label>
-                            <select id="team-1" className="w-full p-3 rounded-lg bg-gray-700 text-white border-none focus:outline-none focus:ring-2 focus:ring-blue-500">
-                                {teams.map(team => <option key={team} value={team}>{team}</option>)}
-                            </select>
-                        </div>
-                        <div className="text-xl font-bold">VS</div>
-                        <div className="w-full md:w-1/2">
-                            <label htmlFor="team-2" className="block text-lg font-semibold mb-2">Away Team:</label>
-                            <select id="team-2" className="w-full p-3 rounded-lg bg-gray-700 text-white border-none focus:outline-none focus:ring-2 focus:ring-blue-500">
-                                {teams.map(team => <option key={team} value={team}>{team}</option>)}
-                            </select>
-                        </div>
-                    </div>
-                    <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                            <label htmlFor="quarter-length" className="block font-semibold mb-2">Quarter Length:</label>
-                            <select id="quarter-length" className="w-full p-3 rounded-lg bg-gray-700 text-white border-none focus:outline-none focus:ring-2 focus:ring-blue-500">
-                                <option value="5">5 Minutes</option>
-                                <option value="8">8 Minutes</option>
-                                <option value="10">10 Minutes</option>
-                                <option value="15">15 Minutes</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label htmlFor="difficulty" className="block font-semibold mb-2">Difficulty:</label>
-                            <select id="difficulty" className="w-full p-3 rounded-lg bg-gray-700 text-white border-none focus:outline-none focus:ring-2 focus:ring-blue-500">
-                                <option value="rookie">Rookie</option>
-                                <option value="pro">Pro</option>
-                                <option value="all-pro">All-Pro</option>
-                                <option value="all-madden">All-Madden</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label htmlFor="game-style" className="block font-semibold mb-2">Game Style:</label>
-                            <select id="game-style" className="w-full p-3 rounded-lg bg-gray-700 text-white border-none focus:outline-none focus:ring-2 focus:ring-blue-500">
-                                <option value="simulation">Simulation</option>
-                                <option value="competitive">Competitive</option>
-                                <option value="arcade">Arcade</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label htmlFor="event-type" className="block font-semibold mb-2">Event Type:</label>
-                            <select id="event-type" className="w-full p-3 rounded-lg bg-gray-700 text-white border-none focus:outline-none focus:ring-2 focus:ring-blue-500">
-                                <option value="exhibition">Exhibition</option>
-                                <option value="pro-bowl">Pro Bowl</option>
-                                <option value="super-bowl">Super Bowl</option>
-                            </select>
-                        </div>
-                    </div>
-                </div>
-                <div className="flex flex-col mt-8 space-y-4">
-                    <button onClick={handlePlayGame} className="menu-button">Play Game</button>
-                    <button onClick={() => setPage('main-menu')} className="menu-button bg-gray-700 hover:bg-gray-600">Back</button>
-                </div>
-                {message && <MessageBox message={message} onClose={() => setMessage(null)} />}
-            </div>
-        );
-    };
-
-    // New Franchise Page
-    const NewFranchise = () => {
-        const [selectedTeam, setSelectedTeam] = useState('Kansas City Chiefs');
-        const [message, setMessage] = useState(null);
-        const teams = [
-            'Kansas City Chiefs', 'San Francisco 49ers', 'Buffalo Bills', 'Dallas Cowboys',
-            'Philadelphia Eagles', 'Green Bay Packers', 'New Orleans Saints', 'New York Jets',
-            'New England Patriots', 'Las Vegas Raiders', 'Miami Dolphins', 'Detroit Lions',
-            'Baltimore Ravens', 'Cincinnati Bengals', 'Los Angeles Rams', 'Atlanta Falcons'
-        ];
-
-        const handleCreateFranchise = async () => {
-            if (!db || !userId) {
-                setMessage("Database not ready. Please try again in a moment.");
-                return;
-            }
-
+            const payload = {
+                contents: [{ parts: [{ text: text }] }],
+                generationConfig: {
+                    responseModalities: ["AUDIO"],
+                    speechConfig: {
+                        voiceConfig: { prebuiltVoiceConfig: { voiceName: "Rasalgethi" } }
+                    }
+                },
+                model: "gemini-2.5-flash-preview-tts"
+            };
+            const apiKey = "";
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent?key=${apiKey}`;
             try {
-                // Define the path for the franchise document
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const result = await response.json();
+                const part = result?.candidates?.[0]?.content?.parts?.[0];
+                const audioData = part?.inlineData?.data;
+                const mimeType = part?.inlineData?.mimeType;
+                if (audioData && mimeType && mimeType.startsWith("audio/")) {
+                    const sampleRate = parseInt(mimeType.match(/rate=(\d+)/)[1], 10);
+                    const pcmData = base64ToArrayBuffer(audioData);
+                    const pcm16 = new Int16Array(pcmData);
+                    const wavBlob = pcmToWav(pcm16, sampleRate);
+                    const audioUrl = URL.createObjectURL(wavBlob);
+                    audioPlayerRef.current.src = audioUrl;
+                    audioPlayerRef.current.play();
+                } else {
+                    console.error("TTS API response error:", result);
+                }
+            } catch (e) {
+                console.error("TTS API call failed:", e);
+            }
+        };
+
+        // --- Main App component ---
+        const App = () => {
+            const [db, setDb] = useState(null);
+            const [auth, setAuth] = useState(null);
+            const [userId, setUserId] = useState(null);
+            const [isLoading, setIsLoading] = useState(true);
+            const [page, setPage] = useState('main-menu');
+            const [franchiseData, setFranchiseData] = useState(null);
+            const [franchisePage, setFranchisePage] = useState('hub');
+            const [error, setError] = useState(null);
+            const audioPlayer = useRef(null);
+            
+            useEffect(() => {
+                const initFirebase = async () => {
+                    try {
+                        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+                        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
+                        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+                        
+                        const app = initializeApp(firebaseConfig);
+                        const firestoreDb = getFirestore(app);
+                        const firebaseAuth = getAuth(app);
+                        setDb(firestoreDb);
+                        setAuth(firebaseAuth);
+
+                        const unsubscribe = onAuthStateChanged(firebaseAuth, async (user) => {
+                            if (user) { setUserId(user.uid); }
+                            else { await signInAnonymously(firebaseAuth); }
+                            setIsLoading(false);
+                        });
+
+                        if (initialAuthToken) { await signInWithCustomToken(firebaseAuth, initialAuthToken); }
+                        return () => unsubscribe();
+                    } catch (err) {
+                        console.error("Firebase initialization or auth failed:", err);
+                        setError("Failed to initialize the app. Please try again.");
+                        setIsLoading(false);
+                    }
+                };
+                initFirebase();
+            }, []);
+
+            useEffect(() => {
+                if (!db || !userId) return;
                 const franchiseDocPath = `artifacts/${__app_id}/users/${userId}/franchise/myFranchise`;
                 const franchiseDocRef = doc(db, franchiseDocPath);
+                const unsubscribe = onSnapshot(franchiseDocRef, (docSnap) => {
+                    if (docSnap.exists()) { setFranchiseData(docSnap.data()); }
+                    else { setFranchiseData(null); }
+                }, (err) => {
+                    console.error("Error fetching franchise data:", err);
+                    setError("Failed to load franchise data. Please check your network connection.");
+                });
+                return () => unsubscribe();
+            }, [db, userId]);
 
-                // Data to save
-                const newFranchiseData = {
-                    teamName: selectedTeam,
-                    season: 1,
-                    wins: 0,
-                    losses: 0,
-                    createdAt: new Date().toISOString()
+            const LoadingScreen = () => (
+                <div className="flex justify-center items-center h-screen bg-gray-900 text-white">
+                    <div className="animate-pulse text-lg">Loading...</div>
+                </div>
+            );
+
+            const MessageBox = ({ message, onClose }) => (
+                <div className="fixed inset-0 bg-gray-900 bg-opacity-70 flex justify-center items-center z-50">
+                    <div className="bg-gray-800 p-8 rounded-xl shadow-lg w-11/12 md:w-1/3 text-center">
+                        <p className="text-xl mb-4">{message}</p>
+                        <button onClick={onClose} className="bg-blue-600 text-white py-2 px-6 rounded-lg hover:bg-blue-700">OK</button>
+                    </div>
+                </div>
+            );
+
+            const MainMenu = () => {
+                const [message, setMessage] = useState(null);
+                const showMessage = (msg) => { setMessage(msg); };
+                const handleButtonClick = (action) => {
+                    if (action === 'quick-play') { setPage('quick-play'); }
+                    else if (action === 'franchise') { userId ? setPage('franchise') : showMessage("Authenticating... Please wait."); }
+                    else { showMessage(`"${action.replace('-', ' ')}" is not yet implemented.`); }
                 };
-
-                // Save the data to Firestore
-                await setDoc(franchiseDocRef, newFranchiseData);
-                setMessage("New franchise created successfully!");
-                console.log("Franchise data saved:", newFranchiseData);
-                setFranchisePage('hub'); // Navigate back to the hub
-            } catch (e) {
-                console.error("Error creating franchise:", e);
-                setMessage("Failed to create franchise. Please try again.");
-            }
-        };
-
-        return (
-            <div className="quick-play-card">
-                <h1 className="menu-title">New Franchise</h1>
-                <div className="space-y-4">
-                    <div>
-                        <label htmlFor="franchise-team" className="block text-lg font-semibold mb-2">Select Your Team:</label>
-                        <select id="franchise-team" value={selectedTeam} onChange={(e) => setSelectedTeam(e.target.value)} className="w-full p-3 rounded-lg bg-gray-700 text-white border-none focus:outline-none focus:ring-2 focus:ring-blue-500">
-                            {teams.map(team => <option key={team} value={team}>{team}</option>)}
-                        </select>
-                    </div>
-                    <button onClick={handleCreateFranchise} className="menu-button">Create Franchise</button>
-                </div>
-                <div className="flex flex-col mt-8 space-y-4">
-                    <button onClick={() => setFranchisePage('hub')} className="menu-button bg-gray-700 hover:bg-gray-600">Back</button>
-                </div>
-                {message && <MessageBox message={message} onClose={() => setMessage(null)} />}
-            </div>
-        );
-    };
-
-    // Franchise Hub component
-    const FranchiseHub = () => {
-        const [message, setMessage] = useState(null);
-
-        const handleTestCommentary = () => {
-            const commentary = "First and ten, ball on the twenty-five yard line. The quarterback is in shotgun formation.";
-            playTts(commentary);
-            setMessage("Playing commentary... Listen closely!");
-        };
-
-        return (
-            <div className="quick-play-card">
-                <h1 className="menu-title">Franchise Hub</h1>
-                {error ? (
-                    <div className="text-red-400">{error}</div>
-                ) : franchiseData ? (
-                    <div className="space-y-4">
-                        <p className="text-center">Welcome, <span className="font-bold">{franchiseData.teamName}</span> fan!</p>
-                        <p className="text-center text-sm text-gray-400 break-words">User ID: {userId}</p>
-                        <div className="mt-4 p-4 bg-gray-700 rounded-lg">
-                            <h2 className="text-lg font-semibold text-center mb-2">Franchise Info</h2>
-                            <p>Season: {franchiseData.season}</p>
-                            <p>Record: {franchiseData.wins} - {franchiseData.losses}</p>
+                return (
+                    <div className="menu-card">
+                        <h1 className="menu-title">My Madden Game</h1>
+                        <div className="flex flex-col space-y-4">
+                            <button onClick={() => handleButtonClick('quick-play')} className="menu-base-button quick-play-button">Quick Play</button>
+                            <button onClick={() => handleButtonClick('franchise')} className="menu-base-button franchise-button">Franchise Mode</button>
+                            <button onClick={() => handleButtonClick('settings')} className="menu-base-button settings-button">Settings</button>
+                            <button onClick={() => showMessage("Exiting... just kidding! You're in a browser.")} className="menu-base-button exit-button">Exit Game</button>
                         </div>
-                        <button onClick={handleTestCommentary} className="menu-button mt-4">Test Commentary</button>
+                        {message && <MessageBox message={message} onClose={() => setMessage(null)} />}
                     </div>
-                ) : (
-                    <div className="space-y-4 text-center">
-                        <p>No franchise found. Start a new one to begin your journey!</p>
-                        <button onClick={() => setFranchisePage('new-franchise')} className="menu-button">Start New Franchise</button>
+                );
+            };
+
+            const QuickPlay = () => {
+                const [message, setMessage] = useState(null);
+                const teams = [
+                    'Kansas City Chiefs', 'San Francisco 49ers', 'Buffalo Bills', 'Dallas Cowboys',
+                    'Philadelphia Eagles', 'Green Bay Packers', 'New Orleans Saints', 'New York Jets',
+                    'New England Patriots', 'Las Vegas Raiders', 'Miami Dolphins', 'Detroit Lions',
+                    'Baltimore Ravens', 'Cincinnati Bengals', 'Los Angeles Rams', 'Atlanta Falcons'
+                ];
+                const handlePlayGame = () => {
+                    const homeTeam = document.getElementById('team-1').value;
+                    const awayTeam = document.getElementById('team-2').value;
+                    if (homeTeam === awayTeam) {
+                        setMessage("You must select two different teams to play a game.");
+                        return;
+                    }
+                    const quarterLength = document.getElementById('quarter-length').value;
+                    const difficulty = document.getElementById('difficulty').value;
+                    const gameStyle = document.getElementById('game-style').value;
+                    const eventType = document.getElementById('event-type').value;
+                    const gameInfo = `A game between the ${homeTeam} and the ${awayTeam} is about to begin!
+                    - Quarter Length: ${quarterLength} minutes - Difficulty: ${difficulty} - Game Style: ${gameStyle} - Event Type: ${eventType}`;
+                    setMessage(gameInfo);
+                };
+                return (
+                    <div className="quick-play-card">
+                        <h1 className="menu-title">Quick Play</h1>
+                        <div className="space-y-6">
+                            <div className="flex flex-col md:flex-row items-center justify-between space-y-4 md:space-y-0 md:space-x-4">
+                                <div className="w-full md:w-1/2">
+                                    <label htmlFor="team-1" className="block text-lg font-semibold mb-2">Home Team:</label>
+                                    <select id="team-1" className="w-full p-3 rounded-lg bg-gray-700 text-white border-none focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                        {teams.map(team => <option key={team} value={team}>{team}</option>)}
+                                    </select>
+                                </div>
+                                <div className="text-xl font-bold">VS</div>
+                                <div className="w-full md:w-1/2">
+                                    <label htmlFor="team-2" className="block text-lg font-semibold mb-2">Away Team:</label>
+                                    <select id="team-2" className="w-full p-3 rounded-lg bg-gray-700 text-white border-none focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                        {teams.map(team => <option key={team} value={team}>{team}</option>)}
+                                    </select>
+                                </div>
+                            </div>
+                            <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label htmlFor="quarter-length" className="block font-semibold mb-2">Quarter Length:</label>
+                                    <select id="quarter-length" className="w-full p-3 rounded-lg bg-gray-700 text-white border-none focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                        <option value="5">5 Minutes</option>
+                                        <option value="8">8 Minutes</option>
+                                        <option value="10">10 Minutes</option>
+                                        <option value="15">15 Minutes</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label htmlFor="difficulty" className="block font-semibold mb-2">Difficulty:</label>
+                                    <select id="difficulty" className="w-full p-3 rounded-lg bg-gray-700 text-white border-none focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                        <option value="rookie">Rookie</option>
+                                        <option value="pro">Pro</option>
+                                        <option value="all-pro">All-Pro</option>
+                                        <option value="all-madden">All-Madden</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label htmlFor="game-style" className="block font-semibold mb-2">Game Style:</label>
+                                    <select id="game-style" className="w-full p-3 rounded-lg bg-gray-700 text-white border-none focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                        <option value="simulation">Simulation</option>
+                                        <option value="competitive">Competitive</option>
+                                        <option value="arcade">Arcade</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label htmlFor="event-type" className="block font-semibold mb-2">Event Type:</label>
+                                    <select id="event-type" className="w-full p-3 rounded-lg bg-gray-700 text-white border-none focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                        <option value="exhibition">Exhibition</option>
+                                        <option value="pro-bowl">Pro Bowl</option>
+                                        <option value="super-bowl">Super Bowl</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div className="flex flex-col mt-8 space-y-4">
+                            <button onClick={handlePlayGame} className="menu-button">Play Game</button>
+                            <button onClick={() => setPage('main-menu')} className="menu-button bg-gray-700 hover:bg-gray-600">Back</button>
+                        </div>
+                        {message && <MessageBox message={message} onClose={() => setMessage(null)} />}
                     </div>
-                )}
-                <div className="flex flex-col mt-8 space-y-4">
-                    <button onClick={() => setPage('main-menu')} className="menu-button bg-gray-700 hover:bg-gray-600">Back</button>
-                </div>
-                {message && <MessageBox message={message} onClose={() => setMessage(null)} />}
-                <audio ref={audioPlayer} />
-            </div>
-        );
-    };
+                );
+            };
 
-    // --- Main Rendering Logic ---
-    if (isLoading) {
-        return <LoadingScreen />;
-    }
+            const NewFranchise = () => {
+                const [selectedTeam, setSelectedTeam] = useState('Kansas City Chiefs');
+                const [message, setMessage] = useState(null);
+                const teams = [
+                    'Kansas City Chiefs', 'San Francisco 49ers', 'Buffalo Bills', 'Dallas Cowboys',
+                    'Philadelphia Eagles', 'Green Bay Packers', 'New Orleans Saints', 'New York Jets',
+                    'New England Patriots', 'Las Vegas Raiders', 'Miami Dolphins', 'Detroit Lions',
+                    'Baltimore Ravens', 'Cincinnati Bengals', 'Los Angeles Rams', 'Atlanta Falcons'
+                ];
+                const handleCreateFranchise = async () => {
+                    if (!db || !userId) {
+                        setMessage("Database not ready. Please try again in a moment.");
+                        return;
+                    }
+                    try {
+                        const franchiseDocPath = `artifacts/${__app_id}/users/${userId}/franchise/myFranchise`;
+                        const franchiseDocRef = doc(db, franchiseDocPath);
+                        const newFranchiseData = {
+                            teamName: selectedTeam,
+                            season: 1,
+                            wins: 0,
+                            losses: 0,
+                            createdAt: new Date().toISOString()
+                        };
+                        await setDoc(franchiseDocRef, newFranchiseData);
+                        setMessage("New franchise created successfully!");
+                        setFranchisePage('hub');
+                    } catch (e) {
+                        console.error("Error creating franchise:", e);
+                        setMessage("Failed to create franchise. Please try again.");
+                    }
+                };
+                return (
+                    <div className="quick-play-card">
+                        <h1 className="menu-title">New Franchise</h1>
+                        <div className="space-y-4">
+                            <div>
+                                <label htmlFor="franchise-team" className="block text-lg font-semibold mb-2">Select Your Team:</label>
+                                <select id="franchise-team" value={selectedTeam} onChange={(e) => setSelectedTeam(e.target.value)} className="w-full p-3 rounded-lg bg-gray-700 text-white border-none focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                    {teams.map(team => <option key={team} value={team}>{team}</option>)}
+                                </select>
+                            </div>
+                            <button onClick={handleCreateFranchise} className="menu-button">Create Franchise</button>
+                        </div>
+                        <div className="flex flex-col mt-8 space-y-4">
+                            <button onClick={() => setFranchisePage('hub')} className="menu-button bg-gray-700 hover:bg-gray-600">Back</button>
+                        </div>
+                        {message && <MessageBox message={message} onClose={() => setMessage(null)} />}
+                    </div>
+                );
+            };
 
-    let pageContent;
-    switch (page) {
-        case 'main-menu':
-            pageContent = <MainMenu />;
-            break;
-        case 'quick-play':
-            pageContent = <QuickPlay />;
-            break;
-        case 'franchise':
-            if (franchisePage === 'new-franchise') {
-                pageContent = <NewFranchise />;
-            } else {
-                pageContent = <FranchiseHub />;
-            }
-            break;
-        default:
-            pageContent = <MainMenu />;
-    }
+            const FranchiseHub = () => {
+                const [message, setMessage] = useState(null);
+                const handleTestCommentary = () => {
+                    const commentary = "First and ten, ball on the twenty-five yard line. The quarterback is in shotgun formation.";
+                    playTts(commentary, audioPlayer);
+                    setMessage("Playing commentary... Listen closely!");
+                };
+                return (
+                    <div className="quick-play-card">
+                        <h1 className="menu-title">Franchise Hub</h1>
+                        {error ? (
+                            <div className="text-red-400">{error}</div>
+                        ) : franchiseData ? (
+                            <div className="space-y-4">
+                                <p className="text-center">Welcome, <span className="font-bold">{franchiseData.teamName}</span> fan!</p>
+                                <p className="text-center text-sm text-gray-400 break-words">User ID: {userId}</p>
+                                <div className="mt-4 p-4 bg-gray-700 rounded-lg">
+                                    <h2 className="text-lg font-semibold text-center mb-2">Franchise Info</h2>
+                                    <p>Season: {franchiseData.season}</p>
+                                    <p>Record: {franchiseData.wins} - {franchiseData.losses}</p>
+                                </div>
+                                <button onClick={handleTestCommentary} className="menu-button mt-4">Test Commentary</button>
+                            </div>
+                        ) : (
+                            <div className="space-y-4 text-center">
+                                <p>No franchise found. Start a new one to begin your journey!</p>
+                                <button onClick={() => setFranchisePage('new-franchise')} className="menu-button">Start New Franchise</button>
+                            </div>
+                        )}
+                        <div className="flex flex-col mt-8 space-y-4">
+                            <button onClick={() => setPage('main-menu')} className="menu-button bg-gray-700 hover:bg-gray-600">Back</button>
+                        </div>
+                        {message && <MessageBox message={message} onClose={() => setMessage(null)} />}
+                        <audio ref={audioPlayer} />
+                    </div>
+                );
+            };
 
-    return (
-        <div className="relative min-h-screen bg-gray-900 text-white font-sans">
-            <div className="bg-animation"></div>
-            <div className="main-container">
-                {pageContent}
-            </div>
-
-            {/* Global Styles */}
-            <style jsx global>{`
-                body {
-                    font-family: 'Inter', sans-serif;
-                    background-color: #1a202c;
-                    color: #e2e8f0;
-                    margin: 0;
-                    padding: 0;
-                    overflow: hidden;
-                }
-                .main-container {
-                    min-height: 100vh;
-                    display: flex;
-                    flex-direction: column;
-                    justify-content: center;
-                    align-items: center;
-                    position: relative;
-                    z-index: 10;
-                }
-                .bg-animation {
-                    position: absolute;
-                    top: 0;
-                    left: 0;
-                    width: 100%;
-                    height: 100%;
-                    background: linear-gradient(-45deg, #2b6cb0, #4299e1, #3182ce, #1c3d5a);
-                    background-size: 400% 400%;
-                    animation: gradient-shift 15s ease infinite;
-                    z-index: 1;
-                }
-                @keyframes gradient-shift {
-                    0% { background-position: 0% 50%; }
-                    50% { background-position: 100% 50%; }
-                    100% { background-position: 0% 50%; }
-                }
-                .menu-card, .quick-play-card {
-                    background-color: rgba(26, 32, 44, 0.9);
-                    border-radius: 1rem;
-                    padding: 2rem;
-                    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-                    max-width: 90%;
-                    width: 100%;
-                    max-width: 450px;
-                }
-                .menu-base-button {
-                    width: 100%;
-                    padding: 1rem 2rem;
-                    margin-bottom: 1rem;
-                    border-radius: 0.75rem;
-                    font-size: 1.125rem;
-                    font-weight: 700;
-                    color: #ffffff;
-                    background: linear-gradient(135deg, #4299e1, #3182ce);
-                    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-                    transition: transform 0.2s, box-shadow 0.2s;
-                    cursor: pointer;
-                    border: none;
-                }
-                .menu-base-button:hover {
-                    transform: translateY(-2px);
-                    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-                }
-                .menu-base-button:active {
-                    transform: translateY(1px);
-                    box-shadow: none;
-                }
-                /* You can now add specific styles for each button if you want */
-                .quick-play-button { background: linear-gradient(135deg, #4299e1, #3182ce); }
-                .franchise-button { background: linear-gradient(135deg, #63b3ed, #4a91c6); }
-                .settings-button { background: linear-gradient(135deg, #a0aec0, #718096); }
-                .exit-button { background: linear-gradient(135deg, #f56565, #e53e3e); }
-            `}</style>
-        </div>
-    );
-};
-
-export default App;
+            const root = ReactDOM.createRoot(document.getElementById('root'));
+            root.render(<App />);
+        </script>
+    </body>
+</html>
