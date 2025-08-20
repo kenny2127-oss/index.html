@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Madden Audio Menu</title>
+  <title>Madden Accessible Game</title>
   <style>
     body {
       margin: 0;
@@ -11,28 +11,11 @@
       background: #000;
       color: #fff;
     }
-    a.skip {
-      position: absolute;
-      left: -9999px;
-      top: auto;
-      width: 1px;
-      height: 1px;
-      overflow: hidden;
-    }
-    a.skip:focus {
-      position: static;
-      width: auto;
-      height: auto;
-      padding: .75rem 1rem;
-      background: #ffbf00;
-      color: #000;
-      display: inline-block;
-    }
     header {
       padding: 16px;
       text-align: center;
-      font-weight: 700;
       font-size: 1.5rem;
+      font-weight: 700;
     }
     main {
       display: flex;
@@ -45,7 +28,7 @@
       width: 100%;
       max-width: 520px;
     }
-    button {
+    button, select, input {
       width: 100%;
       padding: 18px 20px;
       margin: 10px 0;
@@ -55,7 +38,7 @@
       background: #111;
       color: #fff;
     }
-    button:focus {
+    button:focus, select:focus, input:focus {
       outline: 3px solid #ffbf00;
       outline-offset: 2px;
     }
@@ -66,6 +49,28 @@
       button {
         transition: transform .08s ease;
       }
+    }
+    section {
+      margin-bottom: 20px;
+    }
+    label {
+      display: block;
+      margin: 10px 0 5px;
+    }
+    dialog {
+      border: none;
+      border-radius: 12px;
+      padding: 20px;
+      max-width: 500px;
+      width: 90%;
+      background: #111;
+      color: #fff;
+    }
+    dialog::backdrop {
+      background: rgba(0,0,0,.7);
+    }
+    .hidden {
+      display: none;
     }
     .sr-only {
       position: absolute;
@@ -81,8 +86,10 @@
 </head>
 <body>
   <a class="skip" href="#menu">Skip to menu</a>
-  <header aria-live="polite" aria-atomic="true">Madden – Main Menu</header>
-  <main>
+  <header id="title">Madden – Main Menu</header>
+
+  <!-- Main Menu -->
+  <main id="mainMenu">
     <nav id="menu" aria-label="Main Menu" role="menu">
       <button role="menuitem" data-action="quick">Quick Play</button>
       <button role="menuitem" data-action="franchise">Franchise</button>
@@ -92,22 +99,88 @@
       <div class="sr-only" aria-live="polite" id="live"></div>
     </nav>
   </main>
+
+  <!-- Quick Play Menu -->
+  <main id="quickPlayMenu" class="hidden">
+    <section>
+      <label for="homeTeam">Home Team</label>
+      <input type="range" id="homeTeam" min="0" max="31" value="0">
+      <div id="homeTeamName">Team 1</div>
+    </section>
+
+    <section>
+      <label for="awayTeam">Away Team</label>
+      <input type="range" id="awayTeam" min="0" max="31" value="1">
+      <div id="awayTeamName">Team 2</div>
+    </section>
+
+    <button id="startBtn">Start Game</button>
+  </main>
+
+  <!-- Game Settings Dialog -->
+  <dialog id="settingsDialog">
+    <form method="dialog">
+      <h2>Game Settings</h2>
+
+      <label for="quarter">Quarter Length (1–15 min)</label>
+      <input type="range" id="quarter" min="1" max="15" value="5">
+      <div id="quarterVal">5 minutes</div>
+
+      <label for="event">Event Type</label>
+      <select id="event">
+        <option>Pre-season</option>
+        <option>Regular Season</option>
+        <option>Playoffs</option>
+        <option>Super Bowl</option>
+      </select>
+
+      <label for="weather">Weather</label>
+      <select id="weather">
+        <option>Clear</option>
+        <option>Cloudy</option>
+        <option>Sunny</option>
+        <option>Rain</option>
+        <option>Heavy Rain</option>
+        <option>Snow</option>
+        <option>Heavy Snow</option>
+      </select>
+
+      <label for="stadium">Stadium</label>
+      <select id="stadium">
+        <option>Home</option>
+        <option>Away</option>
+      </select>
+
+      <button value="start">Confirm & Begin</button>
+      <button,  value="cancel">Cancel</button>
+    </form>
+  </dialog>
+
   <script>
+    // Menu navigation
+    const mainMenu = document.getElementById("mainMenu");
+    const quickPlayMenu = document.getElementById("quickPlayMenu");
+    const title = document.getElementById("title");
     const menu = document.querySelector('#menu');
     const items = [...menu.querySelectorAll('button[role="menuitem"]')];
     const live = document.getElementById('live');
+
     function speak(t) {
       live.textContent = t;
     }
-    items.forEach((btn, i) => {
+
+    items.forEach((btn) => {
       btn.addEventListener('focus', () => speak(btn.textContent + ' selected'));
-      btn.addEventListener('click', () => speak(btn.textContent + ' activated'));
-      btn.addEventListener('keyup', e => {
-        if (e.key === 'Enter' || e.key === ' ') {
-          speak(btn.textContent + ' activated');
+      btn.addEventListener('click', () => {
+        speak(btn.textContent + ' activated');
+        if (btn.dataset.action === "quick") {
+          mainMenu.classList.add("hidden");
+          quickPlayMenu.classList.remove("hidden");
+          title.textContent = "Quick Play";
         }
       });
     });
+
     menu.addEventListener('keydown', e => {
       const i = document.activeElement ? items.indexOf(document.activeElement) : -1;
       if (['ArrowDown', 'ArrowRight'].includes(e.key)) {
@@ -119,7 +192,36 @@
         (items[i - 1] || items[items.length - 1]).focus();
       }
     });
+
     items[0].focus();
-  </script>
+
+    // Quick Play logic
+    const teams = Array.from({length: 32}, (_, i) => "Team " + (i + 1));
+    const homeSlider = document.getElementById("homeTeam");
+    const awaySlider = document.getElementById("awayTeam");
+    const homeName = document.getElementById("homeTeamName");
+    const awayName = document.getElementById("awayTeamName");
+
+    function updateTeam(slider, el, label) {
+      const t = teams[slider.value];
+      el.textContent = t;
+      live.textContent = label + " set to " + t;
+    }
+
+    homeSlider.addEventListener("input", () => updateTeam(homeSlider, homeName, "Home Team"));
+    awaySlider.addEventListener("input", () => updateTeam(awaySlider, awayName, "Away Team"));
+
+    document.getElementById("startBtn").addEventListener("click", () => {
+      document.getElementById("settingsDialog").showModal();
+      live.textContent = "Game settings opened";
+    });
+
+    const quarter = document.getElementById("quarter");
+    const quarterVal = document.getElementById("quarterVal");
+    quarter.addEventListener("input", () => {
+      quarterVal.textContent = quarter.value + " minutes";
+      live.textContent = "Quarter length set to " + quarter.value + " minutes";
+    });
+ ,  </script>
 </body>
 </html>
