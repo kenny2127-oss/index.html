@@ -6,9 +6,6 @@
     <title>My Madden Game</title>
     <!-- Tailwind CSS CDN for styling -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- React and ReactDOM CDNs -->
-    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <!-- Firebase CDNs for Firestore -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
@@ -133,12 +130,21 @@
     </style>
 </head>
 <body>
-    <div id="root"></div>
-
+    <div class="main-container">
+        <div class="bg-animation"></div>
+        <div id="app"></div>
+    </div>
+    
     <script>
-        const { useState, useEffect, useRef } = React;
-        const { initializeApp, getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, getFirestore, doc, setDoc, onSnapshot } = window.firebase;
-
+        // Global state variables
+        let db;
+        let auth;
+        let userId = null;
+        let franchiseData = null;
+        let currentPage = 'main-menu';
+        let currentFranchisePage = 'hub';
+        const audioPlayer = new Audio();
+        
         // --- Helper functions for audio processing ---
         const base64ToArrayBuffer = (base64) => {
             const binaryString = window.atob(base64);
@@ -182,12 +188,11 @@
             return new Blob([view], { type: 'audio/wav' });
         };
         
-        const playTts = async (text, audioPlayerRef) => {
-            if (audioPlayerRef.current) {
-                audioPlayerRef.current.pause();
-                audioPlayerRef.current.removeAttribute('src');
-                audioPlayerRef.current.load();
-            }
+        const playTts = async (text) => {
+            audioPlayer.pause();
+            audioPlayer.removeAttribute('src');
+            audioPlayer.load();
+
             const payload = {
                 contents: [{ parts: [{ text: text }] }],
                 generationConfig: {
@@ -216,8 +221,8 @@
                     const pcm16 = new Int16Array(pcmData);
                     const wavBlob = pcmToWav(pcm16, sampleRate);
                     const audioUrl = URL.createObjectURL(wavBlob);
-                    audioPlayerRef.current.src = audioUrl;
-                    audioPlayerRef.current.play();
+                    audioPlayer.src = audioUrl;
+                    audioPlayer.play();
                 } else {
                     console.error("TTS API response error:", result);
                 }
@@ -226,353 +231,331 @@
             }
         };
 
-        // --- Main App component ---
-        const App = () => {
-            const [db, setDb] = useState(null);
-            const [auth, setAuth] = useState(null);
-            const [userId, setUserId] = useState(null);
-            const [isLoading, setIsLoading] = useState(true);
-            const [page, setPage] = useState('main-menu');
-            const [franchiseData, setFranchiseData] = useState(null);
-            const [franchisePage, setFranchisePage] = useState('hub');
-            const [error, setError] = useState(null);
-            const audioPlayer = useRef(null);
+        // --- DOM Manipulation Functions ---
+        const showMessageBox = (message, onCloseCallback) => {
+            const appDiv = document.getElementById('app');
+            const messageBoxHTML = `
+                <div id="messageBox" class="fixed inset-0 bg-gray-900 bg-opacity-70 flex justify-center items-center z-50">
+                    <div class="bg-gray-800 p-8 rounded-xl shadow-lg w-11/12 md:w-1/3 text-center">
+                        <p class="text-xl mb-4">${message}</p>
+                        <button id="okButton" class="bg-blue-600 text-white py-2 px-6 rounded-lg hover:bg-blue-700">OK</button>
+                    </div>
+                </div>
+            `;
+            const messageBoxContainer = document.createElement('div');
+            messageBoxContainer.innerHTML = messageBoxHTML;
+            appDiv.appendChild(messageBoxContainer);
             
-            useEffect(() => {
-                const initFirebase = async () => {
-                    try {
-                        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-                        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
-                        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
-                        
-                        const app = initializeApp(firebaseConfig);
-                        const firestoreDb = getFirestore(app);
-                        const firebaseAuth = getAuth(app);
-                        setDb(firestoreDb);
-                        setAuth(firebaseAuth);
+            document.getElementById('okButton').addEventListener('click', () => {
+                appDiv.removeChild(messageBoxContainer);
+                if (onCloseCallback) onCloseCallback();
+            });
+        };
 
-                        const unsubscribe = onAuthStateChanged(firebaseAuth, async (user) => {
-                            if (user) { setUserId(user.uid); }
-                            else { await signInAnonymously(firebaseAuth); }
-                            setIsLoading(false);
-                        });
+        const renderMainMenu = () => {
+            const appDiv = document.getElementById('app');
+            appDiv.innerHTML = `
+                <div class="menu-card">
+                    <h1 class="menu-title">My Madden Game</h1>
+                    <div class="flex flex-col space-y-4">
+                        <button id="quickPlayBtn" class="menu-base-button quick-play-button">Quick Play</button>
+                        <button id="franchiseBtn" class="menu-base-button franchise-button">Franchise Mode</button>
+                        <button id="settingsBtn" class="menu-base-button settings-button">Settings</button>
+                        <button id="exitBtn" class="menu-base-button exit-button">Exit Game</button>
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('quickPlayBtn').addEventListener('click', () => {
+                currentPage = 'quick-play';
+                renderPage();
+            });
+            document.getElementById('franchiseBtn').addEventListener('click', () => {
+                if (userId) {
+                    currentPage = 'franchise';
+                    currentFranchisePage = franchiseData ? 'hub' : 'new-franchise';
+                    renderPage();
+                } else {
+                    showMessageBox("Authenticating... Please wait.");
+                }
+            });
+            document.getElementById('settingsBtn').addEventListener('click', () => {
+                showMessageBox('"Settings" is not yet implemented.');
+            });
+            document.getElementById('exitBtn').addEventListener('click', () => {
+                showMessageBox("Exiting... just kidding! You're in a browser.");
+            });
+        };
+        
+        const renderQuickPlay = () => {
+            const appDiv = document.getElementById('app');
+            const teams = [
+                'Kansas City Chiefs', 'San Francisco 49ers', 'Buffalo Bills', 'Dallas Cowboys',
+                'Philadelphia Eagles', 'Green Bay Packers', 'New Orleans Saints', 'New York Jets',
+                'New England Patriots', 'Las Vegas Raiders', 'Miami Dolphins', 'Detroit Lions',
+                'Baltimore Ravens', 'Cincinnati Bengals', 'Los Angeles Rams', 'Atlanta Falcons'
+            ];
+            const teamOptions = teams.map(team => `<option value="${team}">${team}</option>`).join('');
 
-                        if (initialAuthToken) { await signInWithCustomToken(firebaseAuth, initialAuthToken); }
-                        return () => unsubscribe();
-                    } catch (err) {
-                        console.error("Firebase initialization or auth failed:", err);
-                        setError("Failed to initialize the app. Please try again.");
-                        setIsLoading(false);
-                    }
-                };
-                initFirebase();
-            }, []);
+            appDiv.innerHTML = `
+                <div class="quick-play-card">
+                    <h1 class="menu-title">Quick Play</h1>
+                    <div class="space-y-6">
+                        <div class="flex flex-col md:flex-row items-center justify-between space-y-4 md:space-y-0 md:space-x-4">
+                            <div class="w-full md:w-1/2">
+                                <label for="team-1" class="block text-lg font-semibold mb-2">Home Team:</label>
+                                <select id="team-1" class="w-full p-3 rounded-lg bg-gray-700 text-white border-none focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                    ${teamOptions}
+                                </select>
+                            </div>
+                            <div class="text-xl font-bold">VS</div>
+                            <div class="w-full md:w-1/2">
+                                <label for="team-2" class="block text-lg font-semibold mb-2">Away Team:</label>
+                                <select id="team-2" class="w-full p-3 rounded-lg bg-gray-700 text-white border-none focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                    ${teamOptions}
+                                </select>
+                            </div>
+                        </div>
+                        <div class="mt-8 grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label for="quarter-length" class="block font-semibold mb-2">Quarter Length:</label>
+                                <select id="quarter-length" class="w-full p-3 rounded-lg bg-gray-700 text-white border-none focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                    <option value="5">5 Minutes</option>
+                                    <option value="8">8 Minutes</option>
+                                    <option value="10">10 Minutes</option>
+                                    <option value="15">15 Minutes</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label for="difficulty" class="block font-semibold mb-2">Difficulty:</label>
+                                <select id="difficulty" class="w-full p-3 rounded-lg bg-gray-700 text-white border-none focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                    <option value="rookie">Rookie</option>
+                                    <option value="pro">Pro</option>
+                                    <option value="all-pro">All-Pro</option>
+                                    <option value="all-madden">All-Madden</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label for="game-style" class="block font-semibold mb-2">Game Style:</label>
+                                <select id="game-style" class="w-full p-3 rounded-lg bg-gray-700 text-white border-none focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                    <option value="simulation">Simulation</option>
+                                    <option value="competitive">Competitive</option>
+                                    <option value="arcade">Arcade</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label for="event-type" class="block font-semibold mb-2">Event Type:</label>
+                                <select id="event-type" class="w-full p-3 rounded-lg bg-gray-700 text-white border-none focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                    <option value="exhibition">Exhibition</option>
+                                    <option value="pro-bowl">Pro Bowl</option>
+                                    <option value="super-bowl">Super Bowl</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex flex-col mt-8 space-y-4">
+                        <button id="playGameBtn" class="menu-button">Play Game</button>
+                        <button id="backToMainBtn" class="menu-button bg-gray-700 hover:bg-gray-600">Back</button>
+                    </div>
+                </div>
+            `;
 
-            useEffect(() => {
-                if (!db || !userId) return;
+            document.getElementById('playGameBtn').addEventListener('click', () => {
+                const homeTeam = document.getElementById('team-1').value;
+                const awayTeam = document.getElementById('team-2').value;
+                if (homeTeam === awayTeam) {
+                    showMessageBox("You must select two different teams to play a game.");
+                    return;
+                }
+                const quarterLength = document.getElementById('quarter-length').value;
+                const difficulty = document.getElementById('difficulty').value;
+                const gameStyle = document.getElementById('game-style').value;
+                const eventType = document.getElementById('event-type').value;
+                const gameInfo = `A game between the ${homeTeam} and the ${awayTeam} is about to begin!
+                - Quarter Length: ${quarterLength} minutes
+                - Difficulty: ${difficulty}
+                - Game Style: ${gameStyle}
+                - Event Type: ${eventType}`;
+                showMessageBox(gameInfo);
+            });
+            document.getElementById('backToMainBtn').addEventListener('click', () => {
+                currentPage = 'main-menu';
+                renderPage();
+            });
+        };
+
+        const renderNewFranchise = () => {
+            const appDiv = document.getElementById('app');
+            const teams = [
+                'Kansas City Chiefs', 'San Francisco 49ers', 'Buffalo Bills', 'Dallas Cowboys',
+                'Philadelphia Eagles', 'Green Bay Packers', 'New Orleans Saints', 'New York Jets',
+                'New England Patriots', 'Las Vegas Raiders', 'Miami Dolphins', 'Detroit Lions',
+                'Baltimore Ravens', 'Cincinnati Bengals', 'Los Angeles Rams', 'Atlanta Falcons'
+            ];
+            const teamOptions = teams.map(team => `<option value="${team}">${team}</option>`).join('');
+            
+            appDiv.innerHTML = `
+                <div class="quick-play-card">
+                    <h1 class="menu-title">New Franchise</h1>
+                    <div class="space-y-4">
+                        <div>
+                            <label for="franchise-team" class="block text-lg font-semibold mb-2">Select Your Team:</label>
+                            <select id="franchise-team" class="w-full p-3 rounded-lg bg-gray-700 text-white border-none focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                ${teamOptions}
+                            </select>
+                        </div>
+                        <button id="createFranchiseBtn" class="menu-button">Create Franchise</button>
+                    </div>
+                    <div class="flex flex-col mt-8 space-y-4">
+                        <button id="backToHubBtn" class="menu-button bg-gray-700 hover:bg-gray-600">Back</button>
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('createFranchiseBtn').addEventListener('click', async () => {
+                if (!db || !userId) {
+                    showMessageBox("Database not ready. Please try again in a moment.");
+                    return;
+                }
+                const selectedTeam = document.getElementById('franchise-team').value;
                 const franchiseDocPath = `artifacts/${__app_id}/users/${userId}/franchise/myFranchise`;
-                const franchiseDocRef = doc(db, franchiseDocPath);
-                const unsubscribe = onSnapshot(franchiseDocRef, (docSnap) => {
-                    if (docSnap.exists()) { setFranchiseData(docSnap.data()); }
-                    else { setFranchiseData(null); }
+                const franchiseDocRef = firebase.doc(db, franchiseDocPath);
+                const newFranchiseData = {
+                    teamName: selectedTeam,
+                    season: 1,
+                    wins: 0,
+                    losses: 0,
+                    createdAt: new Date().toISOString()
+                };
+                await firebase.setDoc(franchiseDocRef, newFranchiseData);
+                showMessageBox("New franchise created successfully!", () => {
+                    currentFranchisePage = 'hub';
+                    renderPage();
+                });
+            });
+            document.getElementById('backToHubBtn').addEventListener('click', () => {
+                currentFranchisePage = 'hub';
+                renderPage();
+            });
+        };
+        
+        const renderFranchiseHub = () => {
+            const appDiv = document.getElementById('app');
+            let contentHTML = '';
+            if (!franchiseData) {
+                contentHTML = `
+                    <div class="space-y-4 text-center">
+                        <p>No franchise found. Start a new one to begin your journey!</p>
+                        <button id="startNewFranchiseBtn" class="menu-button">Start New Franchise</button>
+                    </div>
+                `;
+            } else {
+                contentHTML = `
+                    <div class="space-y-4">
+                        <p class="text-center">Welcome, <span class="font-bold">${franchiseData.teamName}</span> fan!</p>
+                        <p class="text-center text-sm text-gray-400 break-words">User ID: ${userId}</p>
+                        <div class="mt-4 p-4 bg-gray-700 rounded-lg">
+                            <h2 class="text-lg font-semibold text-center mb-2">Franchise Info</h2>
+                            <p>Season: ${franchiseData.season}</p>
+                            <p>Record: ${franchiseData.wins} - ${franchiseData.losses}</p>
+                        </div>
+                        <button id="testCommentaryBtn" class="menu-button mt-4">Test Commentary</button>
+                    </div>
+                `;
+            }
+            
+            appDiv.innerHTML = `
+                <div class="quick-play-card">
+                    <h1 class="menu-title">Franchise Hub</h1>
+                    ${contentHTML}
+                    <div class="flex flex-col mt-8 space-y-4">
+                        <button id="backToMainBtn" class="menu-button bg-gray-700 hover:bg-gray-600">Back</button>
+                    </div>
+                </div>
+            `;
+            
+            if (!franchiseData) {
+                document.getElementById('startNewFranchiseBtn').addEventListener('click', () => {
+                    currentFranchisePage = 'new-franchise';
+                    renderPage();
+                });
+            } else {
+                document.getElementById('testCommentaryBtn').addEventListener('click', () => {
+                    const commentary = "First and ten, ball on the twenty-five yard line. The quarterback is in shotgun formation.";
+                    playTts(commentary);
+                    showMessageBox("Playing commentary... Listen closely!");
+                });
+            }
+            document.getElementById('backToMainBtn').addEventListener('click', () => {
+                currentPage = 'main-menu';
+                renderPage();
+            });
+        };
+
+        // Main rendering function to switch between pages
+        const renderPage = () => {
+            switch (currentPage) {
+                case 'main-menu':
+                    renderMainMenu();
+                    break;
+                case 'quick-play':
+                    renderQuickPlay();
+                    break;
+                case 'franchise':
+                    if (currentFranchisePage === 'new-franchise') {
+                        renderNewFranchise();
+                    } else {
+                        renderFranchiseHub();
+                    }
+                    break;
+                default:
+                    renderMainMenu();
+            }
+        };
+
+        // --- Initialization and Event Listeners ---
+        window.onload = async () => {
+            try {
+                const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+                const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
+                const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+                
+                const app = firebase.initializeApp(firebaseConfig);
+                db = firebase.getFirestore(app);
+                auth = firebase.getAuth(app);
+                
+                await new Promise((resolve, reject) => {
+                    const unsubscribe = firebase.onAuthStateChanged(auth, async (user) => {
+                        if (user) { userId = user.uid; }
+                        else { await firebase.signInAnonymously(auth); }
+                        unsubscribe();
+                        resolve();
+                    });
+                    if (initialAuthToken) { firebase.signInWithCustomToken(auth, initialAuthToken).catch(reject); }
+                });
+
+                // Set up the real-time listener for franchise data
+                const franchiseDocPath = `artifacts/${__app_id}/users/${userId}/franchise/myFranchise`;
+                const franchiseDocRef = firebase.doc(db, franchiseDocPath);
+                firebase.onSnapshot(franchiseDocRef, (docSnap) => {
+                    if (docSnap.exists()) {
+                        franchiseData = docSnap.data();
+                    } else {
+                        franchiseData = null;
+                    }
+                    renderPage(); // Re-render the page whenever data changes
                 }, (err) => {
                     console.error("Error fetching franchise data:", err);
-                    setError("Failed to load franchise data. Please check your network connection.");
+                    // You could show a message box here if needed
                 });
-                return () => unsubscribe();
-            }, [db, userId]);
 
-            const LoadingScreen = () => {
-                return React.createElement('div', { className: 'flex justify-center items-center h-screen bg-gray-900 text-white' },
-                    React.createElement('div', { className: 'animate-pulse text-lg' }, 'Loading...')
-                );
-            };
-
-            const MessageBox = ({ message, onClose }) => {
-                return React.createElement('div', { className: 'fixed inset-0 bg-gray-900 bg-opacity-70 flex justify-center items-center z-50' },
-                    React.createElement('div', { className: 'bg-gray-800 p-8 rounded-xl shadow-lg w-11/12 md:w-1/3 text-center' },
-                        React.createElement('p', { className: 'text-xl mb-4' }, message),
-                        React.createElement('button', { onClick: onClose, className: 'bg-blue-600 text-white py-2 px-6 rounded-lg hover:bg-blue-700' }, 'OK')
-                    )
-                );
-            };
-
-            const MainMenu = () => {
-                const [message, setMessage] = useState(null);
-                const showMessage = (msg) => { setMessage(msg); };
-                const handleButtonClick = (action) => {
-                    if (action === 'quick-play') { setPage('quick-play'); }
-                    else if (action === 'franchise') { userId ? setPage('franchise') : showMessage("Authenticating... Please wait."); }
-                    else { showMessage(`"${action.replace('-', ' ')}" is not yet implemented.`); }
-                };
-                return React.createElement('div', { className: 'menu-card' },
-                    React.createElement('h1', { className: 'menu-title' }, 'My Madden Game'),
-                    React.createElement('div', { className: 'flex flex-col space-y-4' },
-                        React.createElement('button', { onClick: () => handleButtonClick('quick-play'), className: 'menu-base-button quick-play-button' }, 'Quick Play'),
-                        React.createElement('button', { onClick: () => handleButtonClick('franchise'), className: 'menu-base-button franchise-button' }, 'Franchise Mode'),
-                        React.createElement('button', { onClick: () => handleButtonClick('settings'), className: 'menu-base-button settings-button' }, 'Settings'),
-                        React.createElement('button', { onClick: () => showMessage("Exiting... just kidding! You're in a browser."), className: 'menu-base-button exit-button' }, 'Exit Game')
-                    ),
-                    message && React.createElement(MessageBox, { message: message, onClose: () => setMessage(null) })
-                );
-            };
-
-            const QuickPlay = () => {
-                const [message, setMessage] = useState(null);
-                const teams = [
-                    'Kansas City Chiefs', 'San Francisco 49ers', 'Buffalo Bills', 'Dallas Cowboys',
-                    'Philadelphia Eagles', 'Green Bay Packers', 'New Orleans Saints', 'New York Jets',
-                    'New England Patriots', 'Las Vegas Raiders', 'Miami Dolphins', 'Detroit Lions',
-                    'Baltimore Ravens', 'Cincinnati Bengals', 'Los Angeles Rams', 'Atlanta Falcons'
-                ];
-                const handlePlayGame = () => {
-                    const homeTeam = document.getElementById('team-1').value;
-                    const awayTeam = document.getElementById('team-2').value;
-                    if (homeTeam === awayTeam) {
-                        setMessage("You must select two different teams to play a game.");
-                        return;
-                    }
-                    const quarterLength = document.getElementById('quarter-length').value;
-                    const difficulty = document.getElementById('difficulty').value;
-                    const gameStyle = document.getElementById('game-style').value;
-                    const eventType = document.getElementById('event-type').value;
-                    const gameInfo = `A game between the ${homeTeam} and the ${awayTeam} is about to begin! - Quarter Length: ${quarterLength} minutes - Difficulty: ${difficulty} - Game Style: ${gameStyle} - Event Type: ${eventType}`;
-                    setMessage(gameInfo);
-                };
-                return React.createElement('div', { className: 'quick-play-card' },
-                    React.createElement('h1', { className: 'menu-title' }, 'Quick Play'),
-                    React.createElement('div', { className: 'space-y-6' },
-                        React.createElement('div', { className: 'flex flex-col md:flex-row items-center justify-between space-y-4 md:space-y-0 md:space-x-4' },
-                            React.createElement('div', { className: 'w-full md:w-1/2' },
-                                React.createElement('label', { htmlFor: 'team-1', className: 'block text-lg font-semibold mb-2' }, 'Home Team:'),
-                                React.createElement('select', { id: 'team-1', className: 'w-full p-3 rounded-lg bg-gray-700 text-white border-none focus:outline-none focus:ring-2 focus:ring-blue-500' },
-                                    teams.map(team => React.createElement('option', { key: team, value: team }, team))
-                                )
-                            ),
-                            React.createElement('div', { className: 'text-xl font-bold' }, 'VS'),
-                            React.createElement('div', { className: 'w-full md:w-1/2' },
-                                React.createElement('label', { htmlFor: 'team-2', className: 'block text-lg font-semibold mb-2' }, 'Away Team:'),
-                                React.createElement('select', { id: 'team-2', className: 'w-full p-3 rounded-lg bg-gray-700 text-white border-none focus:outline-none focus:ring-2 focus:ring-blue-500' },
-                                    teams.map(team => React.createElement('option', { key: team, value: team }, team))
-                                )
-                            )
-                        ),
-                        React.createElement('div', { className: 'mt-8 grid grid-cols-1 md:grid-cols-2 gap-4' },
-                            React.createElement('div', null,
-                                React.createElement('label', { htmlFor: 'quarter-length', className: 'block font-semibold mb-2' }, 'Quarter Length:'),
-                                React.createElement('select', { id: 'quarter-length', className: 'w-full p-3 rounded-lg bg-gray-700 text-white border-none focus:outline-none focus:ring-2 focus:ring-blue-500' },
-                                    React.createElement('option', { value: '5' }, '5 Minutes'),
-                                    React.createElement('option', { value: '8' }, '8 Minutes'),
-                                    React.createElement('option', { value: '10' }, '10 Minutes'),
-                                    React.createElement('option', { value: '15' }, '15 Minutes')
-                                )
-                            ),
-                            React.createElement('div', null,
-                                React.createElement('label', { htmlFor: 'difficulty', className: 'block font-semibold mb-2' }, 'Difficulty:'),
-                                React.createElement('select', { id: 'difficulty', className: 'w-full p-3 rounded-lg bg-gray-700 text-white border-none focus:outline-none focus:ring-2 focus:ring-blue-500' },
-                                    React.createElement('option', { value: 'rookie' }, 'Rookie'),
-                                    React.createElement('option', { value: 'pro' }, 'Pro'),
-                                    React.createElement('option', { value: 'all-pro' }, 'All-Pro'),
-                                    React.createElement('option', { value: 'all-madden' }, 'All-Madden')
-                                )
-                            ),
-                            React.createElement('div', null,
-                                React.createElement('label', { htmlFor: 'game-style', className: 'block font-semibold mb-2' }, 'Game Style:'),
-                                React.createElement('select', { id: 'game-style', className: 'w-full p-3 rounded-lg bg-gray-700 text-white border-none focus:outline-none focus:ring-2 focus:ring-blue-500' },
-                                    React.createElement('option', { value: 'simulation' }, 'Simulation'),
-                                    React.createElement('option', { value: 'competitive' }, 'Competitive'),
-                                    React.createElement('option', { value: 'arcade' }, 'Arcade')
-                                )
-                            ),
-                            React.createElement('div', null,
-                                React.createElement('label', { htmlFor: 'event-type', className: 'block font-semibold mb-2' }, 'Event Type:'),
-                                React.createElement('select', { id: 'event-type', className: 'w-full p-3 rounded-lg bg-gray-700 text-white border-none focus:outline-none focus:ring-2 focus:ring-blue-500' },
-                                    React.createElement('option', { value: 'exhibition' }, 'Exhibition'),
-                                    React.createElement('option', { value: 'pro-bowl' }, 'Pro Bowl'),
-                                    React.createElement('option', { value: 'super-bowl' }, 'Super Bowl')
-                                )
-                            )
-                        )
-                    ),
-                    React.createElement('div', { className: 'flex flex-col mt-8 space-y-4' },
-                        React.createElement('button', { onClick: handlePlayGame, className: 'menu-button' }, 'Play Game'),
-                        React.createElement('button', { onClick: () => setPage('main-menu'), className: 'menu-button bg-gray-700 hover:bg-gray-600' }, 'Back')
-                    ),
-                    message && React.createElement(MessageBox, { message: message, onClose: () => setMessage(null) })
-                );
-            };
-
-            const NewFranchise = () => {
-                const [selectedTeam, setSelectedTeam] = useState('Kansas City Chiefs');
-                const [message, setMessage] = useState(null);
-                const teams = [
-                    'Kansas City Chiefs', 'San Francisco 49ers', 'Buffalo Bills', 'Dallas Cowboys',
-                    'Philadelphia Eagles', 'Green Bay Packers', 'New Orleans Saints', 'New York Jets',
-                    'New England Patriots', 'Las Vegas Raiders', 'Miami Dolphins', 'Detroit Lions',
-                    'Baltimore Ravens', 'Cincinnati Bengals', 'Los Angeles Rams', 'Atlanta Falcons'
-                ];
-                const handleCreateFranchise = async () => {
-                    if (!db || !userId) {
-                        setMessage("Database not ready. Please try again in a moment.");
-                        return;
-                    }
-                    try {
-                        const franchiseDocPath = `artifacts/${__app_id}/users/${userId}/franchise/myFranchise`;
-                        const franchiseDocRef = doc(db, franchiseDocPath);
-                        const newFranchiseData = {
-                            teamName: selectedTeam,
-                            season: 1,
-                            wins: 0,
-                            losses: 0,
-                            createdAt: new Date().toISOString()
-                        };
-                        await setDoc(franchiseDocRef, newFranchiseData);
-                        setMessage("New franchise created successfully!");
-                        setFranchisePage('hub');
-                    } catch (e) {
-                        console.error("Error creating franchise:", e);
-                        setMessage("Failed to create franchise. Please try again.");
-                    }
-                };
-                return React.createElement('div', { className: 'quick-play-card' },
-                    React.createElement('h1', { className: 'menu-title' }, 'New Franchise'),
-                    React.createElement('div', { className: 'space-y-4' },
-                        React.createElement('div', null,
-                            React.createElement('label', { htmlFor: 'franchise-team', className: 'block text-lg font-semibold mb-2' }, 'Select Your Team:'),
-                            React.createElement('select', { id: 'franchise-team', value: selectedTeam, onChange: (e) => setSelectedTeam(e.target.value), className: 'w-full p-3 rounded-lg bg-gray-700 text-white border-none focus:outline-none focus:ring-2 focus:ring-blue-500' },
-                                teams.map(team => React.createElement('option', { key: team, value: team }, team))
-                            )
-                        ),
-                        React.createElement('button', { onClick: handleCreateFranchise, className: 'menu-button' }, 'Create Franchise')
-                    ),
-                    React.createElement('div', { className: 'flex flex-col mt-8 space-y-4' },
-                        React.createElement('button', { onClick: () => setFranchisePage('hub'), className: 'menu-button bg-gray-700 hover:bg-gray-600' }, 'Back')
-                    ),
-                    message && React.createElement(MessageBox, { message: message, onClose: () => setMessage(null) })
-                );
-            };
-
-            const FranchiseHub = () => {
-                const [message, setMessage] = useState(null);
-                const handleTestCommentary = () => {
-                    const commentary = "First and ten, ball on the twenty-five yard line. The quarterback is in shotgun formation.";
-                    playTts(commentary, audioPlayer);
-                    setMessage("Playing commentary... Listen closely!");
-                };
-                return React.createElement('div', { className: 'quick-play-card' },
-                    React.createElement('h1', { className: 'menu-title' }, 'Franchise Hub'),
-                    error ? (
-                        React.createElement('div', { className: 'text-red-400' }, error)
-                    ) : franchiseData ? (
-                        React.createElement('div', { className: 'space-y-4' },
-                            React.createElement('p', { className: 'text-center' }, 'Welcome, ', React.createElement('span', { className: 'font-bold' }, franchiseData.teamName), ' fan!'),
-                            React.createElement('p', { className: 'text-center text-sm text-gray-400 break-words' }, 'User ID: ', userId),
-                            React.createElement('div', { className: 'mt-4 p-4 bg-gray-700 rounded-lg' },
-                                React.createElement('h2', { className: 'text-lg font-semibold text-center mb-2' }, 'Franchise Info'),
-                                React.createElement('p', null, 'Season: ', franchiseData.season),
-                                React.createElement('p', null, 'Record: ', franchiseData.wins, ' - ', franchiseData.losses)
-                            ),
-                            React.createElement('button', { onClick: handleTestCommentary, className: 'menu-button mt-4' }, 'Test Commentary')
-                        )
-                    ) : (
-                        React.createElement('div', { className: 'space-y-4 text-center' },
-                            React.createElement('p', null, 'No franchise found. Start a new one to begin your journey!'),
-                            React.createElement('button', { onClick: () => setFranchisePage('new-franchise'), className: 'menu-button' }, 'Start New Franchise')
-                        )
-                    ),
-                    React.createElement('div', { className: 'flex flex-col mt-8 space-y-4' },
-                        React.createElement('button', { onClick: () => setPage('main-menu'), className: 'menu-button bg-gray-700 hover:bg-gray-600' }, 'Back')
-                    ),
-                    message && React.createElement(MessageBox, { message: message, onClose: () => setMessage(null) }),
-                    React.createElement('audio', { ref: audioPlayer })
-                );
-            };
-
-            const AppRender = () => {
-                const [page, setPage] = useState('main-menu');
-                const [franchisePage, setFranchisePage] = useState('hub');
-                const [db, setDb] = useState(null);
-                const [auth, setAuth] = useState(null);
-                const [userId, setUserId] = useState(null);
-                const [isLoading, setIsLoading] = useState(true);
-                const [franchiseData, setFranchiseData] = useState(null);
-                const [error, setError] = useState(null);
-                const audioPlayer = useRef(null);
-
-                useEffect(() => {
-                    const initFirebase = async () => {
-                        try {
-                            const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-                            const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
-                            const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
-                            const app = initializeApp(firebaseConfig);
-                            const firestoreDb = getFirestore(app);
-                            const firebaseAuth = getAuth(app);
-                            setDb(firestoreDb);
-                            setAuth(firebaseAuth);
-
-                            const unsubscribe = onAuthStateChanged(firebaseAuth, async (user) => {
-                                if (user) { setUserId(user.uid); }
-                                else { await signInAnonymously(firebaseAuth); }
-                                setIsLoading(false);
-                            });
-                            if (initialAuthToken) { await signInWithCustomToken(firebaseAuth, initialAuthToken); }
-                            return () => unsubscribe();
-                        } catch (err) {
-                            console.error("Firebase initialization or auth failed:", err);
-                            setError("Failed to initialize the app. Please try again.");
-                            setIsLoading(false);
-                        }
-                    };
-                    initFirebase();
-                }, []);
-
-                useEffect(() => {
-                    if (!db || !userId) return;
-                    const franchiseDocPath = `artifacts/${__app_id}/users/${userId}/franchise/myFranchise`;
-                    const franchiseDocRef = doc(db, franchiseDocPath);
-                    const unsubscribe = onSnapshot(franchiseDocRef, (docSnap) => {
-                        if (docSnap.exists()) { setFranchiseData(docSnap.data()); }
-                        else { setFranchiseData(null); }
-                    }, (err) => {
-                        console.error("Error fetching franchise data:", err);
-                        setError("Failed to load franchise data. Please check your network connection.");
-                    });
-                    return () => unsubscribe();
-                }, [db, userId]);
-
-                if (isLoading) {
-                    return React.createElement(LoadingScreen, null);
-                }
-
-                let pageContent;
-                switch (page) {
-                    case 'main-menu':
-                        pageContent = React.createElement(MainMenu, { setPage, userId });
-                        break;
-                    case 'quick-play':
-                        pageContent = React.createElement(QuickPlay, { setPage });
-                        break;
-                    case 'franchise':
-                        if (franchisePage === 'new-franchise') {
-                            pageContent = React.createElement(NewFranchise, { setFranchisePage, db, userId });
-                        } else {
-                            pageContent = React.createElement(FranchiseHub, { setPage, setFranchisePage, franchiseData, userId, error, audioPlayer });
-                        }
-                        break;
-                    default:
-                        pageContent = React.createElement(MainMenu, { setPage, userId });
-                }
-                return React.createElement('div', { className: 'relative min-h-screen bg-gray-900 text-white font-sans' },
-                    React.createElement('div', { className: 'bg-animation' }),
-                    React.createElement('div', { className: 'main-container' }, pageContent)
-                );
-            };
-            
-            ReactDOM.render(
-                React.createElement(AppRender),
-                document.getElementById('root')
-            );
-        </script>
-    </body>
+                renderPage(); // Initial render of the main menu
+            } catch (error) {
+                console.error("Initialization failed:", error);
+                const appDiv = document.getElementById('app');
+                appDiv.innerHTML = `<div class="text-red-500 text-center">Failed to load application. Please try again later.</div>`;
+            }
+        };
+    </script>
+</body>
 </html>
