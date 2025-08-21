@@ -61,13 +61,10 @@
     <button id="puntBtn" aria-label="Punt Ball">Punt</button>
     <button id="goForItBtn" aria-label="Go For It on Fourth Down">Go For It</button>
   </div>
-
-  <!-- Next Quarter Button -->
-  <button id="nextQuarterBtn" aria-label="Next Quarter" style="display:none;">Next Quarter</button>
 </div>
 
 <script>
-window.onload = function(){
+window.onload=function(){
   // ==== TEAMS ====
   const teams = [
     "49ers","Eagles","Cowboys","Packers","Chiefs","Bills","Bengals","Ravens",
@@ -88,7 +85,6 @@ window.onload = function(){
   let lastAnnouncedHomeScore=0, lastAnnouncedAwayScore=0;
   let possession="home", currentDown=1, yardsToFirst=10, ballPosition=25, quarter=1;
   let defenseChoice="zone";
-  let weather="Clear";
 
   // Hosted audio files
   const sounds={
@@ -132,42 +128,36 @@ window.onload = function(){
   }
 
   function startGame(){
-    homeTeam=document.getElementById('homeTeamSelect').value;
-    awayTeam = teams.filter(t => t!==homeTeam)[Math.floor(Math.random()*(teams.length-1))]; // random away team
+    homeTeam="49ers";
+    awayTeam=teams[Math.floor(Math.random()*teams.length)];
     homeScore=awayScore=0; lastAnnouncedHomeScore=lastAnnouncedAwayScore=0;
     possession="home"; currentDown=1; yardsToFirst=10; ballPosition=25; quarter=1;
     document.getElementById('teamSelection').style.display='none';
     document.getElementById('game').style.display='block';
     document.getElementById('offensePlays').style.display='block';
     document.getElementById('defensePlays').style.display='none';
-    document.getElementById('nextQuarterBtn').style.display='inline-block';
-    announce(`Game starting. ${homeTeam} vs ${awayTeam}. ${homeTeam} has the ball at the ${ballPosition} yard line. Weather: ${weather}`);
+    announce(`Game starting. ${homeTeam} vs ${awayTeam}. ${homeTeam} has the ball at the ${ballPosition} yard line.`);
     playSound('whistle');
-    updateScore();
-    updateSituation();
   }
 
-  function nextQuarter(){
-    quarter++;
-    announce(`Starting Quarter ${quarter}`);
-    // Set ball for possession
-    if(possession==="home"){
-      ballPosition=25;
-    } else {
-      ballPosition=0; // away team starts at end zone
-    }
-    currentDown=1; yardsToFirst=10;
-    updateSituation();
+  // ==== 49ers DEFENSIVE PLAYERS ====
+  const defense49ers = [
+    "Nick Bosa","Fred Warner","Arik Armstead","Jaquiski Tartt",
+    "Dee Ford","D.J. Jones","Trey Lance","K'Waun Williams",
+    "Talanoa Hufanga","Jimmie Ward","Trey Sermon","Elijah Mitchell"
+  ];
+  function randomDefensePlayer(){
+    return defense49ers[Math.floor(Math.random()*defense49ers.length)];
+  }
+  function announceDefensePlay(playOutcome, ai=false){
+    const player=randomDefensePlayer();
+    announce(`${player} ${playOutcome}`, ai);
   }
 
   // ==== BUTTONS ====
   document.getElementById('quickPlayBtn').onclick=startQuickPlay;
-  document.getElementById('franchiseBtn').onclick=startFranchise;
+  document.getElementById('franchiseBtn').onclick=function(){announce("Franchise Mode coming soon!");};
   document.getElementById('startGameBtn').onclick=startGame;
-  document.getElementById('nextQuarterBtn').onclick=nextQuarter;
-
-  // Keep all your play buttons and defensive play buttons as before
-  // (runPlayBtn, shortPassBtn, longPassBtn, etc.)
 };
 </script>
 </body>
