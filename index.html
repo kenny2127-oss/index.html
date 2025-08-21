@@ -93,21 +93,22 @@
 <div id="commentary" style="margin-top:20px; max-width: 500px;">
 </div>
 
-<!-- Crowd Audio -->
-<audio id="crowdSound" loop>
-  <source src="https://www.soundjay.com/crowd/crowd-cheer-01.mp3" type="audio/mpeg">
-</audio>
-
 <script>
 const commentaryDiv = document.getElementById('commentary');
-const crowdAudio = document.getElementById('crowdSound');
+
+// Crowd Audio
+const crowdAudio = new Audio('https://www.soundjay.com/crowd/crowd-cheer-01.mp3');
 let crowdVolume = 0.5;
 crowdAudio.volume = crowdVolume;
 
-// Unlock audio with first tap (mobile requirement)
-document.body.addEventListener('touchstart', () => {
-  crowdAudio.play().then(() => crowdAudio.pause()).catch(()=>{});
-}, { once: true });
+// TTS function
+function speak(text) {
+  if ('speechSynthesis' in window) {
+    const msg = new SpeechSynthesisUtterance(text);
+    window.speechSynthesis.cancel();
+    window.speechSynthesis.speak(msg);
+  }
+}
 
 // Swipe gestures for crowd volume
 let touchStartY = null;
@@ -123,15 +124,6 @@ document.addEventListener('touchend', e => {
   speak(`Crowd volume ${Math.round(crowdVolume*100)} percent`);
   touchStartY = null;
 });
-
-// TTS
-function speak(text) {
-  if ('speechSynthesis' in window) {
-    const msg = new SpeechSynthesisUtterance(text);
-    window.speechSynthesis.cancel();
-    window.speechSynthesis.speak(msg);
-  }
-}
 
 // Main Menu Functions
 function openQuickPlay() {
@@ -173,25 +165,11 @@ function backToMain() {
 function startPlay(type) {
   speak(`Starting ${type}. First and 10 at the 25-yard line. Choose your play.`);
   commentaryDiv.innerHTML = `Game started: ${type}. First and 10 at the 25-yard line.`;
-  triggerCrowd('startDrive');
 
-  // Show playbook immediately
+  // Show playbook
   document.getElementById('playbookMenu').style.display = 'flex';
   currentPlayIndex = 0;
   showCurrentPlay();
-}
-
-// Crowd reactions
-function triggerCrowd(eventType) {
-  if(eventType === 'touchdown') { 
-    speak("Touchdown! Crowd erupts!"); 
-  }
-  else if(eventType === 'interception') { 
-    speak("Turnover! Crowd reacts!"); 
-  }
-  else if(eventType === 'startDrive') { 
-    speak("The crowd is ready as the 49ers take the field!"); 
-  }
 }
 
 // Playbook
@@ -221,7 +199,7 @@ function choosePlay() {
   const selectedPlay = plays[currentPlayIndex];
   commentaryDiv.innerHTML += `<br>Selected: ${selectedPlay}`;
 
-  // Create tap-to-execute button
+  // Create a "Tap to Execute Play" button for mobile-proof crowd sound
   let executeBtn = document.getElementById('executePlayBtn');
   if(!executeBtn){
     executeBtn = document.createElement('button');
@@ -232,15 +210,16 @@ function choosePlay() {
   }
 }
 
+// Execute play
 function executePlay(play) {
-  // Play crowd sound directly on tap
+  // Play crowd audio immediately on user tap
   crowdAudio.currentTime = 0;
   crowdAudio.play().catch(()=>{ console.log("Audio blocked"); });
 
-  // Simulate play outcome
+  // Then simulate play outcome
   simulatePlay(play);
 
-  // Remove button after execution
+  // Remove button
   const btn = document.getElementById('executePlayBtn');
   if(btn) btn.remove();
 }
