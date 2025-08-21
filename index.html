@@ -10,13 +10,11 @@
 <body>
 <h1>Madden Style Football</h1>
 
-<!-- Main Menu -->
 <div id="menu" role="navigation" aria-label="Main Menu">
   <button id="quickPlayBtn" aria-label="Start Quick Play">Quick Play</button>
   <button id="franchiseBtn" aria-label="Start Franchise Mode">Franchise</button>
 </div>
 
-<!-- Team Selection -->
 <div id="teamSelection" aria-label="Team Selection">
   <h3>Select Teams</h3>
   <label for="homeTeamSelect">Home Team:</label>
@@ -28,7 +26,6 @@
   <button id="startGameBtn" aria-label="Start Game">Start Game</button>
 </div>
 
-<!-- Game Screen -->
 <div id="game">
   <div id="scoreboard" aria-live="polite"></div>
   <div id="situation" aria-live="polite"></div>
@@ -37,12 +34,24 @@
 
 <script>
 window.onload = function() {
-  // ==== TEAMS ====
+  // ==== DOM Elements ====
+  const menuScreen = document.getElementById("menu");
+  const teamSelectionScreen = document.getElementById("teamSelection");
+  const gameScreen = document.getElementById("game");
+
+  const quickPlayBtn = document.getElementById("quickPlayBtn");
+  const franchiseBtn = document.getElementById("franchiseBtn");
+  const startGameBtn = document.getElementById("startGameBtn");
+
+  const scoreboardDiv = document.getElementById("scoreboard");
+  const situationDiv = document.getElementById("situation");
+
+  // ==== TEAMS & PLAYERS ====
   const teams = [
-    "49ers","Eagles","Cowboys","Packers","Chiefs","Bills","Bengals","Ravens",
-    "Steelers","Browns","Jets","Giants","Dolphins","Patriots","Chargers","Raiders",
-    "Broncos","Texans","Titans","Colts","Jaguars","Commanders","Seahawks","Rams",
-    "Cardinals","Lions","Vikings","Bears","Saints","Falcons","Panthers","Buccaneers"
+    "49ers", "Eagles", "Cowboys", "Packers", "Chiefs", "Bills", "Bengals", "Ravens",
+    "Steelers", "Browns", "Jets", "Giants", "Dolphins", "Patriots", "Chargers", "Raiders",
+    "Broncos", "Texans", "Titans", "Colts", "Jaguars", "Commanders", "Seahawks", "Rams",
+    "Cardinals", "Lions", "Vikings", "Bears", "Saints", "Falcons", "Panthers", "Buccaneers"
   ];
   const homeSelect = document.getElementById("homeTeamSelect");
   const awaySelect = document.getElementById("awayTeamSelect");
@@ -60,15 +69,84 @@ window.onload = function() {
     awaySelect.appendChild(optAway);
   });
   homeSelect.value = "49ers";
+  awaySelect.value = "Chiefs"; // Set a default away team
+
+  // Player data (incomplete, but enough to get started)
+  const players = {
+      "49ers": {
+          offense: ["Brock Purdy", "Christian McCaffrey", "Deebo Samuel", "Brandon Aiyuk", "George Kittle"],
+          defense: ["Nick Bosa", "Fred Warner", "Arik Armstead", "Javon Hargrave", "Charvarius Ward"]
+      },
+      "Chiefs": {
+          offense: ["Patrick Mahomes", "Isiah Pacheco", "Travis Kelce", "Rashee Rice"],
+          defense: ["Chris Jones", "Nick Bolton", "Trent McDuffie"]
+      }
+      // Add more teams and players here
+  };
+
 
   // ==== GAME STATE ====
-  let homeTeam = "49ers", awayTeam = "";
+  let homeTeam = "49ers", awayTeam = "Chiefs";
   let homeScore = 0, awayScore = 0;
   let possession = "home", currentDown = 1, yardsToFirst = 10, ballPosition = 25, quarter = 1;
-  let defenseChoice = "zone";
+  let defenseChoice = "zone"; // AI's defensive choice
 
-  // ==== 49ers DEFENSIVE PLAYERS ====
-  const defense49ers = [
-    "Nick Bosa","Fred Warner","Arik Armstead","Jaquiski Tartt",
-    "Dee Ford","D.J. Jones","Trey Lance","K'Waun Williams",
-    "Talanoa Hufanga","
+  // ==== EVENT LISTENERS ====
+  quickPlayBtn.addEventListener("click", () => {
+    menuScreen.style.display = "none";
+    teamSelectionScreen.style.display = "block";
+  });
+
+  franchiseBtn.addEventListener("click", () => {
+    alert("Franchise mode is not yet implemented.");
+  });
+
+  startGameBtn.addEventListener("click", () => {
+    homeTeam = homeSelect.value;
+    awayTeam = awaySelect.value;
+    teamSelectionScreen.style.display = "none";
+    gameScreen.style.display = "block";
+    startGame();
+  });
+
+  // ==== GAME FUNCTIONS ====
+  function updateScoreboard() {
+    scoreboardDiv.innerHTML = `
+      <p>${homeTeam}: ${homeScore} - ${awayTeam}: ${awayScore}</p>
+      <p>Quarter: ${quarter}</p>
+    `;
+    updateSituation();
+  }
+
+  function updateSituation() {
+    let teamWithBall = (possession === "home") ? homeTeam : awayTeam;
+    situationDiv.innerHTML = `
+      <p>Possession: ${teamWithBall}</p>
+      <p>Down: ${currentDown}</p>
+      <p>Yards to First Down: ${yardsToFirst}</p>
+      <p>Ball on the ${ballPosition} yard line</p>
+    `;
+  }
+
+  function startGame() {
+    // Reset game state for a new game
+    homeScore = 0;
+    awayScore = 0;
+    possession = "home";
+    currentDown = 1;
+    yardsToFirst = 10;
+    ballPosition = 25;
+    quarter = 1;
+    updateScoreboard();
+    updateSituation();
+    // Here you would add the logic to start the first play
+    // For now, it just displays the initial state.
+    console.log("Game started!");
+  }
+
+  // Initial call to set up the display
+  updateScoreboard();
+};
+</script>
+</body>
+</html>
