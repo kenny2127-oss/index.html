@@ -4,7 +4,8 @@
   <title>Madden Style Football</title>
   <style>
     button, select { display:block; margin:10px; font-size:18px; }
-    #game, #teamSelection { display:none; }
+    /* New styles for the playbook and result screens */
+    #game, #teamSelection, #playbook, #playResult { display:none; }
   </style>
 </head>
 <body>
@@ -21,7 +22,7 @@
   <select id="homeTeamSelect"></select>
 
   <label for="awayTeamSelect">Away Team:</label>
-  <select id="awaySelect"></select>
+  <select id="awayTeamSelect"></select>
 
   <button id="startGameBtn" aria-label="Start Game">Start Game</button>
 </div>
@@ -29,7 +30,16 @@
 <div id="game">
   <div id="scoreboard" aria-live="polite"></div>
   <div id="situation" aria-live="polite"></div>
-  <div id="aiAnnounce" aria-live="polite" style="position:absolute; left:-9999px;"></div>
+  <div id="playbook">
+    <h3>Choose a Play:</h3>
+    <button id="runPlayBtn">Run Play</button>
+    <button id="shortPassBtn">Short Pass</button>
+    <button id="longPassBtn">Long Pass</button>
+  </div>
+  <div id="playResult">
+    <p id="resultText"></p>
+    <button id="nextPlayBtn">Next Play</button>
+  </div>
 </div>
 
 <script>
@@ -43,11 +53,20 @@ window.onload = function() {
   const startGameBtn = document.getElementById("startGameBtn");
 
   const homeSelect = document.getElementById("homeTeamSelect");
-  // FIX: Correcting the ID to match the HTML
-  const awaySelect = document.getElementById("awayTeamSelect"); 
+  const awaySelect = document.getElementById("awayTeamSelect");
 
   const scoreboardDiv = document.getElementById("scoreboard");
   const situationDiv = document.getElementById("situation");
+
+  // New DOM elements for the playbook
+  const playbookScreen = document.getElementById("playbook");
+  const runPlayBtn = document.getElementById("runPlayBtn");
+  const shortPassBtn = document.getElementById("shortPassBtn");
+  const longPassBtn = document.getElementById("longPassBtn");
+  const playResultScreen = document.getElementById("playResult");
+  const resultText = document.getElementById("resultText");
+  const nextPlayBtn = document.getElementById("nextPlayBtn");
+
 
   const teams = [
     "49ers", "Eagles", "Cowboys", "Packers", "Chiefs", "Bills", "Bengals", "Ravens",
@@ -84,16 +103,21 @@ window.onload = function() {
   });
 
   startGameBtn.addEventListener("click", () => {
-    // TEST: Added this line to see if the button click is being registered.
-    alert("Button clicked!");
-    
     homeTeam = homeSelect.value;
     awayTeam = awaySelect.value;
-    
     teamSelectionScreen.style.display = "none";
     gameScreen.style.display = "block";
-    
     startGame();
+  });
+
+  // NEW: Event listeners for the playbook buttons
+  runPlayBtn.addEventListener("click", () => runPlay('run'));
+  shortPassBtn.addEventListener("click", () => runPlay('short_pass'));
+  longPassBtn.addEventListener("click", () => runPlay('long_pass'));
+  nextPlayBtn.addEventListener("click", () => {
+    playResultScreen.style.display = "none";
+    playbookScreen.style.display = "block";
+    updateSituation(); // Update situation for the next down
   });
 
   function updateScoreboard() {
@@ -122,11 +146,83 @@ window.onload = function() {
     yardsToFirst = 10;
     ballPosition = 25;
     quarter = 1;
-    
     updateScoreboard();
-    updateSituation();
-    
-    console.log("Game started!");
+    // NEW: Show the playbook screen at the start of the game
+    playbookScreen.style.display = "block";
+  }
+
+  // NEW: Function to run a selected offensive play
+  function runPlay(playType) {
+    let yardsGained;
+    let playName;
+
+    // Hide the playbook and show the result screen
+    playbookScreen.style.display = "none";
+    playResultScreen.style.display = "block";
+
+    switch(playType) {
+      case 'run':
+        playName = "Run Up the Middle";
+        yardsGained = Math.floor(Math.random() * 8) + 1; // Gains 1 to 8 yards
+        break;
+      case 'short_pass':
+        playName = "Short Pass";
+        yardsGained = Math.floor(Math.random() * 10) + 3; // Gains 3 to 12 yards
+        break;
+      case 'long_pass':
+        playName = "Long Pass";
+        yardsGained = Math.floor(Math.random() * 25) - 5; // Can be a loss or a big gain
+        break;
+    }
+
+    // Check for negative yards to make the message sound right
+    const yardsMessage = (yardsGained >= 0) ? `${yardsGained} yards` : `${Math.abs(yardsGained)} yards lost`;
+    resultText.textContent = `${playName} for ${yardsMessage}!`;
+
+    updateGameState(yardsGained);
+  }
+
+  // NEW: Function to update the game variables after a play
+  function updateGameState(yardsGained) {
+    yardsToFirst -= yardsGained;
+    ballPosition += yardsGained;
+
+    // Check for a first down
+    if (yardsToFirst <= 0) {
+      resultText.textContent += " First Down!";
+      currentDown = 1;
+      yardsToFirst = 10;
+    } else {
+      currentDown++;
+    }
+
+    // Check for touchdown
+    if (ballPosition >= 100) {
+      // Logic for a touchdown
+      resultText.textContent = `TOUCHDOWN!`;
+      homeScore += 7; // Award 7 points for a TD
+      // Reset for the next possession
+      currentDown = 1;
+      yardsToFirst = 10;
+      ballPosition = 25;
+      // Change possession to the other team for the next drive
+      possession = (possession === "home") ? "away" : "home";
+      updateScoreboard();
+      // Disable the "Next Play" button for a moment, or change its text
+      nextPlayBtn.textContent = "Start Next Drive";
+    }
+
+    // Check for turnover on downs (4th down and still no first down)
+    if (currentDown > 4) {
+      resultText.textContent = "Turnover on Downs!";
+      // Change possession
+      possession = (possession === "home") ? "away" : "home";
+      // The ball is now at the spot of the last play
+      currentDown = 1;
+      yardsToFirst = 10;
+      updateScoreboard();
+      nextPlayBtn.textContent = "Start Next Drive";
+    }
   }
 };
 </script>
