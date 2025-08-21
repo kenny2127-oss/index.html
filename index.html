@@ -32,39 +32,11 @@
 <div id="game">
   <div id="scoreboard" aria-live="polite"></div>
   <div id="situation" aria-live="polite"></div>
-  <div id="quarterClock" aria-live="polite"></div>
   <div id="aiAnnounce" aria-live="polite" style="position:absolute; left:-9999px;"></div>
-
-  <!-- Offensive Playbook -->
-  <div id="offensePlays" aria-label="Offensive Playbook">
-    <h3>Offensive Playbook</h3>
-    <button id="runPlayBtn" aria-label="Run Play">Run Play</button>
-    <button id="shortPassBtn" aria-label="Short Pass Play">Short Pass</button>
-    <button id="longPassBtn" aria-label="Long Pass Play">Long Pass</button>
-    <button id="drawBtn" aria-label="Draw Play">Draw</button>
-    <button id="playActionBtn" aria-label="Play Action Pass">Play Action</button>
-  </div>
-
-  <!-- Defensive Playbook -->
-  <div id="defensePlays" aria-label="Defensive Playbook">
-    <h3>Defensive Playbook</h3>
-    <button id="blitzBtn" aria-label="Blitz Defense">Blitz</button>
-    <button id="zoneBtn" aria-label="Zone Defense">Zone</button>
-    <button id="manBtn" aria-label="Man Coverage Defense">Man Coverage</button>
-    <button id="preventBtn" aria-label="Prevent Defense">Prevent</button>
-  </div>
-
-  <!-- Fourth Down Options -->
-  <div id="fourthDownOptions" aria-label="Fourth Down Options">
-    <h3>Fourth Down Options</h3>
-    <button id="fieldGoalBtn" aria-label="Kick Field Goal">Kick Field Goal</button>
-    <button id="puntBtn" aria-label="Punt Ball">Punt</button>
-    <button id="goForItBtn" aria-label="Go For It on Fourth Down">Go For It</button>
-  </div>
 </div>
 
 <script>
-window.onload=function(){
+window.onload = function() {
   // ==== TEAMS ====
   const teams = [
     "49ers","Eagles","Cowboys","Packers","Chiefs","Bills","Bengals","Ravens",
@@ -74,91 +46,29 @@ window.onload=function(){
   ];
   const homeSelect = document.getElementById("homeTeamSelect");
   const awaySelect = document.getElementById("awayTeamSelect");
-  teams.forEach(team=>{
-    let opt1=document.createElement("option"); opt1.value=opt1.textContent=team; homeSelect.appendChild(opt1);
-    let opt2=document.createElement("option"); opt2.value=opt2.textContent=team; awaySelect.appendChild(opt2);
+
+  // Populate selects
+  teams.forEach(team => {
+    let optHome = document.createElement("option");
+    optHome.value = team;
+    optHome.textContent = team;
+    homeSelect.appendChild(optHome);
+
+    let optAway = document.createElement("option");
+    optAway.value = team;
+    optAway.textContent = team;
+    awaySelect.appendChild(optAway);
   });
-  homeSelect.value="49ers";
+  homeSelect.value = "49ers";
 
   // ==== GAME STATE ====
-  let homeTeam="49ers", awayTeam="Eagles", homeScore=0, awayScore=0;
-  let lastAnnouncedHomeScore=0, lastAnnouncedAwayScore=0;
-  let possession="home", currentDown=1, yardsToFirst=10, ballPosition=25, quarter=1;
-  let defenseChoice="zone";
-
-  // Hosted audio files
-  const sounds={
-    whistle:"https://cdn.pixabay.com/download/audio/2023/03/20/audio_d1f019a63f.mp3?filename=whistle-6287.mp3",
-    crowdFirstDown:"https://cdn.pixabay.com/download/audio/2023/03/20/audio_6b2f015d13.mp3?filename=crowd-cheer-1st-down-6290.mp3",
-    crowdTD:"https://cdn.pixabay.com/download/audio/2023/03/20/audio_1c0d7dbde4.mp3?filename=crowd-cheer-touchdown-6291.mp3",
-    tackle:"https://cdn.pixabay.com/download/audio/2023/03/20/audio_9a8b4b6c48.mp3?filename=tackle-6288.mp3",
-    kick:"https://cdn.pixabay.com/download/audio/2023/03/20/audio_4ef9f3e3f0.mp3?filename=kick-6289.mp3"
-  };
-  let audioElements={};
-  for(let key in sounds){audioElements[key]=new Audio(sounds[key]);}
-  function playSound(key){let a=audioElements[key]; a.currentTime=0; a.play();}
-
-  // ==== ANNOUNCE ====
-  function announce(msg,ai=false){
-    const t=ai?document.getElementById('aiAnnounce'):document.getElementById('situation');
-    t.innerText=msg;
-  }
-
-  // ==== SCOREBOARD ====
-  function updateScore(announceScore=false){
-    document.getElementById('scoreboard').innerText=`${homeTeam} ${homeScore} - ${awayScore} ${awayTeam}`;
-    if(announceScore){
-      if(homeScore!==lastAnnouncedHomeScore||awayScore!==lastAnnouncedAwayScore){
-        announce(`Score Update: ${homeTeam} ${homeScore}, ${awayTeam} ${awayScore}`);
-        lastAnnouncedHomeScore=homeScore; lastAnnouncedAwayScore=awayScore;
-      }
-    }
-  }
-
-  function updateSituation(){
-    let teamWithBall=(possession==="home")?homeTeam:awayTeam;
-    document.getElementById('situation').innerText=`${currentDown} and ${yardsToFirst} at the ${ballPosition} yard line. ${teamWithBall} ball.`;
-  }
-
-  // ==== GAME FLOW ====
-  function startQuickPlay(){
-    document.getElementById('menu').style.display='none';
-    document.getElementById('teamSelection').style.display='block';
-    announce("Quick Play selected. Choose your home and away teams.");
-  }
-
-  function startGame(){
-    homeTeam="49ers";
-    awayTeam=teams[Math.floor(Math.random()*teams.length)];
-    homeScore=awayScore=0; lastAnnouncedHomeScore=lastAnnouncedAwayScore=0;
-    possession="home"; currentDown=1; yardsToFirst=10; ballPosition=25; quarter=1;
-    document.getElementById('teamSelection').style.display='none';
-    document.getElementById('game').style.display='block';
-    document.getElementById('offensePlays').style.display='block';
-    document.getElementById('defensePlays').style.display='none';
-    announce(`Game starting. ${homeTeam} vs ${awayTeam}. ${homeTeam} has the ball at the ${ballPosition} yard line.`);
-    playSound('whistle');
-  }
+  let homeTeam = "49ers", awayTeam = "";
+  let homeScore = 0, awayScore = 0;
+  let possession = "home", currentDown = 1, yardsToFirst = 10, ballPosition = 25, quarter = 1;
+  let defenseChoice = "zone";
 
   // ==== 49ers DEFENSIVE PLAYERS ====
   const defense49ers = [
     "Nick Bosa","Fred Warner","Arik Armstead","Jaquiski Tartt",
     "Dee Ford","D.J. Jones","Trey Lance","K'Waun Williams",
-    "Talanoa Hufanga","Jimmie Ward","Trey Sermon","Elijah Mitchell"
-  ];
-  function randomDefensePlayer(){
-    return defense49ers[Math.floor(Math.random()*defense49ers.length)];
-  }
-  function announceDefensePlay(playOutcome, ai=false){
-    const player=randomDefensePlayer();
-    announce(`${player} ${playOutcome}`, ai);
-  }
-
-  // ==== BUTTONS ====
-  document.getElementById('quickPlayBtn').onclick=startQuickPlay;
-  document.getElementById('franchiseBtn').onclick=function(){announce("Franchise Mode coming soon!");};
-  document.getElementById('startGameBtn').onclick=startGame;
-};
-</script>
-</body>
-</html>
+    "Talanoa Hufanga","
