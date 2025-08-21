@@ -21,7 +21,7 @@
   <select id="homeTeamSelect"></select>
 
   <label for="awayTeamSelect">Away Team:</label>
-  <select id="awayTeamSelect"></select>
+  <select id="awaySelect"></select>
 
   <button id="startGameBtn" aria-label="Start Game">Start Game</button>
 </div>
@@ -34,8 +34,6 @@
 
 <script>
 window.onload = function() {
-  // We need to get a reference to each HTML element we want to work with.
-  // This allows the JavaScript to "find" the buttons and screens.
   const menuScreen = document.getElementById("menu");
   const teamSelectionScreen = document.getElementById("teamSelection");
   const gameScreen = document.getElementById("game");
@@ -45,12 +43,12 @@ window.onload = function() {
   const startGameBtn = document.getElementById("startGameBtn");
 
   const homeSelect = document.getElementById("homeTeamSelect");
-  const awaySelect = document.getElementById("awayTeamSelect");
+  // FIX: Correcting the ID to match the HTML
+  const awaySelect = document.getElementById("awayTeamSelect"); 
 
   const scoreboardDiv = document.getElementById("scoreboard");
   const situationDiv = document.getElementById("situation");
 
-  // ==== TEAMS ====
   const teams = [
     "49ers", "Eagles", "Cowboys", "Packers", "Chiefs", "Bills", "Bengals", "Ravens",
     "Steelers", "Browns", "Jets", "Giants", "Dolphins", "Patriots", "Chargers", "Raiders",
@@ -58,7 +56,6 @@ window.onload = function() {
     "Cardinals", "Lions", "Vikings", "Bears", "Saints", "Falcons", "Panthers", "Buccaneers"
   ];
 
-  // Populate the team selection dropdown menus
   teams.forEach(team => {
     let optHome = document.createElement("option");
     optHome.value = team;
@@ -73,41 +70,32 @@ window.onload = function() {
   homeSelect.value = "49ers";
   awaySelect.value = "Chiefs";
 
-  // ==== GAME STATE ====
   let homeTeam = homeSelect.value, awayTeam = awaySelect.value;
   let homeScore = 0, awayScore = 0;
   let possession = "home", currentDown = 1, yardsToFirst = 10, ballPosition = 25, quarter = 1;
 
-  // ==== EVENT LISTENERS ====
-  // These are the new pieces of code that make the buttons work.
-  // When a user clicks a button, the code inside the curly braces {} runs.
-
-  // When the "Quick Play" button is clicked, hide the menu and show the team selection screen.
   quickPlayBtn.addEventListener("click", () => {
     menuScreen.style.display = "none";
     teamSelectionScreen.style.display = "block";
   });
 
-  // When the "Franchise" button is clicked, show an alert.
   franchiseBtn.addEventListener("click", () => {
     alert("Franchise mode is not yet implemented.");
   });
 
-  // When the "Start Game" button is clicked, hide the team selection screen and show the game screen.
   startGameBtn.addEventListener("click", () => {
-    // Get the selected teams from the dropdowns
+    // TEST: Added this line to see if the button click is being registered.
+    alert("Button clicked!");
+    
     homeTeam = homeSelect.value;
     awayTeam = awaySelect.value;
     
-    // Hide the team selection screen and show the game screen
     teamSelectionScreen.style.display = "none";
     gameScreen.style.display = "block";
     
-    // Call the function to start the game
     startGame();
   });
 
-  // ==== GAME FUNCTIONS ====
   function updateScoreboard() {
     scoreboardDiv.innerHTML = `
       <p>${homeTeam}: ${homeScore} - ${awayTeam}: ${awayScore}</p>
@@ -127,7 +115,6 @@ window.onload = function() {
   }
 
   function startGame() {
-    // Reset game state for a new game
     homeScore = 0;
     awayScore = 0;
     possession = "home";
@@ -136,7 +123,6 @@ window.onload = function() {
     ballPosition = 25;
     quarter = 1;
     
-    // Update the on-screen display with the new game state
     updateScoreboard();
     updateSituation();
     
