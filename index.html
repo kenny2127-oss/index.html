@@ -80,6 +80,13 @@ window.onload=function(){
   });
   homeSelect.value="49ers";
 
+  // ==== ROSTER ====
+  const ninersRoster = [
+    "Trey Lance", "Brock Purdy", "Christian McCaffrey", "Elijah Mitchell",
+    "Deebo Samuel", "Brandon Aiyuk", "George Kittle", "Jauan Jennings",
+    "Trent Williams", "Fred Warner"
+  ];
+
   // ==== GAME STATE ====
   let homeTeam="49ers", awayTeam="Eagles", homeScore=0, awayScore=0;
   let lastAnnouncedHomeScore=0, lastAnnouncedAwayScore=0;
@@ -173,16 +180,58 @@ window.onload=function(){
 
   function showStats(){announce(`Halftime stats: ${homeTeam} ${homeScore}, ${awayTeam} ${awayScore}. Ball at ${ballPosition}`);}
 
-  // ==== OTHER GAME FUNCTIONS ====
-  // (callPlay, autoPlay, changePossession, punt, fieldGoal, startFranchise, etc.)
-  // keep all your previous code for plays, sound effects, AI here — unchanged
+  // ==== CALL PLAY FUNCTION WITH PLAYER ANNOUNCEMENTS ====
+  function callPlay(playType, ai=false){
+    let yards=0;
+    let player=ninersRoster[Math.floor(Math.random()*ninersRoster.length)];
+
+    if(playType==='run'){yards=Math.floor(Math.random()*2)+2;}
+    else if(playType==='shortPass'){yards=Math.floor(Math.random()*6)+10;}
+    else if(playType==='longPass'){yards=Math.floor(Math.random()*11)+30;}
+    else if(playType==='draw'){yards=Math.floor(Math.random()*2)+2;}
+    else if(playType==='playAction'){yards=Math.floor(Math.random()*11)+10;}
+    else if(playType==='goForIt'){yards=Math.floor(Math.random()*10)+1;}
+    if(yards<0) yards=0;
+
+    ballPosition+=yards; yardsToFirst-=yards;
+
+    let msg=`${(possession==="home"?homeTeam:awayTeam)}'s ${player} gained ${yards} yards. `;
+    let scored=false;
+    if(ballPosition>=100){msg+="Touchdown!"; scored=true; playSound('crowdTD'); if(possession==="home") homeScore+=7; else awayScore+=7; changePossession(true);}
+    else if(yardsToFirst<=0){currentDown=1; yardsToFirst=10; msg+="First down!"; playSound('crowdFirstDown');}
+    else{currentDown++; if(currentDown>4){msg+="Turnover on downs."; changePossession();}}
+
+    updateSituation();
+    announce(msg+` Current down: ${currentDown}, ${yardsToFirst} yards to first down, ball at ${ballPosition} yard line.`,ai);
+    playSound('tackle');
+    if(scored) updateScore(true);
+
+    if(possession!=="home"&&!ai) autoPlay();
+  }
 
   // ==== BUTTONS ====
   document.getElementById('quickPlayBtn').onclick=startQuickPlay;
   document.getElementById('franchiseBtn').onclick=startFranchise;
   document.getElementById('startGameBtn').onclick=startGame;
 
-  // Keep all your play buttons and defensive play buttons as before
+  document.getElementById('runPlayBtn').onclick=()=>{playSound('whistle'); callPlay('run');};
+  document.getElementById('shortPassBtn').onclick=()=>{playSound('whistle'); callPlay('shortPass');};
+  document.getElementById('longPassBtn').onclick=()=>{playSound('whistle'); callPlay('longPass');};
+  document.getElementById('drawBtn').onclick=()=>{playSound('whistle'); callPlay('draw');};
+  document.getElementById('playActionBtn').onclick=()=>{playSound('whistle'); callPlay('playAction');};
+
+  // Defensive buttons
+  document.getElementById('blitzBtn').onclick=()=>{defenseChoice='blitz'; document.getElementById('defensePlays').style.display='none'; document.getElementById('offensePlays').style.display='block'; announce('Blitz defense set.');};
+  document.getElementById('zoneBtn').onclick=()=>{defenseChoice='zone'; document.getElementById('defensePlays').style.display='none'; document.getElementById('offensePlays').style.display='block'; announce('Zone defense set.');};
+  document.getElementById('manBtn').onclick=()=>{defenseChoice='man'; document.getElementById('defensePlays').style.display='none'; document.getElementById('offensePlays').style.display='block'; announce('Man coverage defense set.');};
+  document.getElementById('preventBtn').onclick=()=>{defenseChoice='prevent'; document.getElementById('defensePlays').style.display='none'; document.getElementById('offensePlays').style.display='block'; announce('Prevent defense set.');};
+
+  // Fourth Down
+  document.getElementById('fieldGoalBtn').onclick=fieldGoal;
+  document.getElementById('puntBtn').onclick=punt;
+  document.getElementById('goForItBtn').onclick=()=>{playSound('whistle'); callPlay('goForIt');};
+
+  // Keep autoPlay, changePossession, punt, fieldGoal, startFranchise, etc. unchanged
 };
 </script>
 </body>
