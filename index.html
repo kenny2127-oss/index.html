@@ -1,482 +1,261 @@
-<rosieArtifact title="Madden-Style Audio Game Foundation">
-<rosieDelete file="animationsInfo.js"/>
-<rosieDelete file="audio.js"/>
-<rosieDelete file="constants.js"/>
-<rosieDelete file="engine.js"/>
-<rosieDelete file="entity.js"/>
-<rosieDelete file="loader.js"/>
-<rosieDelete file="player.js"/>
-<rosieDelete file="rosieMobileControls.js"/>
-<rosieDelete file="world.js"/>
-<rosieEdit file="index.html">
-<![CDATA[
-<<<<<<< HEAD
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Voxel Valley Explorer</title>
-  <!-- Import map for module specifiers -->
-  <script type="importmap">
-  {
-    "imports": {
-      "three": "https://esm.sh/three@0.160.0?dev",
-      "three/": "https://esm.sh/three@0.160.0&dev/"
-    }
-  }
-  </script>
-  <!-- Google Font for a playful pixel look -->
-  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
-  <style>
-    body {
-      margin: 0;
-      overflow: hidden;
-      background: #87CEEB;
-      font-family: 'Press Start 2P', monospace;
-    }
-    canvas { display: block; }
-    #blocker,
-    #crosshair,
-    #hotbar,
-    #audio-controls,
-    #controls-info { position: absolute; }
-    #blocker {
-      width: 100%; height: 100%;
-      display: flex; align-items: center; justify-content: center;
-      background: rgba(0,0,0,0.5);
-      z-index: 10;
-    }
-    #instructions { color: #fff; text-align: center; cursor: pointer; display: block; }
-    #crosshair {
-      top: 50%; left: 50%;
-      width: 10px; height: 10px;
-      margin: -5px;
-      border: 1px solid #fff;
-      mix-blend-mode: difference;
-      pointer-events: none;
-      display: none;
-    }
-    #hotbar {
-      bottom: 20px; left: 50%;
-      transform: translateX(-50%);
-      display: flex; gap: 4px;
-      pointer-events: none;
-      background: rgba(0,0,0,0.2);
-      padding: 4px;
-      border-radius: 8px;
-    }
-    .slot {
-      width: 44px; height: 44px;
-      border: 2px solid transparent;
-      border-radius: 6px;
-      box-sizing: border-box;
-      position: relative;
-      transition: all 0.2s ease;
-    }
-    .slot::after {
-      content: attr(data-key);
-      position: absolute;
-      bottom: 2px; right: 4px;
-      font-size: 10px;
-      color: #fff;
-      text-shadow: 1px 1px 2px #000;
-    }
-    .selected {
-      border-color: #fff;
-      transform: scale(1.1);
-      box-shadow: 0 0 10px rgba(255,255,255,0.7);
-    }
-    #audio-controls {
-      top: 20px; right: 20px;
-      display: none;
-      background: rgba(0,0,0,0.4);
-      padding: 10px;
-      border-radius: 8px;
-      z-index: 11;
-      display: none; /* Initially hidden */
-    }
-    #audio-controls button,
-    #audio-controls input {
-      vertical-align: middle;
-      margin: 0 5px;
-      background: none;
-      border: 1px solid #fff;
-      color: #fff;
-      font-family: 'Press Start 2P';
-      font-size: 10px;
-      padding: 5px 8px;
-      border-radius: 4px;
-      cursor: pointer;
-    }
-    #audio-controls input[type=range] {
-        -webkit-appearance: none;
-        appearance: none;
-        width: 80px;
-        height: 6px;
-        background: rgba(255,255,255,0.3);
-        border-radius: 3px;
-        outline: none;
-        padding: 0;
-    }
-    #audio-controls input[type=range]::-webkit-slider-thumb {
-        -webkit-appearance: none;
-        appearance: none;
-        width: 14px;
-        height: 14px;
-        background: #fff;
-        cursor: pointer;
-        border-radius: 50%;
-    }
-    #controls-info {
-      left: 20px;
-      top: 20px;
-      background: rgba(0,0,0,0.4);
-      padding: 15px;
-      border-radius: 10px;
-      color: #fff;
-      font-size: 11px;
-      line-height: 1.6;
-      display: none; /* Initially hidden */
-      z-index: 5;
-    }
-    #controls-info span {
-      font-weight: bold;
-      display: inline-block;
-      min-width: 90px;
-      color: #ddd;
-    }
-    @media (max-width: 768px) {
-      #controls-info {
-        font-size: 8px;
-        padding: 6px;
-        left: 10px;
-        top: 10px;
-        line-height: 1.4;
-        max-width: calc(100% - 120px); /* Adjust based on audio controls width */
-      }
-      #controls-info span {
-        min-width: 55px;
-      }
-      #hotbar {
-        pointer-events: auto;
-      }
-      #audio-controls {
-        top: 10px;
-        right: 10px;
-        padding: 6px;
-      }
-      #audio-controls button,
-      #audio-controls input {
-        font-size: 8px;
-        padding: 3px 5px;
-      }
-      #audio-controls input[type=range] {
-        width: 60px;
-      }
-       #audio-controls input[type=range]::-webkit-slider-thumb {
-        width: 12px;
-        height: 12px;
-      }
-    }
-  </style>
-</head>
-<body>
-  <div id="blocker" style="display: none;">
-    <div id="instructions">
-      <h1 id="pause-title">Voxel Explorer</h1>
-      <p id="pause-subtitle">Game Paused</p>
-      <p style="font-size: 12px; margin-top: 20px;">(Click to resume)</p>
-    </div>
-  </div>
-  <div id="crosshair"></div>
-  <div id="hotbar"></div>
-  <div id="controls-info">
-    <div><span>WASD</span> Move</div>
-    <div><span>Space</span> Jump</div>
-    <div><span>Mouse</span> Look</div>
-    <div><span>L-Click</span> Break Block</div>
-    <div><span>R-Click</span> Place Block</div>
-    <div><span>Shift+Click</span> Place Block</div>
-    <div><span>Scroll / 1-5</span> Select Block</div>
-  </div>
-  <audio id="nature-ambience" loop src="https://play.rosebud.ai/assets/forest_ambience_01.mp3?cGiw"></audio>
-  <div id="audio-controls">
-    <button id="mute">Mute</button>
-    <input id="volume" type="range" min="0" max="1" step="0.01" value="0.125" />
-  </div>
-  <script type="module" src="./main.js"></script>
-  <script src="https://storage.googleapis.com/rosebud_staticfiles/ChatManager.js"></script>
-  <script src="https://storage.googleapis.com/rosebud_staticfiles/ImageGenerator.js"></script>
-  <script src="https://storage.googleapis.com/rosebud_staticfiles/ProgressLogger.js"></script>
-  <script src="https://storage.googleapis.com/rosebud_staticfiles/OGP.js"></script>
-</body>
-</html>
-=======
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Audio Football</title>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Madden Mobile</title>
+    <!-- Use Tailwind CSS for modern styling and responsive design -->
+    <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        :root {
-            --background-color: #1a1a1a;
-            --text-color: #e0e0e0;
-            --primary-color: #007acc;
-            --container-bg: #2a2a2a;
-            --button-bg: #3c3c3c;
-            --button-hover-bg: #555;
-        }
-        html, body {
-            height: 100%;
-            margin: 0;
-            background-color: var(--background-color);
-            color: var(--text-color);
-            font-family: 'Roboto', sans-serif;
-            overflow: hidden;
-            -webkit-tap-highlight-color: transparent; /* Disable tap highlight on mobile */
-        }
         body {
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            align-items: center;
+            font-family: 'Inter', sans-serif;
         }
-        #game-container {
-            width: 100%;
-            max-width: 800px;
-            padding: 20px;
-            box-sizing: border-box;
-            flex-grow: 1;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
+        /* Custom styles for a Madden-like feel */
+        .madden-bg {
+            background-color: #1e293b;
         }
-        .status-display {
-            background-color: var(--container-bg);
-            border-radius: 12px;
-            padding: 15px;
-            margin-bottom: 20px;
-            text-align: center;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+        .madden-heading {
+            text-shadow: 2px 2px 4px #000000;
         }
-        .status-display h1 {
-            margin: 0 0 10px;
-            font-size: 1.5em;
-            color: var(--primary-color);
+        .madden-button {
+            background-color: #ef4444; /* A classic red accent */
+            transition: all 0.2s ease-in-out;
         }
-        .status-display p {
-            margin: 5px 0;
-            font-size: 1.1em;
-        }
-        #announcement-area {
-            min-height: 100px;
-            text-align: center;
-            font-size: 1.2em;
-            font-style: italic;
-        }
-        #controls {
-            width: 100%;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            padding: 20px;
-            box-sizing: border-box;
-        }
-        .play-button {
-            padding: 20px;
-            font-size: 1.2em;
-            font-weight: bold;
-            border-radius: 8px;
-            border: none;
-            background-color: var(--button-bg);
-            color: var(--text-color);
-            cursor: pointer;
-            transition: background-color 0.2s;
-        }
-        .play-button:hover, .play-button:focus {
-            background-color: var(--button-hover-bg);
-            outline: 2px solid var(--primary-color);
+        .madden-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
         }
     </style>
 </head>
-<body>
-    <div id="game-container" role="main">
-        <div class="status-display" aria-live="polite">
-            <h1>Score: <span id="home-score">0</span> - <span id="away-score">0</span></h1>
-            <p><span id="down">1st</span> & <span id="yards">10</span></p>
-            <p>Ball on the <span id="ball-position">Own 25</span> yard line</p>
+<body class="madden-bg text-white">
+
+    <!-- Main Container for the entire application, centered and full-screen -->
+    <div class="min-h-screen flex flex-col items-center justify-center p-4">
+
+        <!-- Madden Main Menu Screen -->
+        <div id="main-menu" class="text-center transition-opacity duration-500 ease-in-out opacity-100">
+            <h1 class="text-6xl font-extrabold mb-8 madden-heading">MADDEN</h1>
+            <div class="flex flex-col space-y-4 w-full max-w-sm">
+                <button id="play-now-btn" class="madden-button text-xl font-bold py-4 px-8 rounded-full shadow-lg">
+                    PLAY NOW
+                </button>
+                <button id="pro-bowl-btn" class="madden-button text-xl font-bold py-4 px-8 rounded-full shadow-lg">
+                    PRO BOWL
+                </button>
+                <button id="super-bowl-btn" class="madden-button text-xl font-bold py-4 px-8 rounded-full shadow-lg">
+                    SUPER BOWL
+                </button>
+            </div>
+            <!-- Message box for unimplemented features -->
+            <div id="message-box" class="mt-8 p-4 bg-yellow-600 rounded-lg text-sm text-center hidden"></div>
         </div>
-        <div id="announcement-area" aria-live="assertive">
-            <p>Welcome to Audio Football! Choose your first play.</p>
+
+        <!-- Team Selection Screen (initially hidden) -->
+        <div id="team-selection" class="text-center w-full max-w-sm hidden transition-opacity duration-500 ease-in-out">
+            <h2 class="text-4xl font-bold mb-8">Quick Play</h2>
+            <div class="space-y-6">
+                <!-- Home Team Selection -->
+                <div class="bg-gray-700 p-4 rounded-lg shadow-inner">
+                    <label for="home-team" class="block text-lg font-semibold mb-2">HOME TEAM</label>
+                    <select id="home-team" class="w-full p-3 rounded-lg bg-gray-800 text-white border-none focus:outline-none focus:ring-2 focus:ring-red-500">
+                        <option value="49ers">San Francisco 49ers</option>
+                        <option value="eagles">Philadelphia Eagles</option>
+                        <option value="chiefs">Kansas City Chiefs</option>
+                        <option value="bills">Buffalo Bills</option>
+                        <option value="cowboys">Dallas Cowboys</option>
+                        <!-- Add more teams here -->
+                    </select>
+                </div>
+                <!-- Away Team Selection -->
+                <div class="bg-gray-700 p-4 rounded-lg shadow-inner">
+                    <label for="away-team" class="block text-lg font-semibold mb-2">AWAY TEAM</label>
+                    <select id="away-team" class="w-full p-3 rounded-lg bg-gray-800 text-white border-none focus:outline-none focus:ring-2 focus:ring-red-500">
+                        <option value="eagles">Philadelphia Eagles</option>
+                        <option value="49ers">San Francisco 49ers</option>
+                        <option value="chiefs">Kansas City Chiefs</option>
+                        <option value="bills">Buffalo Bills</option>
+                        <option value="cowboys">Dallas Cowboys</option>
+                        <!-- Add more teams here -->
+                    </select>
+                </div>
+                <!-- Continue Button -->
+                <button id="continue-btn" class="w-full madden-button text-xl font-bold py-4 px-8 rounded-full shadow-lg">
+                    CONTINUE
+                </button>
+                <!-- Back Button -->
+                <button id="back-to-main-menu" class="w-full text-lg py-3 rounded-full text-gray-400 border-2 border-gray-600">
+                    BACK
+                </button>
+            </div>
         </div>
-    </div>
-    <div id="controls">
-        <button id="run-play" class="play-button" aria-label="Select Run Play">Run</button>
-        <button id="pass-play" class="play-button" aria-label="Select Pass Play">Pass</button>
+
+        <!-- Game Settings Screen (initially hidden) -->
+        <div id="game-settings" class="text-center w-full max-w-sm hidden transition-opacity duration-500 ease-in-out">
+            <h2 class="text-4xl font-bold mb-8">Game Settings</h2>
+            <div class="space-y-6">
+                <!-- Quarter Length -->
+                <div class="bg-gray-700 p-4 rounded-lg shadow-inner">
+                    <label for="quarter-length" class="block text-lg font-semibold mb-2">QUARTER LENGTH</label>
+                    <select id="quarter-length" class="w-full p-3 rounded-lg bg-gray-800 text-white border-none focus:outline-none focus:ring-2 focus:ring-red-500">
+                        <!-- Quarter length options from 2 to 15 minutes -->
+                        <script>
+                            // Dynamically generate the quarter length options
+                            for (let i = 2; i <= 15; i++) {
+                                const isDefault = i === 6 ? 'selected' : '';
+                                document.write(`<option value="${i}" ${isDefault}>${i} minutes</option>`);
+                            }
+                        </script>
+                    </select>
+                </div>
+                <!-- Time of Day -->
+                <div class="bg-gray-700 p-4 rounded-lg shadow-inner">
+                    <label for="time-of-day" class="block text-lg font-semibold mb-2">TIME OF DAY</label>
+                    <select id="time-of-day" class="w-full p-3 rounded-lg bg-gray-800 text-white border-none focus:outline-none focus:ring-2 focus:ring-red-500">
+                        <option value="10am">10:00 a.m.</option>
+                        <option value="125pm">1:25 p.m.</option>
+                        <option value="520pm">5:20 p.m.</option>
+                    </select>
+                </div>
+                <!-- Weather -->
+                <div class="bg-gray-700 p-4 rounded-lg shadow-inner">
+                    <label for="weather" class="block text-lg font-semibold mb-2">WEATHER</label>
+                    <select id="weather" class="w-full p-3 rounded-lg bg-gray-800 text-white border-none focus:outline-none focus:ring-2 focus:ring-red-500">
+                        <option value="clear">Clear</option>
+                        <option value="cloudy">Cloudy</option>
+                        <option value="sunny">Sunny</option>
+                        <option value="rainy">Rainy</option>
+                        <option value="heavy-rain">Heavy Rain</option>
+                        <option value="snow">Snow</option>
+                        <option value="heavy-snow">Heavy Snow</option>
+                    </select>
+                </div>
+                <!-- Start Game Button -->
+                <button id="start-game-btn" class="w-full madden-button text-xl font-bold py-4 px-8 rounded-full shadow-lg">
+                    START GAME
+                </button>
+                <!-- Back Button -->
+                <button id="back-to-team-selection" class="w-full text-lg py-3 rounded-full text-gray-400 border-2 border-gray-600">
+                    BACK
+                </button>
+            </div>
+        </div>
+
     </div>
 
-    <script type="module" src="./main.js"></script>
-    <script src="https://storage.googleapis.com/rosebud_staticfiles/ChatManager.js"></script>
-    <script src="https://storage.googleapis.com/rosebud_staticfiles/ImageGenerator.js"></script>
-    <script src="https://storage.googleapis.com/rosebud_staticfiles/ProgressLogger.js"></script>
-    <script src="https://storage.googleapis.com/rosebud_staticfiles/OGP.js"></script>
+    <script>
+        // Get references to all the main elements
+        const mainMenu = document.getElementById('main-menu');
+        const teamSelection = document.getElementById('team-selection');
+        const gameSettings = document.getElementById('game-settings');
+        const messageBox = document.getElementById('message-box');
+
+        // Main Menu Buttons
+        const playNowBtn = document.getElementById('play-now-btn');
+        const proBowlBtn = document.getElementById('pro-bowl-btn');
+        const superBowlBtn = document.getElementById('super-bowl-btn');
+        
+        // Team Selection Buttons
+        const continueBtn = document.getElementById('continue-btn');
+        const backToMainMenuBtn = document.getElementById('back-to-main-menu');
+
+        // Game Settings Buttons
+        const startGameBtn = document.getElementById('start-game-btn');
+        const backToTeamSelectionBtn = document.getElementById('back-to-team-selection');
+        
+        // Get the select elements
+        const homeTeamSelect = document.getElementById('home-team');
+        const awayTeamSelect = document.getElementById('away-team');
+        const quarterLengthSelect = document.getElementById('quarter-length');
+        const timeOfDaySelect = document.getElementById('time-of-day');
+        const weatherSelect = document.getElementById('weather');
+
+        /**
+         * Hides all screens by adding the 'hidden' class.
+         */
+        function hideAllScreens() {
+            mainMenu.classList.add('hidden');
+            teamSelection.classList.add('hidden');
+            gameSettings.classList.add('hidden');
+        }
+
+        /**
+         * Shows a specific screen by removing the 'hidden' class.
+         * @param {HTMLElement} screen The screen element to show.
+         */
+        function showScreen(screen) {
+            hideAllScreens();
+            screen.classList.remove('hidden');
+        }
+
+        /**
+         * Displays a temporary message in the message box.
+         * @param {string} message The message to display.
+         */
+        function showMessage(message) {
+            messageBox.textContent = message;
+            messageBox.classList.remove('hidden');
+            // Hide the message after 3 seconds
+            setTimeout(() => {
+                messageBox.classList.add('hidden');
+            }, 3000);
+        }
+
+        // --- Event Listeners ---
+
+        // Listen for the Play Now button click
+        playNowBtn.addEventListener('click', () => {
+            showScreen(teamSelection);
+        });
+
+        // Listen for the Pro Bowl and Super Bowl buttons (unimplemented)
+        proBowlBtn.addEventListener('click', () => {
+            showMessage('Pro Bowl mode is not yet available. Check back soon!');
+        });
+        superBowlBtn.addEventListener('click', () => {
+            showMessage('Super Bowl mode is not yet available. Check back soon!');
+        });
+        
+        // Listen for the Continue button on the team selection screen
+        continueBtn.addEventListener('click', () => {
+            // Check if the same team is selected for home and away
+            if (homeTeamSelect.value === awayTeamSelect.value) {
+                showMessage('Please select two different teams.');
+                return;
+            }
+            showScreen(gameSettings);
+        });
+
+        // Listen for the "Back" button on the team selection screen
+        backToMainMenuBtn.addEventListener('click', () => {
+            showScreen(mainMenu);
+        });
+
+        // Listen for the "Back" button on the game settings screen
+        backToTeamSelectionBtn.addEventListener('click', () => {
+            showScreen(teamSelection);
+        });
+
+        // Listen for the Start Game button
+        startGameBtn.addEventListener('click', () => {
+            const homeTeam = homeTeamSelect.options[homeTeamSelect.selectedIndex].text;
+            const awayTeam = awayTeamSelect.options[awayTeamSelect.selectedIndex].text;
+            const quarterLength = quarterLengthSelect.value;
+            const timeOfDay = timeOfDaySelect.value;
+            const weather = weatherSelect.value;
+
+            // Log the selected game settings to the console for now.
+            // In a real game, this would trigger the game scene to load.
+            console.log(`Starting game with settings:`);
+            console.log(`- Home Team: ${homeTeam}`);
+            console.log(`- Away Team: ${awayTeam}`);
+            console.log(`- Quarter Length: ${quarterLength} minutes`);
+            console.log(`- Time of Day: ${timeOfDay}`);
+            console.log(`- Weather: ${weather}`);
+            
+            showMessage(`Game between the ${awayTeam} and the ${homeTeam} is ready!`);
+        });
+        
+    </script>
 </body>
 </html>
->>>>>>> updated
-]]>
-</rosieEdit>
-<rosieEdit file="main.js">
-<![CDATA[
-<<<<<<< HEAD
-import * as THREE from 'three';
-import { initScene, initCamera, initRenderer, initLights, initControls } from './engine.js';
-import { World } from './world.js';
-import { Player } from './player.js';
-import { BLOCK_SIZE, WORLD } from './constants.js';
-import { initAudio } from './audio.js';
 
-let scene, camera, renderer, controls, world, player;
-const clock = new THREE.Clock();
-
-function init() {
-  scene = initScene();
-  camera = initCamera();
-  renderer = initRenderer();
-  initLights(scene);
-  controls = initControls(camera, renderer.domElement);
-  scene.add(controls.getObject());
-
-  world = new World(scene);
-  camera.position.set(0, WORLD.H * BLOCK_SIZE * 0.6, 0);
-
-  player = new Player(camera, controls, world);
-  initAudio();
-  renderer.setAnimationLoop(animate);
-  window.addEventListener('resize', onResize);
-}
-
-function animate() {
-  const delta = clock.getDelta();
-  player.update(delta);
-  world.update(delta);
-  renderer.render(scene, camera);
-}
-
-function onResize() {
-  camera.aspect = window.innerWidth / window.innerHeight;
-  camera.updateProjectionMatrix();
-  renderer.setSize(window.innerWidth, window.innerHeight);
-}
-
-init();
-=======
-// --- DOM Elements ---
-const homeScoreEl = document.getElementById('home-score');
-const awayScoreEl = document.getElementById('away-score');
-const downEl = document.getElementById('down');
-const yardsEl = document.getElementById('yards');
-const ballPositionEl = document.getElementById('ball-position');
-const announcementAreaEl = document.getElementById('announcement-area');
-const runButton = document.getElementById('run-play');
-const passButton = document.getElementById('pass-play');
-
-// --- Game State ---
-const gameState = {
-    homeScore: 0,
-    awayScore: 0,
-    down: 1,
-    yardsToGo: 10,
-    ballOn: 25, // Player's side of the 50
-    turnover: false,
-};
-
-// --- Game Logic ---
-function updateDisplay() {
-    homeScoreEl.textContent = gameState.homeScore;
-    awayScoreEl.textContent = gameState.awayScore;
-    
-    const downText = ["1st", "2nd", "3rd", "4th"][gameState.down - 1];
-    downEl.textContent = downText;
-    
-    yardsEl.textContent = gameState.yardsToGo;
-    
-    // Determine ball position text (e.g., Own 25, Opp 45)
-    if (gameState.ballOn <= 50) {
-        ballPositionEl.textContent = `Own ${gameState.ballOn}`;
-    } else {
-        ballPositionEl.textContent = `Opp ${100 - gameState.ballOn}`;
-    }
-}
-
-function announce(text) {
-    // Announce to screen reader and display visually
-    announcementAreaEl.innerHTML = `<p>${text}</p>`;
-    
-    // Use SpeechSynthesis for audio feedback
-    const utterance = new SpeechSynthesisUtterance(text);
-    speechSynthesis.speak(utterance);
-}
-
-function runPlay(type) {
-    // This will be expanded with real logic later.
-    // For now, it's a simple random outcome.
-    const gain = Math.floor(Math.random() * 15) - 2; // -2 to 12 yard gain/loss
-
-    let outcomeText;
-    if (gain > 0) {
-        outcomeText = `${type === 'run' ? 'Run play' : 'Pass completed'} for a gain of ${gain} yards.`;
-    } else if (gain === 0) {
-        outcomeText = `No gain on the play.`;
-    } else {
-        outcomeText = `${type === 'run' ? 'Tackle for a loss' : 'Incomplete pass'}. Loss of ${Math.abs(gain)} yards.`;
-    }
-    announce(outcomeText);
-
-    // Update game state
-    gameState.ballOn += gain;
-    gameState.yardsToGo -= gain;
-    gameState.down++;
-
-    // Check for first down
-    if (gameState.yardsToGo <= 0) {
-        gameState.down = 1;
-        gameState.yardsToGo = 10;
-        announce("First down!");
-    }
-
-    // Check for turnover on downs
-    if (gameState.down > 4) {
-        announce("Turnover on downs!");
-        // Reset for the other team (simplified)
-        gameState.down = 1;
-        gameState.yardsToGo = 10;
-        gameState.ballOn = 75; // Simulate other team starting at their 25
-    }
-
-    updateDisplay();
-}
-
-// --- Event Listeners ---
-function setupEventListeners() {
-    runButton.addEventListener('click', () => runPlay('run'));
-    passButton.addEventListener('click', () => runPlay('pass'));
-}
-
-// --- Initialization ---
-function init() {
-    updateDisplay();
-    setupEventListeners();
-    // A small delay to ensure speech synthesis is ready on some browsers.
-    setTimeout(() => {
-      announce("Welcome to Audio Football. It's 1st and 10. Choose your play.");
-    }, 500);
-}
-
-init();
->>>>>>> updated
-]]>
-</rosieEdit>
-</rosieArtifact>
