@@ -32,8 +32,6 @@
 <div id="game">
   <div id="scoreboard" aria-live="polite"></div>
   <div id="situation" aria-live="polite"></div>
-  <div id="quarterClock" aria-live="polite"></div>
-  <div id="aiAnnounce" aria-live="polite" style="position:absolute; left:-9999px;"></div>
 
   <!-- Offensive Playbook -->
   <div id="offensePlays" aria-label="Offensive Playbook">
@@ -61,6 +59,9 @@
     <button id="puntBtn" aria-label="Punt Ball">Punt</button>
     <button id="goForItBtn" aria-label="Go For It on Fourth Down">Go For It</button>
   </div>
+
+  <!-- Next Quarter -->
+  <button id="nextQuarterBtn" aria-label="Next Quarter">Next Quarter</button>
 </div>
 
 <script>
@@ -80,18 +81,11 @@ window.onload=function(){
   });
   homeSelect.value="49ers";
 
-  // ==== FULL 49ERS ROSTER ====
-  const rosters = {
-    "49ers":["T.Brady","J.Wills","E.Samuel","D.Walker","G.McCaffrey","J.McGlinchey","R.Bosa","F.Daboll"]
-    // For minimal test, only key offensive skill players included; you can expand later
-  };
-
   // ==== GAME STATE ====
   let homeTeam="49ers", awayTeam="Eagles", homeScore=0, awayScore=0;
   let lastAnnouncedHomeScore=0, lastAnnouncedAwayScore=0;
   let possession="home", currentDown=1, yardsToFirst=10, ballPosition=25, quarter=1;
-  let defenseChoice="zone", quarterTime=15*60, quarterInterval=null;
-  let weather="Clear";
+  let defenseChoice="zone";
 
   // Hosted audio files
   const sounds={
@@ -105,13 +99,11 @@ window.onload=function(){
   for(let key in sounds){audioElements[key]=new Audio(sounds[key]);}
   function playSound(key){let a=audioElements[key]; a.currentTime=0; a.play();}
 
-  // ==== ANNOUNCE ====
   function announce(msg,ai=false){
     const t=ai?document.getElementById('aiAnnounce'):document.getElementById('situation');
     t.innerText=msg;
   }
 
-  // ==== SCOREBOARD ====
   function updateScore(announceScore=false){
     document.getElementById('scoreboard').innerText=`${homeTeam} ${homeScore} - ${awayScore} ${awayTeam}`;
     if(announceScore){
@@ -131,59 +123,42 @@ window.onload=function(){
   function startQuickPlay(){
     document.getElementById('menu').style.display='none';
     document.getElementById('teamSelection').style.display='block';
-    announce("Quick Play selected. Choose your home and away teams.");
+
+    homeTeam = "49ers";
+    const awayOptions = teams.filter(team => team !== homeTeam);
+    awayTeam = awayOptions[Math.floor(Math.random() * awayOptions.length)];
+
+    document.getElementById('homeTeamSelect').value = homeTeam;
+    document.getElementById('awayTeamSelect').value = awayTeam;
+
+    announce(`Quick Play selected. Home: ${homeTeam}, Away: ${awayTeam}`);
   }
 
   function startGame(){
-    homeTeam=document.getElementById('homeTeamSelect').value;
-    awayTeam=document.getElementById('awayTeamSelect').value;
+    // Use values from selects in case user wants to override
+    homeTeam = document.getElementById('homeTeamSelect').value;
+    awayTeam = document.getElementById('awayTeamSelect').value;
+
     homeScore=awayScore=0; lastAnnouncedHomeScore=lastAnnouncedAwayScore=0;
-    possession="home"; currentDown=1; yardsToFirst=10; ballPosition=25; quarter=1; quarterTime=15*60;
+    possession="home"; currentDown=1; yardsToFirst=10; ballPosition=25; quarter=1;
+
     document.getElementById('teamSelection').style.display='none';
     document.getElementById('game').style.display='block';
     document.getElementById('offensePlays').style.display='block';
     document.getElementById('defensePlays').style.display='none';
-    announce(`Game starting. ${homeTeam} vs ${awayTeam}. ${homeTeam} has the ball at the ${ballPosition} yard line. Weather: ${weather}`);
-    startQuarterClock();
+
+    announce(`Game starting. ${homeTeam} vs ${awayTeam}. ${homeTeam} has the ball at the ${ballPosition} yard line.`);
     playSound('whistle');
+    updateScore();
+    updateSituation();
   }
 
-  // ==== FIXED QUARTER CLOCK ====
-  function startQuarterClock(){
-    if(quarterInterval) clearInterval(quarterInterval);
-    quarterTime=15*60;
-    updateQuarterClockUI();
-    announce(`Quarter ${quarter} begins`);
-
-    quarterInterval=setInterval(()=>{
-      quarterTime--;
-      updateQuarterClockUI();
-
-      // Announce only milestones
-      if(quarterTime===120){ announce("Two minute warning"); }
-      if(quarterTime<=0){
-        clearInterval(quarterInterval);
-        announce(`End of Quarter ${quarter}`);
-        quarter++;
-        if(quarter===3){ announce("Halftime Show!"); showStats(); playSound('crowdFirstDown'); quarterTime=15*60; startQuarterClock(); }
-        else if(quarter>4){ announce(`Game Over! Final Score: ${homeTeam} ${homeScore}, ${awayTeam} ${awayScore}`); }
-        else { announce(`Starting Quarter ${quarter}`); quarterTime=15*60; startQuarterClock(); }
-      }
-    },1000);
-  }
-
-  function updateQuarterClockUI(){
-    let min=Math.floor(quarterTime/60), sec=quarterTime%60;
-    document.getElementById('quarterClock').innerText=`Quarter ${quarter}, Time Remaining: ${min}:${sec<10?'0'+sec:sec}`;
-  }
-
-  function showStats(){announce(`Halftime stats: ${homeTeam} ${homeScore}, ${awayTeam} ${awayScore}. Ball at ${ballPosition}`);}
+  function startFranchise(){announce("Franchise Mode coming soon!");}
 
   // ==== BUTTONS ====
   document.getElementById('quickPlayBtn').onclick=startQuickPlay;
-  document.getElementById('franchiseBtn').onclick=function(){announce("Franchise Mode coming soon!");};
+  document.getElementById('franchiseBtn').onclick=startFranchise;
   document.getElementById('startGameBtn').onclick=startGame;
-
 };
 </script>
 </body>
