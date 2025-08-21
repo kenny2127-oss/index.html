@@ -103,7 +103,11 @@ const commentaryDiv = document.getElementById('commentary');
 const crowdAudio = document.getElementById('crowdSound');
 let crowdVolume = 0.5;
 crowdAudio.volume = crowdVolume;
-crowdAudio.play().catch(() => { console.log('Audio autoplay blocked') });
+
+// Unlock audio with first tap (mobile requirement)
+document.body.addEventListener('touchstart', () => {
+  crowdAudio.play().then(() => crowdAudio.pause()).catch(()=>{});
+}, { once: true });
 
 // Swipe gestures for crowd volume
 let touchStartY = null;
@@ -120,7 +124,7 @@ document.addEventListener('touchend', e => {
   touchStartY = null;
 });
 
-// Simple TTS
+// TTS
 function speak(text) {
   if ('speechSynthesis' in window) {
     const msg = new SpeechSynthesisUtterance(text);
@@ -179,12 +183,26 @@ function startPlay(type) {
 
 // Crowd reactions
 function triggerCrowd(eventType) {
-  if(eventType === 'touchdown') { speak("Touchdown! Crowd erupts!"); crowdAudio.play(); }
-  else if(eventType === 'interception') { speak("Turnover! Crowd reacts!"); crowdAudio.play(); }
-  else if(eventType === 'startDrive') { speak("The crowd is ready as the 49ers take the field!"); crowdAudio.play(); }
+  if(eventType === 'touchdown') { 
+    speak("Touchdown! Crowd erupts!"); 
+    playCrowdSound();
+  }
+  else if(eventType === 'interception') { 
+    speak("Turnover! Crowd reacts!"); 
+    playCrowdSound();
+  }
+  else if(eventType === 'startDrive') { 
+    speak("The crowd is ready as the 49ers take the field!"); 
+    playCrowdSound();
+  }
 }
 
-// Playbook Implementation
+function playCrowdSound() {
+  crowdAudio.currentTime = 0;
+  crowdAudio.play().catch(() => { console.log("Audio blocked. Tap the screen once to enable."); });
+}
+
+// Playbook
 const plays = ["Inside Zone Run", "Outside Zone Run", "QB Sneak", "Short Pass", "Deep Pass", "Screen Pass"];
 let currentPlayIndex = 0;
 
