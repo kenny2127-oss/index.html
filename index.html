@@ -34,8 +34,13 @@
 
 <h1>Accessible Madden Prototype</h1>
 
+<!-- Initial Tap to Unlock Audio -->
+<div id="startScreen">
+  <button id="startGameBtn">Tap to Start Game</button>
+</div>
+
 <!-- Main Menu -->
-<div id="mainMenu" class="menu">
+<div id="mainMenu" class="menu" style="display:none;">
   <button onclick="openQuickPlay()">Quick Play</button>
   <button onclick="openFranchise()">Franchise</button>
   <button onclick="openPractice()">Practice</button>
@@ -98,8 +103,9 @@ const commentaryDiv = document.getElementById('commentary');
 
 // Crowd Audio
 const crowdAudio = new Audio('https://www.soundjay.com/crowd/crowd-cheer-01.mp3');
+const touchdownAudio = new Audio('https://www.soundjay.com/crowd/crowd-cheer-02.mp3');
 let crowdVolume = 0.5;
-crowdAudio.volume = crowdVolume;
+[crowdAudio, touchdownAudio].forEach(a => a.volume = crowdVolume);
 
 // TTS function
 function speak(text) {
@@ -119,10 +125,20 @@ document.addEventListener('touchend', e => {
   const delta = touchStartY - touchEndY;
   if (delta > 30) { crowdVolume = Math.min(crowdVolume + 0.1, 1); }
   else if (delta < -30) { crowdVolume = Math.max(crowdVolume - 0.1, 0); }
-  crowdAudio.volume = crowdVolume;
+  [crowdAudio, touchdownAudio].forEach(a => a.volume = crowdVolume);
   document.getElementById('volumeDisplay').innerText = `Crowd Volume: ${Math.round(crowdVolume*100)}%`;
   speak(`Crowd volume ${Math.round(crowdVolume*100)} percent`);
   touchStartY = null;
+});
+
+// **Initial Tap to Unlock Audio**
+document.getElementById('startGameBtn').addEventListener('click', () => {
+  [crowdAudio, touchdownAudio].forEach(audio => {
+    audio.play().then(() => audio.pause()).catch(()=>{});
+  });
+  document.getElementById('startScreen').style.display = 'none';
+  document.getElementById('mainMenu').style.display = 'block';
+  speak("Audio unlocked. Main menu. Quick Play, Franchise, Practice, Ultimate Team, Settings.");
 });
 
 // Main Menu Functions
@@ -165,8 +181,6 @@ function backToMain() {
 function startPlay(type) {
   speak(`Starting ${type}. First and 10 at the 25-yard line. Choose your play.`);
   commentaryDiv.innerHTML = `Game started: ${type}. First and 10 at the 25-yard line.`;
-
-  // Show playbook
   document.getElementById('playbookMenu').style.display = 'flex';
   currentPlayIndex = 0;
   showCurrentPlay();
@@ -199,7 +213,7 @@ function choosePlay() {
   const selectedPlay = plays[currentPlayIndex];
   commentaryDiv.innerHTML += `<br>Selected: ${selectedPlay}`;
 
-  // Create a "Tap to Execute Play" button for mobile-proof crowd sound
+  // Tap-to-execute button for mobile/WebView
   let executeBtn = document.getElementById('executePlayBtn');
   if(!executeBtn){
     executeBtn = document.createElement('button');
@@ -212,11 +226,11 @@ function choosePlay() {
 
 // Execute play
 function executePlay(play) {
-  // Play crowd audio immediately on user tap
+  // Play crowd audio immediately
   crowdAudio.currentTime = 0;
   crowdAudio.play().catch(()=>{ console.log("Audio blocked"); });
 
-  // Then simulate play outcome
+  // Simulate play outcome
   simulatePlay(play);
 
   // Remove button
