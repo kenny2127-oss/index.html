@@ -4,6 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Madden Mobile</title>
+    <!-- Use Inter font from Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
     <!-- Use Tailwind CSS for modern styling and responsive design -->
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
@@ -32,51 +36,51 @@
     <!-- Main Container for the entire application, centered and full-screen -->
     <div class="min-h-screen flex flex-col items-center justify-center p-4">
 
-        <!-- Madden Main Menu Screen -->
-        <div id="main-menu" class="text-center transition-opacity duration-500 ease-in-out opacity-100">
-            <h1 class="text-6xl font-extrabold mb-8 madden-heading">MADDEN</h1>
+        <!-- Title Screen -->
+        <div id="title-screen" class="text-center transition-opacity duration-500 ease-in-out">
+            <h1 class="text-7xl font-extrabold mb-12 madden-heading">MADDEN</h1>
+            <button id="start-game-btn" class="madden-button text-xl font-bold py-4 px-8 rounded-full shadow-lg">
+                TOUCH TO START
+            </button>
+        </div>
+
+        <!-- Main Menu Screen (initially hidden) -->
+        <div id="main-menu" class="text-center transition-opacity duration-500 ease-in-out hidden">
+            <h1 class="text-5xl font-extrabold mb-8 madden-heading">MAIN MENU</h1>
             <div class="flex flex-col space-y-4 w-full max-w-sm">
-                <button id="play-now-btn" class="madden-button text-xl font-bold py-4 px-8 rounded-full shadow-lg">
-                    PLAY NOW
+                <button id="quick-play-btn" class="madden-button text-xl font-bold py-4 px-8 rounded-full shadow-lg">
+                    QUICK PLAY
                 </button>
-                <button id="pro-bowl-btn" class="madden-button text-xl font-bold py-4 px-8 rounded-full shadow-lg">
-                    PRO BOWL
+                <button id="franchise-btn" class="madden-button text-xl font-bold py-4 px-8 rounded-full shadow-lg">
+                    FRANCHISE
                 </button>
-                <button id="super-bowl-btn" class="madden-button text-xl font-bold py-4 px-8 rounded-full shadow-lg">
-                    SUPER BOWL
+                <button id="ultimate-team-btn" class="madden-button text-xl font-bold py-4 px-8 rounded-full shadow-lg">
+                    ULTIMATE TEAM
+                </button>
+                <button id="multiplayer-btn" class="madden-button text-xl font-bold py-4 px-8 rounded-full shadow-lg">
+                    MULTIPLAYER
+                </button>
+                <button id="settings-btn" class="madden-button text-xl font-bold py-4 px-8 rounded-full shadow-lg">
+                    SETTINGS
                 </button>
             </div>
             <!-- Message box for unimplemented features -->
             <div id="message-box" class="mt-8 p-4 bg-yellow-600 rounded-lg text-sm text-center hidden"></div>
         </div>
 
-        <!-- Team Selection Screen (initially hidden) -->
+        <!-- Quick Play Screen (Team Selection) -->
         <div id="team-selection" class="text-center w-full max-w-sm hidden transition-opacity duration-500 ease-in-out">
             <h2 class="text-4xl font-bold mb-8">Quick Play</h2>
             <div class="space-y-6">
                 <!-- Home Team Selection -->
                 <div class="bg-gray-700 p-4 rounded-lg shadow-inner">
                     <label for="home-team" class="block text-lg font-semibold mb-2">HOME TEAM</label>
-                    <select id="home-team" class="w-full p-3 rounded-lg bg-gray-800 text-white border-none focus:outline-none focus:ring-2 focus:ring-red-500">
-                        <option value="49ers">San Francisco 49ers</option>
-                        <option value="eagles">Philadelphia Eagles</option>
-                        <option value="chiefs">Kansas City Chiefs</option>
-                        <option value="bills">Buffalo Bills</option>
-                        <option value="cowboys">Dallas Cowboys</option>
-                        <!-- Add more teams here -->
-                    </select>
+                    <select id="home-team" class="w-full p-3 rounded-lg bg-gray-800 text-white border-none focus:outline-none focus:ring-2 focus:ring-red-500"></select>
                 </div>
                 <!-- Away Team Selection -->
                 <div class="bg-gray-700 p-4 rounded-lg shadow-inner">
                     <label for="away-team" class="block text-lg font-semibold mb-2">AWAY TEAM</label>
-                    <select id="away-team" class="w-full p-3 rounded-lg bg-gray-800 text-white border-none focus:outline-none focus:ring-2 focus:ring-red-500">
-                        <option value="eagles">Philadelphia Eagles</option>
-                        <option value="49ers">San Francisco 49ers</option>
-                        <option value="chiefs">Kansas City Chiefs</option>
-                        <option value="bills">Buffalo Bills</option>
-                        <option value="cowboys">Dallas Cowboys</option>
-                        <!-- Add more teams here -->
-                    </select>
+                    <select id="away-team" class="w-full p-3 rounded-lg bg-gray-800 text-white border-none focus:outline-none focus:ring-2 focus:ring-red-500"></select>
                 </div>
                 <!-- Continue Button -->
                 <button id="continue-btn" class="w-full madden-button text-xl font-bold py-4 px-8 rounded-full shadow-lg">
@@ -139,26 +143,25 @@
                 </button>
             </div>
         </div>
-
     </div>
 
     <script>
         // Get references to all the main elements
+        const titleScreen = document.getElementById('title-screen');
         const mainMenu = document.getElementById('main-menu');
         const teamSelection = document.getElementById('team-selection');
         const gameSettings = document.getElementById('game-settings');
         const messageBox = document.getElementById('message-box');
 
-        // Main Menu Buttons
-        const playNowBtn = document.getElementById('play-now-btn');
-        const proBowlBtn = document.getElementById('pro-bowl-btn');
-        const superBowlBtn = document.getElementById('super-bowl-btn');
-        
-        // Team Selection Buttons
+        // Buttons
+        const startTouchBtn = document.getElementById('start-game-btn');
+        const quickPlayBtn = document.getElementById('quick-play-btn');
+        const franchiseBtn = document.getElementById('franchise-btn');
+        const ultimateTeamBtn = document.getElementById('ultimate-team-btn');
+        const multiplayerBtn = document.getElementById('multiplayer-btn');
+        const settingsBtn = document.getElementById('settings-btn');
         const continueBtn = document.getElementById('continue-btn');
         const backToMainMenuBtn = document.getElementById('back-to-main-menu');
-
-        // Game Settings Buttons
         const startGameBtn = document.getElementById('start-game-btn');
         const backToTeamSelectionBtn = document.getElementById('back-to-team-selection');
         
@@ -169,10 +172,51 @@
         const timeOfDaySelect = document.getElementById('time-of-day');
         const weatherSelect = document.getElementById('weather');
 
+        // List of all 32 NFL teams
+        const nflTeams = [
+            "Arizona Cardinals", "Atlanta Falcons", "Baltimore Ravens", "Buffalo Bills", "Carolina Panthers",
+            "Chicago Bears", "Cincinnati Bengals", "Cleveland Browns", "Dallas Cowboys", "Denver Broncos",
+            "Detroit Lions", "Green Bay Packers", "Houston Texans", "Indianapolis Colts", "Jacksonville Jaguars",
+            "Kansas City Chiefs", "Las Vegas Raiders", "Los Angeles Chargers", "Los Angeles Rams", "Miami Dolphins",
+            "Minnesota Vikings", "New England Patriots", "New Orleans Saints", "New York Giants", "New York Jets",
+            "Philadelphia Eagles", "Pittsburgh Steelers", "San Francisco 49ers", "Seattle Seahawks", "Tampa Bay Buccaneers",
+            "Tennessee Titans", "Washington Commanders"
+        ];
+
+        /**
+         * Populates the team dropdowns with all 32 NFL teams.
+         */
+        function populateTeams() {
+            // Clear existing options
+            homeTeamSelect.innerHTML = '';
+            awayTeamSelect.innerHTML = '';
+
+            // Dynamically add all teams
+            nflTeams.forEach(team => {
+                const homeOption = document.createElement('option');
+                homeOption.value = team.replace(/\s/g, ''); // Remove spaces for value
+                homeOption.textContent = team;
+                homeTeamSelect.appendChild(homeOption);
+
+                const awayOption = document.createElement('option');
+                awayOption.value = team.replace(/\s/g, '');
+                awayOption.textContent = team;
+                awayTeamSelect.appendChild(awayOption);
+            });
+
+            // Set default selections
+            homeTeamSelect.value = 'SanFrancisco49ers';
+            awayTeamSelect.value = 'PhiladelphiaEagles';
+        }
+
+        // Call the function to populate teams on page load
+        populateTeams();
+
         /**
          * Hides all screens by adding the 'hidden' class.
          */
         function hideAllScreens() {
+            titleScreen.classList.add('hidden');
             mainMenu.classList.add('hidden');
             teamSelection.classList.add('hidden');
             gameSettings.classList.add('hidden');
@@ -202,19 +246,30 @@
 
         // --- Event Listeners ---
 
-        // Listen for the Play Now button click
-        playNowBtn.addEventListener('click', () => {
+        // Listen for the "Touch to Start" button on the title screen
+        startTouchBtn.addEventListener('click', () => {
+            showScreen(mainMenu);
+        });
+
+        // Listen for the Quick Play button click on the main menu
+        quickPlayBtn.addEventListener('click', () => {
             showScreen(teamSelection);
         });
 
-        // Listen for the Pro Bowl and Super Bowl buttons (unimplemented)
-        proBowlBtn.addEventListener('click', () => {
-            showMessage('Pro Bowl mode is not yet available. Check back soon!');
+        // Listen for the unimplemented buttons on the main menu
+        franchiseBtn.addEventListener('click', () => {
+            showMessage('Franchise mode is not yet available. Check back soon!');
         });
-        superBowlBtn.addEventListener('click', () => {
-            showMessage('Super Bowl mode is not yet available. Check back soon!');
+        ultimateTeamBtn.addEventListener('click', () => {
+            showMessage('Ultimate Team mode is not yet available. Check back soon!');
         });
-        
+        multiplayerBtn.addEventListener('click', () => {
+            showMessage('Multiplayer mode is not yet available. Check back soon!');
+        });
+        settingsBtn.addEventListener('click', () => {
+            showMessage('Settings screen is not yet available. Check back soon!');
+        });
+
         // Listen for the Continue button on the team selection screen
         continueBtn.addEventListener('click', () => {
             // Check if the same team is selected for home and away
@@ -234,7 +289,7 @@
         backToTeamSelectionBtn.addEventListener('click', () => {
             showScreen(teamSelection);
         });
-
+        
         // Listen for the Start Game button
         startGameBtn.addEventListener('click', () => {
             const homeTeam = homeTeamSelect.options[homeTeamSelect.selectedIndex].text;
@@ -254,7 +309,6 @@
             
             showMessage(`Game between the ${awayTeam} and the ${homeTeam} is ready!`);
         });
-        
     </script>
 </body>
 </html>
