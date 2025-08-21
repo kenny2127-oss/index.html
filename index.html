@@ -5,29 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Accessible Madden Prototype</title>
 <style>
-  body {
-    font-family: Arial, sans-serif;
-    background: #111;
-    color: #fff;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    min-height: 100vh;
-  }
-  .menu, .submenu, .playbook {
-    margin: 10px 0;
-  }
-  button, select {
-    font-size: 1.2em;
-    margin: 5px;
-    padding: 10px 20px;
-  }
-  .playbook {
-    display: none;
-    flex-direction: column;
-    align-items: center;
-  }
+  body { font-family: Arial, sans-serif; background: #111; color: #fff; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; }
+  .menu, .submenu, .playbook { margin: 10px 0; }
+  button, select { font-size: 1.2em; margin: 5px; padding: 10px 20px; }
+  .playbook { display: none; flex-direction: column; align-items: center; }
 </style>
 </head>
 <body>
@@ -65,7 +46,6 @@
     <option>All-Pro</option>
     <option>All-Madden</option>
   </select><br>
-  
   <label for="quarterLength">Quarter Length (min):</label>
   <select id="quarterLength">
     <option>2</option>
@@ -73,16 +53,13 @@
     <option>10</option>
     <option>15</option>
   </select><br>
-
   <label for="gameSpeed">Game Speed:</label>
   <select id="gameSpeed">
     <option>Slow</option>
     <option selected>Normal</option>
     <option>Fast</option>
   </select><br>
-
   <div id="volumeDisplay">Crowd Volume: 50%</div>
-
   <button onclick="backToMain()">Back</button>
 </div>
 
@@ -94,9 +71,8 @@
   <button onclick="endDrive()">End Drive</button>
 </div>
 
-<!-- Commentary Area -->
-<div id="commentary" style="margin-top:20px; max-width: 500px;">
-</div>
+<!-- Commentary -->
+<div id="commentary" style="margin-top:20px; max-width:500px;"></div>
 
 <script>
 const commentaryDiv = document.getElementById('commentary');
@@ -105,7 +81,11 @@ const commentaryDiv = document.getElementById('commentary');
 const crowdAudio = new Audio('https://www.soundjay.com/crowd/crowd-cheer-01.mp3');
 const touchdownAudio = new Audio('https://www.soundjay.com/crowd/crowd-cheer-02.mp3');
 let crowdVolume = 0.5;
-[crowdAudio, touchdownAudio].forEach(a => a.volume = crowdVolume);
+[crowdAudio, touchdownAudio].forEach(a => { a.volume = crowdVolume; a.preload='auto'; });
+
+// Silent unlock audio
+const silentUnlock = new Audio('data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA=');
+silentUnlock.volume = 0;
 
 // TTS function
 function speak(text) {
@@ -123,135 +103,82 @@ document.addEventListener('touchend', e => {
   if (touchStartY === null) return;
   const touchEndY = e.changedTouches[0].clientY;
   const delta = touchStartY - touchEndY;
-  if (delta > 30) { crowdVolume = Math.min(crowdVolume + 0.1, 1); }
-  else if (delta < -30) { crowdVolume = Math.max(crowdVolume - 0.1, 0); }
+  if (delta > 30) crowdVolume = Math.min(crowdVolume+0.1,1);
+  else if (delta < -30) crowdVolume = Math.max(crowdVolume-0.1,0);
   [crowdAudio, touchdownAudio].forEach(a => a.volume = crowdVolume);
   document.getElementById('volumeDisplay').innerText = `Crowd Volume: ${Math.round(crowdVolume*100)}%`;
   speak(`Crowd volume ${Math.round(crowdVolume*100)} percent`);
   touchStartY = null;
 });
 
-// **Initial Tap to Unlock Audio**
+// **Initial tap unlock**
 document.getElementById('startGameBtn').addEventListener('click', () => {
-  [crowdAudio, touchdownAudio].forEach(audio => {
-    audio.play().then(() => audio.pause()).catch(()=>{});
+  [crowdAudio, touchdownAudio, silentUnlock].forEach(audio => {
+    audio.play().then(()=>audio.pause()).catch(()=>{});
   });
   document.getElementById('startScreen').style.display = 'none';
   document.getElementById('mainMenu').style.display = 'block';
   speak("Audio unlocked. Main menu. Quick Play, Franchise, Practice, Ultimate Team, Settings.");
 });
 
-// Main Menu Functions
-function openQuickPlay() {
-  document.getElementById('mainMenu').style.display = 'none';
-  document.getElementById('quickPlayMenu').style.display = 'block';
-  speak("Quick Play menu. Choose Play Now, Pro Bowl, or Super Bowl 59: Chiefs vs Eagles.");
-}
-
-function openFranchise() {
-  document.getElementById('mainMenu').style.display = 'none';
-  speak("Franchise mode. Start new franchise or continue if you have one.");
-}
-
-function openPractice() {
-  document.getElementById('mainMenu').style.display = 'none';
-  speak("Practice mode. Choose drills or free play.");
-}
-
-function openUltimateTeam() {
-  document.getElementById('mainMenu').style.display = 'none';
-  speak("Ultimate Team mode. Coming soon.");
-}
-
-function openSettings() {
-  document.getElementById('mainMenu').style.display = 'none';
-  document.getElementById('settingsMenu').style.display = 'block';
-  speak("Settings menu. Choose difficulty, quarter length, game speed, and adjust crowd volume.");
-}
-
-function backToMain() {
-  document.getElementById('mainMenu').style.display = 'block';
-  document.getElementById('quickPlayMenu').style.display = 'none';
-  document.getElementById('settingsMenu').style.display = 'none';
-  document.getElementById('playbookMenu').style.display = 'none';
-  speak("Main menu. Quick Play, Franchise, Practice, Ultimate Team, Settings.");
-}
+// Main menu
+function openQuickPlay() { document.getElementById('mainMenu').style.display='none'; document.getElementById('quickPlayMenu').style.display='block'; speak("Quick Play menu. Choose Play Now, Pro Bowl, or Super Bowl 59: Chiefs vs Eagles."); }
+function openFranchise() { document.getElementById('mainMenu').style.display='none'; speak("Franchise mode. Start new franchise or continue if you have one."); }
+function openPractice() { document.getElementById('mainMenu').style.display='none'; speak("Practice mode. Choose drills or free play."); }
+function openUltimateTeam() { document.getElementById('mainMenu').style.display='none'; speak("Ultimate Team mode. Coming soon."); }
+function openSettings() { document.getElementById('mainMenu').style.display='none'; document.getElementById('settingsMenu').style.display='block'; speak("Settings menu. Choose difficulty, quarter length, game speed, and adjust crowd volume."); }
+function backToMain() { document.getElementById('mainMenu').style.display='block'; document.getElementById('quickPlayMenu').style.display='none'; document.getElementById('settingsMenu').style.display='none'; document.getElementById('playbookMenu').style.display='none'; speak("Main menu. Quick Play, Franchise, Practice, Ultimate Team, Settings."); }
 
 // Quick Play Start
-function startPlay(type) {
-  speak(`Starting ${type}. First and 10 at the 25-yard line. Choose your play.`);
-  commentaryDiv.innerHTML = `Game started: ${type}. First and 10 at the 25-yard line.`;
-  document.getElementById('playbookMenu').style.display = 'flex';
-  currentPlayIndex = 0;
-  showCurrentPlay();
-}
+function startPlay(type) { speak(`Starting ${type}. First and 10 at the 25-yard line.`); commentaryDiv.innerHTML=`Game started: ${type}. First and 10 at the 25-yard line.`; document.getElementById('playbookMenu').style.display='flex'; currentPlayIndex=0; showCurrentPlay(); }
 
 // Playbook
-const plays = ["Inside Zone Run", "Outside Zone Run", "QB Sneak", "Short Pass", "Deep Pass", "Screen Pass"];
-let currentPlayIndex = 0;
-
-function showCurrentPlay() {
-  document.getElementById('playName').innerText = plays[currentPlayIndex];
-  speak(plays[currentPlayIndex]);
-}
-
-// Swipe left/right to navigate plays
-let touchStartX = null;
-document.addEventListener('touchstart', e => { touchStartX = e.touches[0].clientX; });
-document.addEventListener('touchend', e => {
-  if (touchStartX === null) return;
-  const touchEndX = e.changedTouches[0].clientX;
-  const delta = touchStartX - touchEndX;
-  if (delta > 30) { currentPlayIndex = (currentPlayIndex + 1) % plays.length; }
-  else if (delta < -30) { currentPlayIndex = (currentPlayIndex - 1 + plays.length) % plays.length; }
+const plays = ["Inside Zone Run","Outside Zone Run","QB Sneak","Short Pass","Deep Pass","Screen Pass"];
+let currentPlayIndex=0;
+function showCurrentPlay(){ document.getElementById('playName').innerText=plays[currentPlayIndex]; speak(plays[currentPlayIndex]); }
+let touchStartX=null;
+document.addEventListener('touchstart',e=>{touchStartX=e.touches[0].clientX;});
+document.addEventListener('touchend',e=>{
+  if(touchStartX===null) return;
+  const delta=touchStartX-e.changedTouches[0].clientX;
+  if(delta>30) currentPlayIndex=(currentPlayIndex+1)%plays.length;
+  else if(delta<-30) currentPlayIndex=(currentPlayIndex-1+plays.length)%plays.length;
   showCurrentPlay();
-  touchStartX = null;
+  touchStartX=null;
 });
 
-// Choose play
+// Choose Play
 function choosePlay() {
-  const selectedPlay = plays[currentPlayIndex];
-  commentaryDiv.innerHTML += `<br>Selected: ${selectedPlay}`;
-
-  // Tap-to-execute button for mobile/WebView
-  let executeBtn = document.getElementById('executePlayBtn');
-  if(!executeBtn){
-    executeBtn = document.createElement('button');
-    executeBtn.id = 'executePlayBtn';
-    executeBtn.innerText = 'Tap to Execute Play';
-    executeBtn.onclick = () => executePlay(selectedPlay);
-    document.getElementById('playbookMenu').appendChild(executeBtn);
+  const selectedPlay=plays[currentPlayIndex];
+  commentaryDiv.innerHTML+=`<br>Selected: ${selectedPlay}`;
+  if(!document.getElementById('executePlayBtn')){
+    const btn=document.createElement('button');
+    btn.id='executePlayBtn';
+    btn.innerText='Tap to Execute Play';
+    btn.onclick=()=>executePlay(selectedPlay);
+    document.getElementById('playbookMenu').appendChild(btn);
   }
 }
 
-// Execute play
-function executePlay(play) {
-  // Play crowd audio immediately
-  crowdAudio.currentTime = 0;
-  crowdAudio.play().catch(()=>{ console.log("Audio blocked"); });
-
-  // Simulate play outcome
-  simulatePlay(play);
-
-  // Remove button
-  const btn = document.getElementById('executePlayBtn');
-  if(btn) btn.remove();
+// Execute Play
+function executePlay(play){
+  crowdAudio.currentTime=0;
+  crowdAudio.play().catch(()=>console.log("Audio blocked"));
+  setTimeout(()=>simulatePlay(play),100); // delay ensures crowd plays first
+  document.getElementById('executePlayBtn').remove();
 }
 
-// Simulate play outcome
-function simulatePlay(play) {
-  let outcome = "";
-  if(play.includes("Run")) outcome = Math.random() > 0.5 ? "Gain 5 yards!" : "Loss 2 yards!";
-  else if(play.includes("Pass")) outcome = Math.random() > 0.5 ? "Complete! Gain 10 yards!" : "Incomplete pass!";
+// Simulate outcome
+function simulatePlay(play){
+  let outcome="";
+  if(play.includes("Run")) outcome = Math.random()>0.5 ? "Gain 5 yards!" : "Loss 2 yards!";
+  else if(play.includes("Pass")) outcome = Math.random()>0.5 ? "Complete! Gain 10 yards!" : "Incomplete pass!";
   speak(outcome);
-  commentaryDiv.innerHTML += `<br>${play}: ${outcome}`;
+  commentaryDiv.innerHTML+=`<br>${play}: ${outcome}`;
 }
 
 // End drive
-function endDrive() {
-  speak("Drive ended. Returning to Quick Play menu.");
-  document.getElementById('playbookMenu').style.display = 'none';
-}
+function endDrive(){ speak("Drive ended. Returning to Quick Play menu."); document.getElementById('playbookMenu').style.display='none'; }
 </script>
 
 </body>
