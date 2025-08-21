@@ -5,20 +5,22 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Accessible Madden Prototype</title>
 <style>
-  body { font-family: Arial, sans-serif; background: #111; color: #fff; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; }
-  .menu, .submenu, .playbook { margin: 10px 0; }
+  body { font-family: Arial, sans-serif; background: #111; color: #fff; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; min-height: 100vh; padding: 20px; }
+  .menu, .submenu, .playbook, .franchiseMenu { margin: 10px 0; }
   button, select { font-size: 1.2em; margin: 5px; padding: 10px 20px; }
-  .playbook { display: none; flex-direction: column; align-items: center; }
+  .playbook, .franchiseMenu { display: none; flex-direction: column; align-items: center; }
 </style>
 </head>
 <body>
 
 <h1>Accessible Madden Prototype</h1>
 
+<!-- Start Game -->
 <div id="startScreen">
   <button id="startGameBtn">Tap to Start Game</button>
 </div>
 
+<!-- Main Menu -->
 <div id="mainMenu" class="menu" style="display:none;">
   <button onclick="openQuickPlay()">Quick Play</button>
   <button onclick="openFranchise()">Franchise</button>
@@ -27,13 +29,24 @@
   <button onclick="openSettings()">Settings</button>
 </div>
 
+<!-- Quick Play Menu -->
 <div id="quickPlayMenu" class="submenu" style="display:none;">
-  <button onclick="startPlay('Play Now')">Play Now</button>
-  <button onclick="startPlay('Pro Bowl')">Pro Bowl</button>
-  <button onclick="startPlay('Super Bowl 59: Chiefs vs Eagles')">Super Bowl 59</button>
-  <button onclick="backToMain()">Back</button>
+  <h2>Quick Play</h2>
+  <div>
+    <h3>Home Team</h3>
+    <select id="homeTeamSelect"></select>
+  </div>
+  <div>
+    <h3>Away Team (Random)</h3>
+    <select id="awayTeamSelect" disabled></select>
+  </div>
+  <div>
+    <button onclick="startQuickPlay()">Start Game</button>
+    <button onclick="backToMain()">Back</button>
+  </div>
 </div>
 
+<!-- Settings Menu -->
 <div id="settingsMenu" class="submenu" style="display:none;">
   <label for="difficulty">Difficulty:</label>
   <select id="difficulty">
@@ -59,6 +72,7 @@
   <button onclick="backToMain()">Back</button>
 </div>
 
+<!-- Playbook -->
 <div id="playbookMenu" class="playbook">
   <h2>Playbook</h2>
   <div id="playName">Select a play</div>
@@ -66,77 +80,105 @@
   <button onclick="endDrive()">End Drive</button>
 </div>
 
+<!-- Franchise Menu -->
+<div id="franchiseMenu" class="franchiseMenu">
+  <h2>Franchise Mode</h2>
+  <div id="franchiseOptions"></div>
+  <button onclick="backToMain()">Back</button>
+</div>
+
+<!-- Commentary -->
 <div id="commentary" style="margin-top:20px; max-width:500px;"></div>
 
 <script>
 const commentaryDiv = document.getElementById('commentary');
 
-// Audio setup
-const crowdAudio = new Audio('https://www.soundjay.com/crowd/crowd-cheer-01.mp3');
-let crowdVolume = 0.5;
-crowdAudio.volume = crowdVolume;
-crowdAudio.preload = 'auto';
+// Teams
+const teams = [
+  "San Francisco 49ers","Arizona Cardinals","Atlanta Falcons","Baltimore Ravens",
+  "Buffalo Bills","Carolina Panthers","Chicago Bears","Cincinnati Bengals",
+  "Cleveland Browns","Dallas Cowboys","Denver Broncos","Detroit Lions",
+  "Green Bay Packers","Houston Texans","Indianapolis Colts","Jacksonville Jaguars",
+  "Kansas City Chiefs","Las Vegas Raiders","Los Angeles Chargers","Los Angeles Rams",
+  "Miami Dolphins","Minnesota Vikings","New England Patriots","New Orleans Saints",
+  "New York Giants","New York Jets","Philadelphia Eagles","Pittsburgh Steelers",
+  "Seattle Seahawks","Tampa Bay Buccaneers","Tennessee Titans","Washington Commanders"
+];
 
-// TTS function
-function speak(text) {
-  if ('speechSynthesis' in window) {
-    const msg = new SpeechSynthesisUtterance(text);
-    window.speechSynthesis.cancel();
-    window.speechSynthesis.speak(msg);
-  }
-}
-
-// Swipe gestures for crowd volume
-let touchStartY = null;
-document.addEventListener('touchstart', e => { touchStartY = e.touches[0].clientY; });
-document.addEventListener('touchend', e => {
-  if (touchStartY === null) return;
-  const touchEndY = e.changedTouches[0].clientY;
-  const delta = touchStartY - touchEndY;
-  if (delta > 30) crowdVolume = Math.min(crowdVolume+0.1,1);
-  else if (delta < -30) crowdVolume = Math.max(crowdVolume-0.1,0);
-  crowdAudio.volume = crowdVolume;
-  document.getElementById('volumeDisplay').innerText = `Crowd Volume: ${Math.round(crowdVolume*100)}%`;
-  speak(`Crowd volume ${Math.round(crowdVolume*100)} percent`);
-  touchStartY = null;
+// Populate Home Team select
+const homeSelect = document.getElementById('homeTeamSelect');
+teams.forEach(team=>{
+  const option=document.createElement('option');
+  option.value=team;
+  option.innerText=team;
+  homeSelect.appendChild(option);
 });
 
-// Initial tap to unlock audio
-document.getElementById('startGameBtn').addEventListener('click', () => {
-  crowdAudio.play().then(() => crowdAudio.pause()).catch(()=>{});
-  document.getElementById('startScreen').style.display = 'none';
-  document.getElementById('mainMenu').style.display = 'block';
-  speak("Audio unlocked. Main menu. Quick Play, Franchise, Practice, Ultimate Team, Settings.");
-});
-
-// Main menu
-function openQuickPlay() { document.getElementById('mainMenu').style.display='none'; document.getElementById('quickPlayMenu').style.display='block'; speak("Quick Play menu. Choose Play Now, Pro Bowl, or Super Bowl 59: Chiefs vs Eagles."); }
-function openFranchise() { document.getElementById('mainMenu').style.display='none'; speak("Franchise mode. Start new franchise or continue if you have one."); }
-function openPractice() { document.getElementById('mainMenu').style.display='none'; speak("Practice mode. Choose drills or free play."); }
-function openUltimateTeam() { document.getElementById('mainMenu').style.display='none'; speak("Ultimate Team mode. Coming soon."); }
-function openSettings() { document.getElementById('mainMenu').style.display='none'; document.getElementById('settingsMenu').style.display='block'; speak("Settings menu. Choose difficulty, quarter length, game speed, and adjust crowd volume."); }
-function backToMain() { document.getElementById('mainMenu').style.display='block'; document.getElementById('quickPlayMenu').style.display='none'; document.getElementById('settingsMenu').style.display='none'; document.getElementById('playbookMenu').style.display='none'; speak("Main menu. Quick Play, Franchise, Practice, Ultimate Team, Settings."); }
-
-// Quick Play Start
-function startPlay(type) { speak(`Starting ${type}. First and 10 at the 25-yard line.`); commentaryDiv.innerHTML=`Game started: ${type}. First and 10 at the 25-yard line.`; document.getElementById('playbookMenu').style.display='flex'; currentPlayIndex=0; showCurrentPlay(); }
+// Populate Away Team placeholder
+const awaySelect = document.getElementById('awayTeamSelect');
 
 // Playbook
 const plays = ["Inside Zone Run","Outside Zone Run","QB Sneak","Short Pass","Deep Pass","Screen Pass"];
 let currentPlayIndex=0;
+
+// Crowd volume (placeholder)
+let crowdVolume=0.5;
+
+// Initial tap to unlock
+document.getElementById('startGameBtn').addEventListener('click', ()=>{
+  document.getElementById('startScreen').style.display='none';
+  document.getElementById('mainMenu').style.display='block';
+  speak("Audio unlocked. Main menu. Quick Play, Franchise, Practice, Ultimate Team, Settings.");
+});
+
+// TTS function
+function speak(text){ if('speechSynthesis' in window){ const msg=new SpeechSynthesisUtterance(text); window.speechSynthesis.cancel(); window.speechSynthesis.speak(msg); }}
+
+// Main Menu
+function openQuickPlay(){
+  document.getElementById('mainMenu').style.display='none';
+  document.getElementById('quickPlayMenu').style.display='block';
+  speak("Quick Play menu. Choose Home team.");
+}
+
+function openFranchise(){
+  document.getElementById('mainMenu').style.display='none';
+  document.getElementById('franchiseMenu').style.display='flex';
+  loadFranchiseMenu();
+}
+
+function openPractice(){ document.getElementById('mainMenu').style.display='none'; speak("Practice mode coming soon."); }
+function openUltimateTeam(){ document.getElementById('mainMenu').style.display='none'; speak("Ultimate Team mode coming soon."); }
+function openSettings(){ document.getElementById('mainMenu').style.display='none'; document.getElementById('settingsMenu').style.display='block'; speak("Settings menu. Choose difficulty, quarter length, game speed, adjust crowd volume."); }
+function backToMain(){ document.getElementById('mainMenu').style.display='block'; document.getElementById('quickPlayMenu').style.display='none'; document.getElementById('settingsMenu').style.display='none'; document.getElementById('playbookMenu').style.display='none'; document.getElementById('franchiseMenu').style.display='none'; speak("Main menu. Quick Play, Franchise, Practice, Ultimate Team, Settings."); }
+
+// Quick Play Start
+function startQuickPlay(){
+  // Random away team
+  let homeTeam=homeSelect.value;
+  let awayOptions=teams.filter(t=>t!==homeTeam);
+  let awayTeam=awayOptions[Math.floor(Math.random()*awayOptions.length)];
+  awaySelect.innerHTML='';
+  let option=document.createElement('option'); option.innerText=awayTeam; option.value=awayTeam; awaySelect.appendChild(option);
+  speak(`Starting Quick Play. Home: ${homeTeam}. Away: ${awayTeam}. First and 10 at the 25-yard line.`);
+  commentaryDiv.innerHTML=`Quick Play: ${homeTeam} vs ${awayTeam}. First and 10 at the 25-yard line.`;
+  document.getElementById('playbookMenu').style.display='flex';
+  currentPlayIndex=0; showCurrentPlay();
+}
+
+// Playbook
 function showCurrentPlay(){ document.getElementById('playName').innerText=plays[currentPlayIndex]; speak(plays[currentPlayIndex]); }
 let touchStartX=null;
 document.addEventListener('touchstart',e=>{touchStartX=e.touches[0].clientX;});
 document.addEventListener('touchend',e=>{
   if(touchStartX===null) return;
-  const delta=touchStartX-e.changedTouches[0].clientX;
+  let delta=touchStartX-e.changedTouches[0].clientX;
   if(delta>30) currentPlayIndex=(currentPlayIndex+1)%plays.length;
   else if(delta<-30) currentPlayIndex=(currentPlayIndex-1+plays.length)%plays.length;
-  showCurrentPlay();
-  touchStartX=null;
+  showCurrentPlay(); touchStartX=null;
 });
 
-// Choose Play
-function choosePlay() {
+function choosePlay(){
   const selectedPlay=plays[currentPlayIndex];
   commentaryDiv.innerHTML+=`<br>Selected: ${selectedPlay}`;
   if(!document.getElementById('executePlayBtn')){
@@ -148,26 +190,35 @@ function choosePlay() {
   }
 }
 
-// Execute Play — **Crowd audio plays first on tap**
+// Execute Play
 function executePlay(play){
-  crowdAudio.currentTime=0;
-  crowdAudio.play().then(() => {
-    setTimeout(()=>simulatePlay(play), 100); // small delay for TTS
-  }).catch(()=>console.log("Audio blocked"));
+  // Outcome randomization
+  let outcome="";
+  if(play.includes("Run")) outcome=Math.random()>0.5?"Gain 5 yards!":"Loss 2 yards!";
+  else outcome=Math.random()>0.5?"Complete! Gain 10 yards!":"Incomplete pass!";
+  speak(outcome);
+  commentaryDiv.innerHTML+=`<br>${play}: ${outcome}`;
   document.getElementById('executePlayBtn').remove();
 }
 
-// Simulate outcome
-function simulatePlay(play){
-  let outcome="";
-  if(play.includes("Run")) outcome = Math.random()>0.5 ? "Gain 5 yards!" : "Loss 2 yards!";
-  else if(play.includes("Pass")) outcome = Math.random()>0.5 ? "Complete! Gain 10 yards!" : "Incomplete pass!";
-  speak(outcome);
-  commentaryDiv.innerHTML+=`<br>${play}: ${outcome}`;
+function endDrive(){ speak("Drive ended. Returning to Quick Play menu."); document.getElementById('playbookMenu').style.display='none';}
+
+// Franchise Menu
+function loadFranchiseMenu(){
+  const container=document.getElementById('franchiseOptions');
+  container.innerHTML='';
+  let startBtn=document.createElement('button'); startBtn.innerText='Start New Franchise'; startBtn.onclick=startNewFranchise;
+  container.appendChild(startBtn);
+  // For now, assume no continue option
+  speak("Franchise mode. Start New Franchise.");
 }
 
-// End drive
-function endDrive(){ speak("Drive ended. Returning to Quick Play menu."); document.getElementById('playbookMenu').style.display='none'; }
+function startNewFranchise(){
+  // Team selection
+  commentaryDiv.innerHTML='Franchise mode started.';
+  speak("Select your team for the franchise.");
+  // You could add roster type and starting point combo boxes here
+}
 </script>
 
 </body>
