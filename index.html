@@ -1,230 +1,135 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Madden Style Football</title>
-  <style>
-    button, select { display:block; margin:10px; font-size:18px; }
-    /* New styles for the playbook and result screens */
-    #game, #teamSelection, #playbook, #playResult { display:none; }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Accessible Madden Prototype</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    background: #111;
+    color: #fff;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+  }
+  .menu, .submenu {
+    margin: 10px 0;
+  }
+  button, select {
+    font-size: 1.2em;
+    margin: 5px;
+    padding: 10px 20px;
+  }
+</style>
 </head>
 <body>
-<h1>Madden Style Football</h1>
 
-<div id="menu" role="navigation" aria-label="Main Menu">
-  <button id="quickPlayBtn" aria-label="Start Quick Play">Quick Play</button>
-  <button id="franchiseBtn" aria-label="Start Franchise Mode">Franchise</button>
+<h1>Accessible Madden Prototype</h1>
+
+<!-- Main Menu -->
+<div id="mainMenu" class="menu">
+  <button onclick="openQuickPlay()">Quick Play</button>
+  <button onclick="openFranchise()">Franchise</button>
+  <button onclick="openPractice()">Practice</button>
+  <button onclick="openUltimateTeam()">Ultimate Team</button>
+  <button onclick="openSettings()">Settings</button>
 </div>
 
-<div id="teamSelection" aria-label="Team Selection">
-  <h3>Select Teams</h3>
-  <label for="homeTeamSelect">Home Team:</label>
-  <select id="homeTeamSelect"></select>
-
-  <label for="awayTeamSelect">Away Team:</label>
-  <select id="awayTeamSelect"></select>
-
-  <button id="startGameBtn" aria-label="Start Game">Start Game</button>
+<!-- Quick Play Menu -->
+<div id="quickPlayMenu" class="submenu" style="display:none;">
+  <button onclick="startPlay('Play Now')">Play Now</button>
+  <button onclick="startPlay('Pro Bowl')">Pro Bowl</button>
+  <button onclick="startPlay('Super Bowl 59: Chiefs vs Eagles')">Super Bowl 59</button>
+  <button onclick="backToMain()">Back</button>
 </div>
 
-<div id="game">
-  <div id="scoreboard" aria-live="polite"></div>
-  <div id="situation" aria-live="polite"></div>
-  <div id="playbook">
-    <h3>Choose a Play:</h3>
-    <button id="runPlayBtn">Run Play</button>
-    <button id="shortPassBtn">Short Pass</button>
-    <button id="longPassBtn">Long Pass</button>
-  </div>
-  <div id="playResult">
-    <p id="resultText"></p>
-    <button id="nextPlayBtn">Next Play</button>
-  </div>
+<!-- Settings Menu -->
+<div id="settingsMenu" class="submenu" style="display:none;">
+  <label for="difficulty">Difficulty:</label>
+  <select id="difficulty">
+    <option>Rookie</option>
+    <option>Pro</option>
+    <option>All-Pro</option>
+    <option>All-Madden</option>
+  </select><br>
+  
+  <label for="quarterLength">Quarter Length (min):</label>
+  <select id="quarterLength">
+    <option>2</option>
+    <option selected>5</option>
+    <option>10</option>
+    <option>15</option>
+  </select><br>
+
+  <label for="gameSpeed">Game Speed:</label>
+  <select id="gameSpeed">
+    <option>Slow</option>
+    <option selected>Normal</option>
+    <option>Fast</option>
+  </select><br>
+
+  <button onclick="backToMain()">Back</button>
+</div>
+
+<!-- Commentary Area -->
+<div id="commentary" style="margin-top:20px; max-width: 500px;">
 </div>
 
 <script>
-window.onload = function() {
-  const menuScreen = document.getElementById("menu");
-  const teamSelectionScreen = document.getElementById("teamSelection");
-  const gameScreen = document.getElementById("game");
+const commentaryDiv = document.getElementById('commentary');
 
-  const quickPlayBtn = document.getElementById("quickPlayBtn");
-  const franchiseBtn = document.getElementById("franchiseBtn");
-  const startGameBtn = document.getElementById("startGameBtn");
+function openQuickPlay() {
+  document.getElementById('mainMenu').style.display = 'none';
+  document.getElementById('quickPlayMenu').style.display = 'block';
+  speak("Quick Play menu. Choose Play Now, Pro Bowl, or Super Bowl 59: Chiefs vs Eagles.");
+}
 
-  const homeSelect = document.getElementById("homeTeamSelect");
-  const awaySelect = document.getElementById("awayTeamSelect");
+function openFranchise() {
+  document.getElementById('mainMenu').style.display = 'none';
+  speak("Franchise mode. Start new franchise or continue if you have one.");
+  // Placeholder: show team selection in next iteration
+}
 
-  const scoreboardDiv = document.getElementById("scoreboard");
-  const situationDiv = document.getElementById("situation");
+function openPractice() {
+  document.getElementById('mainMenu').style.display = 'none';
+  speak("Practice mode. Choose drills or free play.");
+}
 
-  // New DOM elements for the playbook
-  const playbookScreen = document.getElementById("playbook");
-  const runPlayBtn = document.getElementById("runPlayBtn");
-  const shortPassBtn = document.getElementById("shortPassBtn");
-  const longPassBtn = document.getElementById("longPassBtn");
-  const playResultScreen = document.getElementById("playResult");
-  const resultText = document.getElementById("resultText");
-  const nextPlayBtn = document.getElementById("nextPlayBtn");
+function openUltimateTeam() {
+  document.getElementById('mainMenu').style.display = 'none';
+  speak("Ultimate Team mode. Coming soon.");
+}
 
+function openSettings() {
+  document.getElementById('mainMenu').style.display = 'none';
+  document.getElementById('settingsMenu').style.display = 'block';
+  speak("Settings menu. Choose difficulty, quarter length, and game speed.");
+}
 
-  const teams = [
-    "49ers", "Eagles", "Cowboys", "Packers", "Chiefs", "Bills", "Bengals", "Ravens",
-    "Steelers", "Browns", "Jets", "Giants", "Dolphins", "Patriots", "Chargers", "Raiders",
-    "Broncos", "Texans", "Titans", "Colts", "Jaguars", "Commanders", "Seahawks", "Rams",
-    "Cardinals", "Lions", "Vikings", "Bears", "Saints", "Falcons", "Panthers", "Buccaneers"
-  ];
+function backToMain() {
+  document.getElementById('mainMenu').style.display = 'block';
+  document.getElementById('quickPlayMenu').style.display = 'none';
+  document.getElementById('settingsMenu').style.display = 'none';
+  speak("Main menu. Quick Play, Franchise, Practice, Ultimate Team, Settings.");
+}
 
-  teams.forEach(team => {
-    let optHome = document.createElement("option");
-    optHome.value = team;
-    optHome.textContent = team;
-    homeSelect.appendChild(optHome);
+function startPlay(type) {
+  speak(`Starting ${type}. First down and ten at the 25-yard line. Choose your play.`);
+  commentaryDiv.innerHTML = `Game started: ${type}. Commentary will appear here.`;
+}
 
-    let optAway = document.createElement("option");
-    optAway.value = team;
-    optAway.textContent = team;
-    awaySelect.appendChild(optAway);
-  });
-  homeSelect.value = "49ers";
-  awaySelect.value = "Chiefs";
-
-  let homeTeam = homeSelect.value, awayTeam = awaySelect.value;
-  let homeScore = 0, awayScore = 0;
-  let possession = "home", currentDown = 1, yardsToFirst = 10, ballPosition = 25, quarter = 1;
-
-  quickPlayBtn.addEventListener("click", () => {
-    menuScreen.style.display = "none";
-    teamSelectionScreen.style.display = "block";
-  });
-
-  franchiseBtn.addEventListener("click", () => {
-    alert("Franchise mode is not yet implemented.");
-  });
-
-  startGameBtn.addEventListener("click", () => {
-    homeTeam = homeSelect.value;
-    awayTeam = awaySelect.value;
-    teamSelectionScreen.style.display = "none";
-    gameScreen.style.display = "block";
-    startGame();
-  });
-
-  // NEW: Event listeners for the playbook buttons
-  runPlayBtn.addEventListener("click", () => runPlay('run'));
-  shortPassBtn.addEventListener("click", () => runPlay('short_pass'));
-  longPassBtn.addEventListener("click", () => runPlay('long_pass'));
-  nextPlayBtn.addEventListener("click", () => {
-    playResultScreen.style.display = "none";
-    playbookScreen.style.display = "block";
-    updateSituation(); // Update situation for the next down
-  });
-
-  function updateScoreboard() {
-    scoreboardDiv.innerHTML = `
-      <p>${homeTeam}: ${homeScore} - ${awayTeam}: ${awayScore}</p>
-      <p>Quarter: ${quarter}</p>
-    `;
-    updateSituation();
+// Simple text-to-speech
+function speak(text) {
+  if ('speechSynthesis' in window) {
+    const msg = new SpeechSynthesisUtterance(text);
+    window.speechSynthesis.cancel(); // cancel any previous speech
+    window.speechSynthesis.speak(msg);
   }
-
-  function updateSituation() {
-    let teamWithBall = (possession === "home") ? homeTeam : awayTeam;
-    situationDiv.innerHTML = `
-      <p>Possession: ${teamWithBall}</p>
-      <p>Down: ${currentDown}</p>
-      <p>Yards to First Down: ${yardsToFirst}</p>
-      <p>Ball on the ${ballPosition} yard line</p>
-    `;
-  }
-
-  function startGame() {
-    homeScore = 0;
-    awayScore = 0;
-    possession = "home";
-    currentDown = 1;
-    yardsToFirst = 10;
-    ballPosition = 25;
-    quarter = 1;
-    updateScoreboard();
-    // NEW: Show the playbook screen at the start of the game
-    playbookScreen.style.display = "block";
-  }
-
-  // NEW: Function to run a selected offensive play
-  function runPlay(playType) {
-    let yardsGained;
-    let playName;
-
-    // Hide the playbook and show the result screen
-    playbookScreen.style.display = "none";
-    playResultScreen.style.display = "block";
-
-    switch(playType) {
-      case 'run':
-        playName = "Run Up the Middle";
-        yardsGained = Math.floor(Math.random() * 8) + 1; // Gains 1 to 8 yards
-        break;
-      case 'short_pass':
-        playName = "Short Pass";
-        yardsGained = Math.floor(Math.random() * 10) + 3; // Gains 3 to 12 yards
-        break;
-      case 'long_pass':
-        playName = "Long Pass";
-        yardsGained = Math.floor(Math.random() * 25) - 5; // Can be a loss or a big gain
-        break;
-    }
-
-    // Check for negative yards to make the message sound right
-    const yardsMessage = (yardsGained >= 0) ? `${yardsGained} yards` : `${Math.abs(yardsGained)} yards lost`;
-    resultText.textContent = `${playName} for ${yardsMessage}!`;
-
-    updateGameState(yardsGained);
-  }
-
-  // NEW: Function to update the game variables after a play
-  function updateGameState(yardsGained) {
-    yardsToFirst -= yardsGained;
-    ballPosition += yardsGained;
-
-    // Check for a first down
-    if (yardsToFirst <= 0) {
-      resultText.textContent += " First Down!";
-      currentDown = 1;
-      yardsToFirst = 10;
-    } else {
-      currentDown++;
-    }
-
-    // Check for touchdown
-    if (ballPosition >= 100) {
-      // Logic for a touchdown
-      resultText.textContent = `TOUCHDOWN!`;
-      homeScore += 7; // Award 7 points for a TD
-      // Reset for the next possession
-      currentDown = 1;
-      yardsToFirst = 10;
-      ballPosition = 25;
-      // Change possession to the other team for the next drive
-      possession = (possession === "home") ? "away" : "home";
-      updateScoreboard();
-      // Disable the "Next Play" button for a moment, or change its text
-      nextPlayBtn.textContent = "Start Next Drive";
-    }
-
-    // Check for turnover on downs (4th down and still no first down)
-    if (currentDown > 4) {
-      resultText.textContent = "Turnover on Downs!";
-      // Change possession
-      possession = (possession === "home") ? "away" : "home";
-      // The ball is now at the spot of the last play
-      currentDown = 1;
-      yardsToFirst = 10;
-      updateScoreboard();
-      nextPlayBtn.textContent = "Start Next Drive";
-    }
-  }
-};
+}
 </script>
+
 </body>
 </html>
