@@ -4,7 +4,7 @@
   <title>Madden Style Football</title>
   <style>
     button, select { display:block; margin:10px; font-size:18px; }
-    #game, #teamSelection, #nextQuarterBtn { display:none; }
+    #game, #teamSelection { display:none; }
   </style>
 </head>
 <body>
@@ -19,12 +19,7 @@
 <!-- Team Selection -->
 <div id="teamSelection" aria-label="Team Selection">
   <h3>Select Teams</h3>
-  <label for="homeTeamSelect">Home Team:</label>
-  <select id="homeTeamSelect"></select>
-
-  <label for="awayTeamSelect">Away Team:</label>
-  <select id="awayTeamSelect"></select>
-
+  <label>Home Team: 49ers (fixed)</label>
   <button id="startGameBtn" aria-label="Start Game">Start Game</button>
 </div>
 
@@ -32,68 +27,56 @@
 <div id="game">
   <div id="scoreboard" aria-live="polite"></div>
   <div id="situation" aria-live="polite"></div>
+  <div id="quarterDisplay" aria-live="polite"></div>
   <div id="aiAnnounce" aria-live="polite" style="position:absolute; left:-9999px;"></div>
+
+  <button id="nextQuarterBtn">Next Quarter</button>
 
   <!-- Offensive Playbook -->
   <div id="offensePlays" aria-label="Offensive Playbook">
     <h3>Offensive Playbook</h3>
-    <button id="runPlayBtn" aria-label="Run Play">Run Play</button>
-    <button id="shortPassBtn" aria-label="Short Pass Play">Short Pass</button>
-    <button id="longPassBtn" aria-label="Long Pass Play">Long Pass</button>
-    <button id="drawBtn" aria-label="Draw Play">Draw</button>
-    <button id="playActionBtn" aria-label="Play Action Pass">Play Action</button>
+    <button id="runPlayBtn">Run Play</button>
+    <button id="shortPassBtn">Short Pass</button>
+    <button id="longPassBtn">Long Pass</button>
+    <button id="drawBtn">Draw</button>
+    <button id="playActionBtn">Play Action</button>
   </div>
 
   <!-- Defensive Playbook -->
   <div id="defensePlays" aria-label="Defensive Playbook">
     <h3>Defensive Playbook</h3>
-    <button id="blitzBtn" aria-label="Blitz Defense">Blitz</button>
-    <button id="zoneBtn" aria-label="Zone Defense">Zone</button>
-    <button id="manBtn" aria-label="Man Coverage Defense">Man Coverage</button>
-    <button id="preventBtn" aria-label="Prevent Defense">Prevent</button>
+    <button id="blitzBtn">Blitz</button>
+    <button id="zoneBtn">Zone</button>
+    <button id="manBtn">Man Coverage</button>
+    <button id="preventBtn">Prevent</button>
   </div>
 
   <!-- Fourth Down Options -->
   <div id="fourthDownOptions" aria-label="Fourth Down Options">
     <h3>Fourth Down Options</h3>
-    <button id="fieldGoalBtn" aria-label="Kick Field Goal">Kick Field Goal</button>
-    <button id="puntBtn" aria-label="Punt Ball">Punt</button>
-    <button id="goForItBtn" aria-label="Go For It on Fourth Down">Go For It</button>
+    <button id="fieldGoalBtn">Kick Field Goal</button>
+    <button id="puntBtn">Punt</button>
+    <button id="goForItBtn">Go For It</button>
   </div>
-
-  <button id="nextQuarterBtn" aria-label="Next Quarter">Next Quarter</button>
 </div>
 
 <script>
 window.onload=function(){
-  // ==== TEAMS ====
+  // TEAMS
   const teams = [
     "Eagles","Cowboys","Packers","Chiefs","Bills","Bengals","Ravens",
     "Steelers","Browns","Jets","Giants","Dolphins","Patriots","Chargers","Raiders",
     "Broncos","Texans","Titans","Colts","Jaguars","Commanders","Seahawks","Rams",
     "Cardinals","Lions","Vikings","Bears","Saints","Falcons","Panthers","Buccaneers"
   ];
-  const homeSelect=document.getElementById("homeTeamSelect");
-  const awaySelect=document.getElementById("awayTeamSelect");
-  homeSelect.innerHTML='<option value="49ers">49ers</option>';
-  teams.forEach(team=>{
-    let opt=document.createElement("option");
-    opt.value=opt.textContent=team;
-    awaySelect.appendChild(opt);
-  });
 
-  // ==== GAME STATE ====
-  let homeTeam="49ers", awayTeam="", homeScore=0, awayScore=0;
+  let homeTeam = "49ers";
+  let awayTeam = teams[Math.floor(Math.random()*teams.length)];
+  let homeScore=0, awayScore=0;
   let lastAnnouncedHomeScore=0, lastAnnouncedAwayScore=0;
   let possession="home", currentDown=1, yardsToFirst=10, ballPosition=25, quarter=1;
   let defenseChoice="zone";
-  let players49ers=[
-    "Trey Lance","Christian McCaffrey","Deebo Samuel","George Kittle",
-    "Brandon Aiyuk","Jauan Jennings","Trey Sermon","Elijah Mitchell",
-    "Tommy Tremble","Kyle Juszczyk"
-  ];
 
-  // Hosted audio files
   const sounds={
     whistle:"https://cdn.pixabay.com/download/audio/2023/03/20/audio_d1f019a63f.mp3?filename=whistle-6287.mp3",
     crowdFirstDown:"https://cdn.pixabay.com/download/audio/2023/03/20/audio_6b2f015d13.mp3?filename=crowd-cheer-1st-down-6290.mp3",
@@ -101,11 +84,12 @@ window.onload=function(){
     tackle:"https://cdn.pixabay.com/download/audio/2023/03/20/audio_9a8b4b6c48.mp3?filename=tackle-6288.mp3",
     kick:"https://cdn.pixabay.com/download/audio/2023/03/20/audio_4ef9f3e3f0.mp3?filename=kick-6289.mp3"
   };
+
   let audioElements={};
   for(let key in sounds){audioElements[key]=new Audio(sounds[key]);}
   function playSound(key){let a=audioElements[key]; a.currentTime=0; a.play();}
 
-  function announce(msg,ai=false){
+  function announce(msg, ai=false){
     const t=ai?document.getElementById('aiAnnounce'):document.getElementById('situation');
     t.innerText=msg;
   }
@@ -125,28 +109,40 @@ window.onload=function(){
     document.getElementById('situation').innerText=`${currentDown} and ${yardsToFirst} at the ${ballPosition} yard line. ${teamWithBall} ball.`;
   }
 
+  // Start Quick Play
   function startQuickPlay(){
     document.getElementById('menu').style.display='none';
     document.getElementById('teamSelection').style.display='block';
-    announce("Quick Play selected. Home: 49ers, select away team.");
+    announce("Quick Play selected. Home team is 49ers, away team randomized.");
   }
 
   function startGame(){
-    awayTeam=document.getElementById('awayTeamSelect').value;
-    homeScore=awayScore=0; lastAnnouncedHomeScore=lastAnnouncedAwayScore=0;
-    possession="home"; currentDown=1; yardsToFirst=10; ballPosition=25; quarter=1;
     document.getElementById('teamSelection').style.display='none';
     document.getElementById('game').style.display='block';
     document.getElementById('offensePlays').style.display='block';
     document.getElementById('defensePlays').style.display='none';
-    document.getElementById('nextQuarterBtn').style.display='block';
     announce(`Game starting. ${homeTeam} vs ${awayTeam}. ${homeTeam} has the ball at the ${ballPosition} yard line.`);
-    playSound('whistle');
-    updateScore();
+    updateScore(false);
     updateSituation();
+    playSound('whistle');
   }
 
-  function callPlay(playType,ai=false){
+  // Next Quarter
+  document.getElementById('nextQuarterBtn').onclick = function(){
+    quarter++;
+    if(quarter===3){
+      announce("Halftime Show!"); playSound('crowdFirstDown'); showStats();
+    } else if(quarter>4){
+      announce(`Game Over! Final Score: ${homeTeam} ${homeScore}, ${awayTeam} ${awayScore}`);
+    } else {
+      announce(`Starting Quarter ${quarter}`);
+    }
+  }
+
+  function showStats(){announce(`Stats: ${homeTeam} ${homeScore}, ${awayTeam} ${awayScore}. Ball at ${ballPosition}`);}
+
+  // Play logic (simplified)
+  function callPlay(playType, ai=false){
     let yards=0;
     if(playType==='run') yards=Math.floor(Math.random()*3)+2;
     else if(playType==='shortPass') yards=Math.floor(Math.random()*6)+10;
@@ -154,64 +150,31 @@ window.onload=function(){
     else if(playType==='draw') yards=Math.floor(Math.random()*3)+2;
     else if(playType==='playAction') yards=Math.floor(Math.random()*11)+10;
     else if(playType==='goForIt') yards=Math.floor(Math.random()*10)+1;
-    if(yards<0) yards=0;
 
     ballPosition+=yards; yardsToFirst-=yards;
 
-    let player=(possession==="home")?players49ers[Math.floor(Math.random()*players49ers.length)]:"";
-    let msg=`${(possession==="home"?homeTeam:awayTeam)}${player? ' - ' + player: ''} gained ${yards} yards. `;
+    let msg=`${(possession==="home"?homeTeam:awayTeam)} gained ${yards} yards. `;
     let scored=false;
     if(ballPosition>=100){msg+="Touchdown!"; scored=true; playSound('crowdTD'); if(possession==="home") homeScore+=7; else awayScore+=7; changePossession(true);}
     else if(yardsToFirst<=0){currentDown=1; yardsToFirst=10; msg+="First down!"; playSound('crowdFirstDown');}
     else{currentDown++; if(currentDown>4){msg+="Turnover on downs."; changePossession();}}
 
-    updateSituation();
-    announce(msg+` Current down: ${currentDown}, ${yardsToFirst} yards to first down, ball at ${ballPosition} yard line.`,ai);
-    playSound('tackle'); 
-    if(scored) updateScore(true);
+    updateSituation(); announce(msg+` Current down: ${currentDown}, ${yardsToFirst} yards to first down, ball at ${ballPosition} yard line.`,ai);
+    playSound('tackle'); if(scored) updateScore(true);
 
     if(possession!=="home"&&!ai) autoPlay();
   }
 
-  function autoPlay(){
-    if(possession==="home") return;
-    const plays=['run','shortPass','longPass','draw','playAction'];
-    let play=plays[Math.floor(Math.random()*plays.length)];
-    setTimeout(()=>callPlay(play,true),500);
-    setTimeout(autoPlay,1000);
-  }
+  function autoPlay(){if(possession==="home") return; const plays=['run','shortPass','longPass','draw','playAction']; let play=plays[Math.floor(Math.random()*plays.length)]; setTimeout(()=>callPlay(play,true),500); setTimeout(autoPlay,1000);}
 
-  function changePossession(reset=false){
-    possession=(possession==="home")?"away":"home";
-    currentDown=1; yardsToFirst=10;
-    ballPosition=reset?25:100-ballPosition;
-    updateSituation();
-    if(possession!=="home") autoPlay();
-  }
+  function changePossession(reset=false){possession=(possession==="home")?"away":"home"; currentDown=1; yardsToFirst=10; ballPosition=reset?25:100-ballPosition; updateSituation(); if(possession!=="away") autoPlay();}
 
-  function punt(){
-    let puntYards=Math.floor(Math.random()*20)+40;
-    ballPosition=100-puntYards;
-    changePossession();
-    announce(`Punt goes ${puntYards} yards. ${(possession==="home"?homeTeam:awayTeam)} takes over at the ${ballPosition} yard line.`,true);
-    playSound('kick');
-  }
-
-  function fieldGoal(){
-    if(ballPosition>=60){
-      announce("Field goal is good!",true);
-      playSound('kick');
-      if(possession==="home") homeScore+=3; else awayScore+=3;
-      updateScore(true);
-      changePossession(true);
-    } else announce("Field goal is no good.",true);
-  }
-
+  function punt(){let puntYards=Math.floor(Math.random()*20)+40; ballPosition=100-puntYards; changePossession(); announce(`Punt goes ${puntYards} yards. ${(possession==="home"?homeTeam:awayTeam)} takes over at ${ballPosition}`,true); playSound('kick');}
+  function fieldGoal(){if(ballPosition>=60){announce("Field goal is good!",true); playSound('kick'); if(possession==="home") homeScore+=3; else awayScore+=3; updateScore(true);} else announce("Field goal is no good.",true); changePossession(true);}
   function startFranchise(){announce("Franchise Mode coming soon!");}
 
-  // ==== BUTTONS ====
+  // BUTTONS
   document.getElementById('quickPlayBtn').onclick=startQuickPlay;
-  document.getElementById('franchiseBtn').onclick=startFranchise;
   document.getElementById('startGameBtn').onclick=startGame;
   document.getElementById('runPlayBtn').onclick=()=>{playSound('whistle'); callPlay('run');};
   document.getElementById('shortPassBtn').onclick=()=>{playSound('whistle'); callPlay('shortPass');};
@@ -225,7 +188,7 @@ window.onload=function(){
   document.getElementById('fieldGoalBtn').onclick=fieldGoal;
   document.getElementById('puntBtn').onclick=punt;
   document.getElementById('goForItBtn').onclick=()=>{playSound('whistle'); callPlay('goForIt');};
-  document.getElementById('nextQuarterBtn').onclick=()=>{quarter++; announce(`Starting Quarter ${quarter}`); ballPosition=25; currentDown=1; yardsToFirst=10; updateSituation();};
+  document.getElementById('franchiseBtn').onclick=startFranchise;
 
 };
 </script>
