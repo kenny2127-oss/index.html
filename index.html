@@ -185,21 +185,13 @@ function startPlay(type) {
 function triggerCrowd(eventType) {
   if(eventType === 'touchdown') { 
     speak("Touchdown! Crowd erupts!"); 
-    playCrowdSound();
   }
   else if(eventType === 'interception') { 
     speak("Turnover! Crowd reacts!"); 
-    playCrowdSound();
   }
   else if(eventType === 'startDrive') { 
     speak("The crowd is ready as the 49ers take the field!"); 
-    playCrowdSound();
   }
-}
-
-function playCrowdSound() {
-  crowdAudio.currentTime = 0;
-  crowdAudio.play().catch(() => { console.log("Audio blocked. Tap the screen once to enable."); });
 }
 
 // Playbook
@@ -227,8 +219,30 @@ document.addEventListener('touchend', e => {
 // Choose play
 function choosePlay() {
   const selectedPlay = plays[currentPlayIndex];
-  speak(`You selected ${selectedPlay}.`);
-  simulatePlay(selectedPlay);
+  commentaryDiv.innerHTML += `<br>Selected: ${selectedPlay}`;
+
+  // Create tap-to-execute button
+  let executeBtn = document.getElementById('executePlayBtn');
+  if(!executeBtn){
+    executeBtn = document.createElement('button');
+    executeBtn.id = 'executePlayBtn';
+    executeBtn.innerText = 'Tap to Execute Play';
+    executeBtn.onclick = () => executePlay(selectedPlay);
+    document.getElementById('playbookMenu').appendChild(executeBtn);
+  }
+}
+
+function executePlay(play) {
+  // Play crowd sound directly on tap
+  crowdAudio.currentTime = 0;
+  crowdAudio.play().catch(()=>{ console.log("Audio blocked"); });
+
+  // Simulate play outcome
+  simulatePlay(play);
+
+  // Remove button after execution
+  const btn = document.getElementById('executePlayBtn');
+  if(btn) btn.remove();
 }
 
 // Simulate play outcome
@@ -238,9 +252,6 @@ function simulatePlay(play) {
   else if(play.includes("Pass")) outcome = Math.random() > 0.5 ? "Complete! Gain 10 yards!" : "Incomplete pass!";
   speak(outcome);
   commentaryDiv.innerHTML += `<br>${play}: ${outcome}`;
-  // Crowd reacts
-  if(outcome.includes("Gain") || outcome.includes("Complete")) triggerCrowd('startDrive');
-  else if(outcome.includes("Loss") || outcome.includes("Incomplete")) triggerCrowd('interception');
 }
 
 // End drive
