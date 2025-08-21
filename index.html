@@ -167,10 +167,14 @@ function backToMain() {
 
 // Quick Play Start
 function startPlay(type) {
-  speak(`Starting ${type}. First down and ten at the 25-yard line. Choose your play.`);
-  commentaryDiv.innerHTML = `Game started: ${type}. Commentary will appear here.`;
+  speak(`Starting ${type}. First and 10 at the 25-yard line. Choose your play.`);
+  commentaryDiv.innerHTML = `Game started: ${type}. First and 10 at the 25-yard line.`;
   triggerCrowd('startDrive');
-  openPlaybook();
+
+  // Show playbook immediately
+  document.getElementById('playbookMenu').style.display = 'flex';
+  currentPlayIndex = 0;
+  showCurrentPlay();
 }
 
 // Crowd reactions
@@ -183,11 +187,6 @@ function triggerCrowd(eventType) {
 // Playbook Implementation
 const plays = ["Inside Zone Run", "Outside Zone Run", "QB Sneak", "Short Pass", "Deep Pass", "Screen Pass"];
 let currentPlayIndex = 0;
-
-function openPlaybook() {
-  document.getElementById('playbookMenu').style.display = 'flex';
-  showCurrentPlay();
-}
 
 function showCurrentPlay() {
   document.getElementById('playName').innerText = plays[currentPlayIndex];
