@@ -3,490 +3,271 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Madden Mobile</title>
-    <!-- Use Inter font from Google Fonts -->
+    <title>Madden-Style Team Selection</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
-    <!-- Use Tailwind CSS for modern styling and responsive design -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #1e293b;
+            background: #111827;
             color: white;
-        }
-        /* Custom styles for a Madden-like feel */
-        .madden-bg {
-            background-color: #1e293b;
-        }
-        .madden-heading {
-            text-shadow: 2px 2px 4px #000000;
-        }
-        .madden-button {
-            background-color: #ef4444; /* A classic red accent */
-            transition: all 0.2s ease-in-out;
-        }
-        .madden-button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-        }
-        /* Football field specific styles */
-        .football-field {
-            background-color: #166534; /* Dark green field */
-            background-image: linear-gradient(to right, #166534 0%, #166534 5%, #15803d 5%, #15803d 10%, #166534 10%, #166534 15%, #15803d 15%, #15803d 20%, #166534 20%, #166534 25%, #15803d 25%, #15803d 30%, #166534 30%, #166534 35%, #15803d 35%, #15803d 40%, #166534 40%, #166534 45%, #15803d 45%, #15803d 50%, #166534 50%, #166534 55%, #15803d 55%, #15803d 60%, #166534 60%, #166534 65%, #15803d 65%, #15803d 70%, #166534 70%, #166534 75%, #15803d 75%, #15803d 80%, #166534 80%, #166534 85%, #15803d 85%, #15803d 90%, #166534 90%, #166534 95%, #15803d 95%, #15803d 100%);
-            border: 2px solid white;
-            position: relative;
-            width: 100%;
-            height: 0;
-            padding-top: 100%; /* Creates a square aspect ratio for the field */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
             overflow: hidden;
-            border-radius: 0.5rem;
+            flex-direction: column;
         }
-        .yard-line {
-            background-color: white;
-            position: absolute;
-            height: 100%;
-            width: 2px;
-            top: 0;
+
+        .container {
+            width: 100%;
+            max-width: 600px;
+            padding: 1rem;
         }
-        /* Position the yard lines */
-        .yard-line-50 { left: 50%; }
-        .yard-line-40 { left: 40%; }
-        .yard-line-30 { left: 30%; }
-        .yard-line-20 { left: 20%; }
-        .yard-line-10 { left: 10%; }
-        .yard-line-60 { left: 60%; }
-        .yard-line-70 { left: 70%; }
-        .yard-line-80 { left: 80%; }
-        .yard-line-90 { left: 90%; }
+
+        .screen {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            min-height: 80vh;
+            width: 100%;
+            transition: opacity 0.5s ease-in-out;
+        }
+        
+        .screen.active {
+            display: flex;
+        }
+
+        /* Animations */
+        .slide-in {
+            animation: slideIn 0.5s forwards;
+        }
+        
+        @keyframes slideIn {
+            from {
+                transform: translateY(20px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .fade-out {
+            animation: fadeOut 0.5s forwards;
+        }
+
+        @keyframes fadeOut {
+            from {
+                opacity: 1;
+            }
+            to {
+                opacity: 0;
+            }
+        }
+
+        /* Team Selection Specific Styles */
+        .team-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+
+        .team-card {
+            background-color: #1f2937;
+            border: 2px solid transparent;
+            border-radius: 1rem;
+            overflow: hidden;
+            cursor: pointer;
+            transition: all 0.3s ease-in-out;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .team-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .team-card.selected {
+            border-color: #3b82f6;
+            transform: scale(1.05);
+        }
+
+        .team-logo {
+            width: 100%;
+            height: 100px;
+            object-fit: cover;
+            border-bottom: 2px solid #111827;
+        }
+
+        .team-info {
+            padding: 1rem 0.5rem;
+            text-align: center;
+        }
+
+        .team-info p {
+            font-weight: bold;
+            font-size: 0.875rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            color: #d1d5db;
+        }
     </style>
 </head>
-<body class="madden-bg text-white">
-
-    <!-- Main Container for the entire application, centered and full-screen -->
-    <div class="min-h-screen flex flex-col items-center justify-center p-4">
-
-        <!-- Title Screen -->
-        <div id="title-screen" class="text-center transition-opacity duration-500 ease-in-out">
-            <h1 class="text-7xl font-extrabold mb-12 madden-heading">MADDEN</h1>
-            <button id="start-game-btn" class="madden-button text-xl font-bold py-4 px-8 rounded-full shadow-lg">
-                TOUCH TO START
+<body class="bg-gray-900 text-gray-100 flex items-center justify-center min-h-screen">
+    <div class="container">
+        <!-- Main Menu Screen -->
+        <div id="main-menu" class="screen active">
+            <h1 class="text-4xl font-bold mb-4">Madden-Style App</h1>
+            <p class="text-lg text-gray-400 mb-8">Ready to play?</p>
+            <button id="start-button" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-full shadow-lg transition-all transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-blue-500 focus:ring-opacity-50">
+                Play Now
             </button>
         </div>
 
-        <!-- Main Menu Screen (initially hidden) -->
-        <div id="main-menu" class="text-center transition-opacity duration-500 ease-in-out hidden">
-            <h1 class="text-5xl font-extrabold mb-8 madden-heading">MAIN MENU</h1>
-            <div class="flex flex-col space-y-4 w-full max-w-sm">
-                <button id="quick-play-btn" class="madden-button text-xl font-bold py-4 px-8 rounded-full shadow-lg">
-                    QUICK PLAY
-                </button>
-                <button id="franchise-btn" class="madden-button text-xl font-bold py-4 px-8 rounded-full shadow-lg">
-                    FRANCHISE
-                </button>
-                <button id="ultimate-team-btn" class="madden-button text-xl font-bold py-4 px-8 rounded-full shadow-lg">
-                    ULTIMATE TEAM
-                </button>
-                <button id="multiplayer-btn" class="madden-button text-xl font-bold py-4 px-8 rounded-full shadow-lg">
-                    MULTIPLAYER
-                </button>
-                <button id="settings-btn" class="madden-button text-xl font-bold py-4 px-8 rounded-full shadow-lg">
-                    SETTINGS
-                </button>
+        <!-- Team Selection Screen -->
+        <div id="team-selection" class="screen">
+            <h2 class="text-2xl font-bold mb-4">Choose Your Team</h2>
+            <div class="team-grid" id="team-grid">
+                <!-- Team cards will be dynamically inserted here -->
             </div>
-            <!-- Message box for unimplemented features -->
-            <div id="message-box" class="mt-8 p-4 bg-yellow-600 rounded-lg text-sm text-center hidden"></div>
-        </div>
-
-        <!-- Quick Play Screen (Team Selection) -->
-        <div id="team-selection" class="text-center w-full max-w-sm hidden transition-opacity duration-500 ease-in-out">
-            <h2 class="text-4xl font-bold mb-8">Quick Play</h2>
-            <div class="space-y-6">
-                <!-- Home Team Selection -->
-                <div class="bg-gray-700 p-4 rounded-lg shadow-inner">
-                    <label for="home-team" class="block text-lg font-semibold mb-2">HOME TEAM</label>
-                    <select id="home-team" class="w-full p-3 rounded-lg bg-gray-800 text-white border-none focus:outline-none focus:ring-2 focus:ring-red-500"></select>
-                </div>
-                <!-- Away Team Selection -->
-                <div class="bg-gray-700 p-4 rounded-lg shadow-inner">
-                    <label for="away-team" class="block text-lg font-semibold mb-2">AWAY TEAM</label>
-                    <select id="away-team" class="w-full p-3 rounded-lg bg-gray-800 text-white border-none focus:outline-none focus:ring-2 focus:ring-red-500"></select>
-                </div>
-                <!-- Continue Button -->
-                <button id="continue-btn" class="w-full madden-button text-xl font-bold py-4 px-8 rounded-full shadow-lg">
-                    CONTINUE
-                </button>
-                <!-- Back Button -->
-                <button id="back-to-main-menu" class="w-full text-lg py-3 rounded-full text-gray-400 border-2 border-gray-600">
-                    BACK
-                </button>
-            </div>
-        </div>
-
-        <!-- Game Settings Screen (initially hidden) -->
-        <div id="game-settings" class="text-center w-full max-w-sm hidden transition-opacity duration-500 ease-in-out">
-            <h2 class="text-4xl font-bold mb-8">Game Settings</h2>
-            <div class="space-y-6">
-                <!-- Quarter Length -->
-                <div class="bg-gray-700 p-4 rounded-lg shadow-inner">
-                    <label for="quarter-length" class="block text-lg font-semibold mb-2">QUARTER LENGTH</label>
-                    <select id="quarter-length" class="w-full p-3 rounded-lg bg-gray-800 text-white border-none focus:outline-none focus:ring-2 focus:ring-red-500">
-                        <!-- Quarter length options from 2 to 15 minutes -->
-                        <script>
-                            // Dynamically generate the quarter length options
-                            for (let i = 2; i <= 15; i++) {
-                                const isDefault = i === 6 ? 'selected' : '';
-                                document.write(`<option value="${i}" ${isDefault}>${i} minutes</option>`);
-                            }
-                        </script>
-                    </select>
-                </div>
-                <!-- Time of Day -->
-                <div class="bg-gray-700 p-4 rounded-lg shadow-inner">
-                    <label for="time-of-day" class="block text-lg font-semibold mb-2">TIME OF DAY</label>
-                    <select id="time-of-day" class="w-full p-3 rounded-lg bg-gray-800 text-white border-none focus:outline-none focus:ring-2 focus:ring-red-500">
-                        <option value="10am">10:00 a.m.</option>
-                        <option value="125pm">1:25 p.m.</option>
-                        <option value="520pm">5:20 p.m.</option>
-                    </select>
-                </div>
-                <!-- Weather -->
-                <div class="bg-gray-700 p-4 rounded-lg shadow-inner">
-                    <label for="weather" class="block text-lg font-semibold mb-2">WEATHER</label>
-                    <select id="weather" class="w-full p-3 rounded-lg bg-gray-800 text-white border-none focus:outline-none focus:ring-2 focus:ring-red-500">
-                        <option value="clear">Clear</option>
-                        <option value="cloudy">Cloudy</option>
-                        <option value="sunny">Sunny</option>
-                        <option value="rainy">Rainy</option>
-                        <option value="heavy-rain">Heavy Rain</option>
-                        <option value="snow">Snow</option>
-                        <option value="heavy-snow">Heavy Snow</option>
-                    </select>
-                </div>
-                <!-- Start Game Button -->
-                <button id="start-game-settings-btn" class="w-full madden-button text-xl font-bold py-4 px-8 rounded-full shadow-lg">
-                    START GAME
-                </button>
-                <!-- Back Button -->
-                <button id="back-to-team-selection" class="w-full text-lg py-3 rounded-full text-gray-400 border-2 border-gray-600">
-                    BACK
-                </button>
-            </div>
-        </div>
-
-        <!-- Gameplay Screen (initially hidden) -->
-        <div id="gameplay-screen" class="w-full h-screen flex flex-col items-center justify-start hidden">
-            <!-- Scoreboard -->
-            <div class="w-full max-w-lg bg-gray-800 text-white p-4 rounded-lg shadow-lg flex justify-between items-center mb-4">
-                <div class="text-center">
-                    <h3 id="away-team-name" class="text-xl font-bold">AWAY</h3>
-                    <p id="away-team-score" class="text-3xl font-extrabold">0</p>
-                </div>
-                <div class="text-center">
-                    <h3 class="text-sm font-semibold">QTR</h3>
-                    <p id="game-quarter" class="text-xl font-bold">1</p>
-                </div>
-                <div class="text-center">
-                    <h3 class="text-sm font-semibold">TIME</h3>
-                    <p id="game-time" class="text-xl font-bold">15:00</p>
-                </div>
-                <div class="text-center">
-                    <h3 id="home-team-name" class="text-xl font-bold">HOME</h3>
-                    <p id="home-team-score" class="text-3xl font-extrabold">0</p>
-                </div>
-            </div>
-
-            <!-- The Field -->
-            <div class="football-field w-full max-w-lg">
-                <div class="yard-line yard-line-10"></div>
-                <div class="yard-line yard-line-20"></div>
-                <div class="yard-line yard-line-30"></div>
-                <div class="yard-line yard-line-40"></div>
-                <div class="yard-line yard-line-50"></div>
-                <div class="yard-line yard-line-60"></div>
-                <div class="yard-line yard-line-70"></div>
-                <div class="yard-line yard-line-80"></div>
-                <div class="yard-line yard-line-90"></div>
-            </div>
-
-            <!-- Back to Settings Button -->
-            <button id="back-to-settings-btn" class="w-full max-w-sm mt-8 text-lg py-3 rounded-full text-gray-400 border-2 border-gray-600">
-                BACK TO SETTINGS
+            <p id="selection-display" class="mt-8 text-xl font-semibold"></p>
+            <button id="confirm-button" class="mt-8 bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-8 rounded-full shadow-lg transition-all transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-green-500 focus:ring-opacity-50" style="display: none;">
+                Confirm Selection
             </button>
         </div>
-
+        
+        <!-- Game Screen -->
+        <div id="game-screen" class="screen">
+            <h2 class="text-3xl font-bold mb-4">Game On!</h2>
+            <p id="final-team-display" class="text-xl text-gray-400 mb-8"></p>
+            <button id="back-to-menu-button" class="mt-8 bg-gray-600 hover:bg-gray-700 text-white font-bold py-3 px-8 rounded-full shadow-lg transition-all transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-gray-500 focus:ring-opacity-50">
+                Back to Menu
+            </button>
+        </div>
     </div>
 
     <script>
-        // Roster data for the 49ers (will be moved to a separate file later)
-        const nflRosters = {
-            "San Francisco 49ers": {
-                offense: {
-                    quarterbacks: [
-                        { name: "Brock Purdy", rating: 89 },
-                        { name: "Joshua Dobbs", rating: 74 },
-                        { name: "Brandon Allen", rating: 68 }
-                    ],
-                    running_backs: [
-                        { name: "Christian McCaffrey", rating: 98 },
-                        { name: "Elijah Mitchell", rating: 79 },
-                        { name: "Jordan Mason", rating: 73 },
-                        { name: "Isaac Guerendo", rating: 72 }
-                    ],
-                    full_backs: [
-                        { name: "Kyle Juszczyk", rating: 91 }
-                    ],
-                    wide_receivers: [
-                        { name: "Deebo Samuel", rating: 94 },
-                        { name: "Brandon Aiyuk", rating: 91 },
-                        { name: "Jauan Jennings", rating: 80 },
-                        { name: "Ricky Pearsall", rating: 77 },
-                        { name: "Jacob Cowing", rating: 70 },
-                        { name: "Trent Taylor", rating: 69 }
-                    ],
-                    tight_ends: [
-                        { name: "George Kittle", rating: 97 },
-                        { name: "Cameron Latu", rating: 71 },
-                        { name: "Brayden Willis", rating: 68 }
-                    ],
-                    offensive_line: [
-                        { name: "Trent Williams", rating: 98 },
-                        { name: "Jon Feliciano", rating: 78 },
-                        { name: "Jake Brendel", rating: 79 },
-                        { name: "Aaron Banks", rating: 82 },
-                        { name: "Colton McKivitz", rating: 80 },
-                        { name: "Jaylon Moore", rating: 73 },
-                        { name: "Spencer Burford", rating: 72 },
-                        { name: "Dominick Puni", rating: 68 },
-                        { name: "Drake Nugent", rating: 66 }
-                    ]
-                },
-                defense: {
-                    defensive_line: [
-                        { name: "Nick Bosa", rating: 95 },
-                        { name: "Javon Hargrave", rating: 89 },
-                        { name: "Javon Kinlaw", rating: 80 },
-                        { name: "Leonard Floyd", rating: 86 },
-                        { name: "Maliek Collins", rating: 81 },
-                        { name: "Drake Jackson", rating: 72 },
-                        { name: "Kevin Givens", rating: 77 },
-                        { name: "T.Y. McGill", rating: 70 },
-                        { name: "Jordan Elliott", rating: 75 }
-                    ],
-                    linebackers: [
-                        { name: "Fred Warner", rating: 98 },
-                        { name: "Dre Greenlaw", rating: 90 },
-                        { name: "De'Vondre Campbell", rating: 85 },
-                        { name: "Oren Burks", rating: 74 },
-                        { name: "Jaylen Moody", rating: 69 },
-                        { name: "Jalen Graham", rating: 68 }
-                    ],
-                    cornerbacks: [
-                        { name: "Charvarius Ward", rating: 92 },
-                        { name: "Deommodore Lenoir", rating: 85 },
-                        { name: "Ambry Thomas", rating: 75 },
-                        { name: "Rock Ya-Sin", rating: 78 },
-                        { name: "Renardo Green", rating: 73 },
-                        { name: "Samuel Womack III", rating: 69 }
-                    ],
-                    safeties: [
-                        { name: "Talanoa Hufanga", rating: 88 },
-                        { name: "Ji'Ayir Brown", rating: 79 },
-                        { name: "Tashaun Gipson Sr.", rating: 75 },
-                        { name: "George Odum", rating: 77 }
-                    ]
-                },
-                special_teams: {
-                    kicker: [
-                        { name: "Jake Moody", rating: 79 }
-                    ],
-                    punter: [
-                        { name: "Mitch Wishnowsky", rating: 81 }
-                    ],
-                    long_snapper: [
-                        { name: "Taybor Pepper", rating: 73 }
-                    ]
-                }
-            }
-        };
+        const mainMenuScreen = document.getElementById('main-menu');
+        const startButton = document.getElementById('start-button');
+        const teamSelectionScreen = document.getElementById('team-selection');
+        const teamGrid = document.getElementById('team-grid');
+        const confirmButton = document.getElementById('confirm-button');
+        const selectionDisplay = document.getElementById('selection-display');
+        const gameScreen = document.getElementById('game-screen');
+        const finalTeamDisplay = document.getElementById('final-team-display');
+        const backToMenuButton = document.getElementById('back-to-menu-button');
 
-        // Get references to all the main elements
-        const titleScreen = document.getElementById('title-screen');
-        const mainMenu = document.getElementById('main-menu');
-        const teamSelection = document.getElementById('team-selection');
-        const gameSettings = document.getElementById('game-settings');
-        const gameplayScreen = document.getElementById('gameplay-screen');
-        const messageBox = document.getElementById('message-box');
+        let selectedTeam = null;
 
-        // Buttons
-        const startTouchBtn = document.getElementById('start-game-btn');
-        const quickPlayBtn = document.getElementById('quick-play-btn');
-        const franchiseBtn = document.getElementById('franchise-btn');
-        const ultimateTeamBtn = document.getElementById('ultimate-team-btn');
-        const multiplayerBtn = document.getElementById('multiplayer-btn');
-        const settingsBtn = document.getElementById('settings-btn');
-        const continueBtn = document.getElementById('continue-btn');
-        const backToMainMenuBtn = document.getElementById('back-to-main-menu');
-        const startGameSettingsBtn = document.getElementById('start-game-settings-btn');
-        const backToTeamSelectionBtn = document.getElementById('back-to-team-selection');
-        const backToSettingsBtn = document.getElementById('back-to-settings-btn');
-        
-        // Gameplay Screen Elements
-        const homeTeamNameEl = document.getElementById('home-team-name');
-        const awayTeamNameEl = document.getElementById('away-team-name');
-        
-        // Get the select elements
-        const homeTeamSelect = document.getElementById('home-team');
-        const awayTeamSelect = document.getElementById('away-team');
-        const quarterLengthSelect = document.getElementById('quarter-length');
-        const timeOfDaySelect = document.getElementById('time-of-day');
-        const weatherSelect = document.getElementById('weather');
-
-        // List of all 32 NFL teams
-        const nflTeams = [
-            "Arizona Cardinals", "Atlanta Falcons", "Baltimore Ravens", "Buffalo Bills", "Carolina Panthers",
-            "Chicago Bears", "Cincinnati Bengals", "Cleveland Browns", "Dallas Cowboys", "Denver Broncos",
-            "Detroit Lions", "Green Bay Packers", "Houston Texans", "Indianapolis Colts", "Jacksonville Jaguars",
-            "Kansas City Chiefs", "Las Vegas Raiders", "Los Angeles Chargers", "Los Angeles Rams", "Miami Dolphins",
-            "Minnesota Vikings", "New England Patriots", "New Orleans Saints", "New York Giants", "New York Jets",
-            "Philadelphia Eagles", "Pittsburgh Steelers", "San Francisco 49ers", "Seattle Seahawks", "Tampa Bay Buccaneers",
-            "Tennessee Titans", "Washington Commanders"
+        const teams = [
+            { name: "Arizona Cardinals", color1: "97233F", color2: "FFFFFF" },
+            { name: "Atlanta Falcons", color1: "A71930", color2: "000000" },
+            { name: "Baltimore Ravens", color1: "241773", color2: "9E7C0C" },
+            { name: "Buffalo Bills", color1: "00338D", color2: "C60C30" },
+            { name: "Carolina Panthers", color1: "0085CA", color2: "000000" },
+            { name: "Chicago Bears", color1: "0B162A", color2: "C83803" },
+            { name: "Cincinnati Bengals", color1: "FB4F14", color2: "000000" },
+            { name: "Cleveland Browns", color1: "311D00", color2: "FF3C00" },
+            { name: "Dallas Cowboys", color1: "041E42", color2: "869397" },
+            { name: "Denver Broncos", color1: "002244", color2: "FB4F14" },
+            { name: "Detroit Lions", color1: "0076B6", color2: "B0B7BC" },
+            { name: "Green Bay Packers", color1: "203731", color2: "FFB612" },
+            { name: "Houston Texans", color1: "03202F", color2: "A71930" },
+            { name: "Indianapolis Colts", color1: "002C5F", color2: "A5ACAF" },
+            { name: "Jacksonville Jaguars", color1: "006778", color2: "000000" },
+            { name: "Kansas City Chiefs", color1: "E31837", color2: "FFB612" },
+            { name: "Las Vegas Raiders", color1: "A5ACAF", color2: "000000" },
+            { name: "Los Angeles Chargers", color1: "0073CF", color2: "FFB612" },
+            { name: "Los Angeles Rams", color1: "002244", color2: "B3995D" },
+            { name: "Miami Dolphins", color1: "008E97", color2: "FC4C02" },
+            { name: "Minnesota Vikings", color1: "4F2683", color2: "FFC62F" },
+            { name: "New England Patriots", color1: "002244", color2: "C60C30" },
+            { name: "New Orleans Saints", color1: "D3BC8D", color2: "000000" },
+            { name: "New York Giants", color1: "0B2265", color2: "A71930" },
+            { name: "New York Jets", color1: "003F2D", color2: "FFFFFF" },
+            { name: "Philadelphia Eagles", color1: "004C54", color2: "A5ACAF" },
+            { name: "Pittsburgh Steelers", color1: "000000", color2: "FFB612" },
+            { name: "San Francisco 49ers", color1: "AA0000", color2: "B3995D" },
+            { name: "Seattle Seahawks", color1: "002244", color2: "69BE28" },
+            { name: "Tampa Bay Buccaneers", color1: "D50A0A", color2: "000000" },
+            { name: "Tennessee Titans", color1: "4B92DB", color2: "0C2340" },
+            { name: "Washington Commanders", color1: "5A1414", color2: "FFB612" },
         ];
+        
+        // Function to create and render a team card
+        const createTeamCard = (team) => {
+            const teamCard = document.createElement('div');
+            teamCard.className = 'team-card';
+            teamCard.dataset.team = team.name;
 
-        /**
-         * Populates the team dropdowns with all 32 NFL teams.
-         */
-        function populateTeams() {
-            // Clear existing options
-            homeTeamSelect.innerHTML = '';
-            awayTeamSelect.innerHTML = '';
+            const logoUrl = `https://placehold.co/150x100/${team.color1}/${team.color2}?text=${encodeURIComponent(team.name.split(' ')[1] || team.name)}`;
+            const teamLogo = document.createElement('img');
+            teamLogo.className = 'team-logo';
+            teamLogo.src = logoUrl;
+            teamLogo.alt = `${team.name} logo`;
+            
+            const teamInfo = document.createElement('div');
+            teamInfo.className = 'team-info';
+            const teamName = document.createElement('p');
+            teamName.textContent = team.name;
+            teamInfo.appendChild(teamName);
 
-            // Dynamically add all teams
-            nflTeams.forEach(team => {
-                const homeOption = document.createElement('option');
-                homeOption.value = team;
-                homeOption.textContent = team;
-                homeTeamSelect.appendChild(homeOption);
+            teamCard.appendChild(teamLogo);
+            teamCard.appendChild(teamInfo);
 
-                const awayOption = document.createElement('option');
-                awayOption.value = team;
-                awayOption.textContent = team;
-                awayTeamSelect.appendChild(awayOption);
+            teamCard.addEventListener('click', () => {
+                if (selectedTeam) {
+                    const prevSelected = document.querySelector('.team-card.selected');
+                    if (prevSelected) {
+                        prevSelected.classList.remove('selected');
+                    }
+                }
+                selectedTeam = team.name;
+                teamCard.classList.add('selected');
+                selectionDisplay.textContent = `You've selected the ${selectedTeam}.`;
+                confirmButton.style.display = 'block';
             });
 
-            // Set default selections
-            homeTeamSelect.value = 'San Francisco 49ers';
-            awayTeamSelect.value = 'Philadelphia Eagles';
-        }
+            return teamCard;
+        };
 
-        // Call the function to populate teams on page load
-        populateTeams();
-
-        /**
-         * Hides all screens by adding the 'hidden' class.
-         */
-        function hideAllScreens() {
-            titleScreen.classList.add('hidden');
-            mainMenu.classList.add('hidden');
-            teamSelection.classList.add('hidden');
-            gameSettings.classList.add('hidden');
-            gameplayScreen.classList.add('hidden');
-        }
-
-        /**
-         * Shows a specific screen by removing the 'hidden' class.
-         * @param {HTMLElement} screen The screen element to show.
-         */
-        function showScreen(screen) {
-            hideAllScreens();
-            screen.classList.remove('hidden');
-        }
-
-        /**
-         * Displays a temporary message in the message box.
-         * @param {string} message The message to display.
-         */
-        function showMessage(message) {
-            messageBox.textContent = message;
-            messageBox.classList.remove('hidden');
-            // Hide the message after 3 seconds
+        const switchScreen = (currentScreen, nextScreen) => {
+            currentScreen.classList.add('fade-out');
             setTimeout(() => {
-                messageBox.classList.add('hidden');
-            }, 3000);
-        }
+                currentScreen.classList.remove('active', 'fade-out');
+                nextScreen.classList.add('active', 'slide-in');
+            }, 500);
+        };
 
-        // --- Event Listeners ---
-
-        // Listen for the "Touch to Start" button on the title screen
-        startTouchBtn.addEventListener('click', () => {
-            showScreen(mainMenu);
-        });
-
-        // Listen for the Quick Play button click on the main menu
-        quickPlayBtn.addEventListener('click', () => {
-            showScreen(teamSelection);
+        startButton.addEventListener('click', () => {
+            // Populate team grid before switching screens
+            teamGrid.innerHTML = '';
+            teams.forEach(team => {
+                teamGrid.appendChild(createTeamCard(team));
+            });
+            switchScreen(mainMenuScreen, teamSelectionScreen);
         });
 
-        // Listen for the unimplemented buttons on the main menu
-        franchiseBtn.addEventListener('click', () => {
-            showMessage('Franchise mode is not yet available. Check back soon!');
-        });
-        ultimateTeamBtn.addEventListener('click', () => {
-            showMessage('Ultimate Team mode is not yet available. Check back soon!');
-        });
-        multiplayerBtn.addEventListener('click', () => {
-            showMessage('Multiplayer mode is not yet available. Check back soon!');
-        });
-        settingsBtn.addEventListener('click', () => {
-            showMessage('Settings screen is not yet available. Check back soon!');
-        });
-
-        // Listen for the Continue button on the team selection screen
-        continueBtn.addEventListener('click', () => {
-            // Check if the same team is selected for home and away
-            if (homeTeamSelect.value === awayTeamSelect.value) {
-                showMessage('Please select two different teams.');
-                return;
+        confirmButton.addEventListener('click', () => {
+            if (selectedTeam) {
+                finalTeamDisplay.textContent = `You are playing as the ${selectedTeam}!`;
+                switchScreen(teamSelectionScreen, gameScreen);
             }
-            showScreen(gameSettings);
         });
 
-        // Listen for the "Back" button on the team selection screen
-        backToMainMenuBtn.addEventListener('click', () => {
-            showScreen(mainMenu);
-        });
-
-        // Listen for the "Back" button on the game settings screen
-        backToTeamSelectionBtn.addEventListener('click', () => {
-            showScreen(teamSelection);
-        });
-        
-        // Listen for the Start Game button on the game settings screen
-        startGameSettingsBtn.addEventListener('click', () => {
-            const homeTeam = homeTeamSelect.value;
-            const awayTeam = awayTeamSelect.value;
-            const quarterLength = quarterLengthSelect.value;
-            const timeOfDay = timeOfDaySelect.value;
-            const weather = weatherSelect.value;
-
-            // Set the team names on the scoreboard
-            homeTeamNameEl.textContent = homeTeam.toUpperCase();
-            awayTeamNameEl.textContent = awayTeam.toUpperCase();
-
-            // Check if the 49ers are selected to show roster data
-            if (homeTeam === "San Francisco 49ers") {
-                const roster = nflRosters[homeTeam];
-                console.log(`Starting QB for the ${homeTeam}:`, roster.offense.quarterbacks[0].name);
-            }
-
-            // Show the gameplay screen
-            showScreen(gameplayScreen);
-        });
-
-        // Listen for the "Back" button on the gameplay screen
-        backToSettingsBtn.addEventListener('click', () => {
-            showScreen(gameSettings);
+        backToMenuButton.addEventListener('click', () => {
+            selectedTeam = null;
+            confirmButton.style.display = 'none';
+            selectionDisplay.textContent = '';
+            switchScreen(gameScreen, mainMenuScreen);
         });
     </script>
 </body>
