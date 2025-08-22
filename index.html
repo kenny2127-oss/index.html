@@ -22,7 +22,7 @@ input,textarea{padding:6px;border-radius:6px;border:none;margin:2px;width:100%;}
 </style>
 </head>
 <body>
-<header><h1>Pokémon Adventure</h1></header><!-- Live region for accessibility announcements --><div id="tabAnnouncement" aria-live="polite" style="position:absolute; left:-9999px;"></div><nav role="tablist">
+<header><h1>Pokémon Adventure</h1></header><div id="tabAnnouncement" aria-live="polite" style="position:absolute; left:-9999px;"></div><nav role="tablist">
 <button role="tab" aria-selected="true" aria-controls="home" data-tab="home" class="activeTab">Home</button>
 <button role="tab" aria-selected="false" aria-controls="explore" data-tab="explore">Explore</button>
 <button role="tab" aria-selected="false" aria-controls="battle" data-tab="battle">Battle</button>
@@ -46,7 +46,10 @@ input,textarea{padding:6px;border-radius:6px;border:none;margin:2px;width:100%;}
 <div id="exploreResult"></div>
 </section><section id="battle" class="tab">
 <h2>Battle</h2>
-<div id="battleResult">Battles coming soon!</div>
+<p>Select one of your Pokémon to battle:</p>
+<div id="battleGrid" class="grid"></div>
+<div id="battleInfo"></div>
+<button id="battleNextBtn" style="display:none;">Next Turn</button>
 </section><section id="center" class="tab">
 <h2>Poké Center</h2>
 <button id="healBtn">Heal All Pokémon</button>
@@ -69,6 +72,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const pokemonList = ["Pikachu","Bulbasaur","Charmander","Squirtle","Eevee","Jigglypuff","Meowth","Snorlax","Psyduck","Gengar"];
   let pokedex = JSON.parse(localStorage.getItem('pokedex')) || [];
   let trades = JSON.parse(localStorage.getItem('trades')) || {};
+  let battleState = null;
   const liveRegion = document.getElementById('tabAnnouncement');
 
   function saveGame(){
@@ -159,85 +163,4 @@ document.addEventListener('DOMContentLoaded', () => {
     if(trades[code]){
       const pokemon=trades[code];
       if(!pokedex.includes(pokemon)) pokedex.push(pokemon);
-      delete trades[code];
-      saveGame();
-      renderPokedex();
-      renderTradePlayers();
-      document.getElementById('tradePlayerResult').textContent=`You received ${pokemon}!`;
-      speakText(`You received ${pokemon}`);
-    } else {
-      document.getElementById('tradePlayerResult').textContent='Invalid or expired code.';
-      speakText('Invalid or expired code');
-    }
-  }
-
-  // Export Pokédex
-  document.getElementById('exportBtn').addEventListener('click', () => {
-    const json = JSON.stringify(pokedex);
-    document.getElementById('exportData').value = json;
-    speakText('Pokédex export ready');
-  });
-
-  // Import Pokédex
-  document.getElementById('importBtn').addEventListener('click', () => {
-    const data = document.getElementById('importData').value.trim();
-    if(!data){
-      document.getElementById('importResult').textContent = 'Please paste valid data.';
-      speakText('Please paste valid data.');
-      return;
-    }
-    try {
-      const imported = JSON.parse(data);
-      if(Array.isArray(imported)){
-        imported.forEach(p => { if(!pokedex.includes(p)) pokedex.push(p); });
-        saveGame();
-        renderPokedex();
-        document.getElementById('importResult').textContent = 'Pokédex imported successfully!';
-        speakText('Pokédex imported successfully!');
-        renderTradePlayers();
-        renderTrade();
-      } else {
-        throw new Error('Invalid data format');
-      }
-    } catch(e){
-      document.getElementById('importResult').textContent = 'Invalid JSON data.';
-      speakText('Invalid JSON data.');
-    }
-  });
-
-  // Other button event listeners
-  document.getElementById('exploreBtn').addEventListener('click', explorePokemon);
-  document.getElementById('healBtn').addEventListener('click', healPokemon);
-  document.getElementById('redeemBtn').addEventListener('click', redeemTrade);
-
-  // Dynamic buttons for trade and offer
-  document.body.addEventListener('click', e=>{
-    if(e.target.classList.contains('tradeBtn')) tradePokemon(e.target.dataset.poke);
-    if(e.target.classList.contains('offerBtn')) generateCode(e.target.dataset.poke);
-  });
-
-  // Tab switching with live region announcements
-  document.querySelectorAll('nav button[data-tab]').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const tab = btn.getAttribute('data-tab');
-      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-      const section = document.getElementById(tab);
-      if(section) section.classList.add('active');
-      document.querySelectorAll('nav button[data-tab]').forEach(b => {
-        b.classList.remove('activeTab');
-        b.setAttribute('aria-selected', 'false');
-      });
-      btn.classList.add('activeTab');
-      btn.setAttribute('aria-selected', 'true');
-      liveRegion.textContent = `${btn.textContent} tab selected`;
-      speakText(`${btn.textContent} tab selected`);
-    });
-  });
-
-  // Initial render
-  renderPokedex();
-  renderTrade();
-  renderTradePlayers();
-});
-</script></body>
-</html>
+      delete
