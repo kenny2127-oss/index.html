@@ -16,12 +16,13 @@ button:disabled{opacity:0.5;cursor:not-allowed}
 nav{display:flex;gap:6px;padding:8px;background:#2d3748;justify-content:space-around}
 nav button{flex:1;padding:8px;border-radius:6px;background:#3182ce;color:white;border:none;cursor:pointer}
 nav button:hover{background:#63b3ed}
+nav button.activeTab{background:#63b3ed; font-weight:bold;}
 </style>
 </head>
 <body>
 <header><h1>Pokémon Adventure</h1></header>
 <nav>
-<button data-tab="home">Home</button>
+<button data-tab="home" class="activeTab">Home</button>
 <button data-tab="explore">Explore</button>
 <button data-tab="battle">Battle</button>
 <button data-tab="center">Poké Center</button>
@@ -77,13 +78,13 @@ function renderTrade(){ const container=document.getElementById('tradeGrid'); co
 
 function tradePokemon(name){ const newPoke=pokemonList[Math.floor(Math.random()*pokemonList.length)]; pokedex=pokedex.filter(p=>p!==name); if(!pokedex.includes(newPoke)) pokedex.push(newPoke); saveGame(); document.getElementById('tradeResult').textContent=Traded ${name} for ${newPoke}!; renderPokedex(); renderTrade(); }
 
-// --- Trade with Players --- function renderTradePlayers(){ const container=document.getElementById('offerGrid'); container.innerHTML=''; pokedex.forEach(p=>{ const div=document.createElement('div'); div.className='card'; div.innerHTML=${p}<br><button onclick="generateCode('${p}')">Offer</button>; container.appendChild(div); }); }
+function renderTradePlayers(){ const container=document.getElementById('offerGrid'); container.innerHTML=''; pokedex.forEach(p=>{ const div=document.createElement('div'); div.className='card'; div.innerHTML=${p}<br><button onclick="generateCode('${p}')">Offer</button>; container.appendChild(div); }); }
 
 function generateCode(pokemon){ const code='TR-'+Math.random().toString(36).substring(2,6).toUpperCase(); trades[code]=pokemon; pokedex=pokedex.filter(p=>p!==pokemon); saveGame(); renderPokedex(); renderTradePlayers(); document.getElementById('tradePlayerResult').textContent=Your code: ${code}; }
 
 function redeemTrade(){ const code=document.getElementById('redeemCode').value.trim().toUpperCase(); if(trades[code]){ const pokemon=trades[code]; if(!pokedex.includes(pokemon)) pokedex.push(pokemon); delete trades[code]; saveGame(); renderPokedex(); renderTradePlayers(); document.getElementById('tradePlayerResult').textContent=You received ${pokemon}!; } else { document.getElementById('tradePlayerResult').textContent='Invalid or expired code.'; } }
 
-// --- Tab switching --- document.querySelectorAll('nav button').forEach(btn => { btn.addEventListener('click', ()=>{ const tab = btn.getAttribute('data-tab'); document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active')); document.getElementById(tab).classList.add('active'); }); });
+// --- Tab switching --- document.querySelectorAll('nav button').forEach(btn => { btn.addEventListener('click', ()=>{ const tab = btn.getAttribute('data-tab'); document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active')); document.getElementById(tab).classList.add('active'); document.querySelectorAll('nav button').forEach(b=>b.classList.remove('activeTab')); btn.classList.add('activeTab'); }); });
 
 renderPokedex(); </script>
 
