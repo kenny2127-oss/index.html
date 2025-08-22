@@ -18,12 +18,12 @@ button:disabled{opacity:0.5;cursor:not-allowed}
 <body>
 <header><h1>Pokémon Adventure</h1></header>
 <nav>
-<button onclick="openTab('home')">Home</button>
-<button onclick="openTab('explore')">Explore</button>
-<button onclick="openTab('battle')">Battle</button>
-<button onclick="openTab('center')">Poké Center</button>
-<button onclick="openTab('trade')">Trading Center</button>
-<button onclick="openTab('tradePlayers')">Trade with Players</button>
+<button data-tab="home">Home</button>
+<button data-tab="explore">Explore</button>
+<button data-tab="battle">Battle</button>
+<button data-tab="center">Poké Center</button>
+<button data-tab="trade">Trading Center</button>
+<button data-tab="tradePlayers">Trade with Players</button>
 </nav>
 <main>
 <section id="home" class="tab active">
@@ -64,8 +64,6 @@ const pokemonList = ["Pikachu","Bulbasaur","Charmander","Squirtle","Eevee","Jigg
 let pokedex = JSON.parse(localStorage.getItem('pokedex')) || [];
 let trades = JSON.parse(localStorage.getItem('trades')) || {};function saveGame(){ localStorage.setItem('pokedex', JSON.stringify(pokedex)); localStorage.setItem('trades', JSON.stringify(trades)); }
 
-function openTab(tab){ document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active')); document.getElementById(tab).classList.add('active'); if(tab==='home') renderPokedex(); if(tab==='trade') renderTrade(); if(tab==='tradePlayers') renderTradePlayers(); }
-
 function renderPokedex(){ const container = document.getElementById('pokedex'); container.innerHTML=''; pokemonList.forEach(p=>{ const div=document.createElement('div'); div.className='card'; div.textContent=pokedex.includes(p)?p:'???'; container.appendChild(div); }); }
 
 function explorePokemon(){ const found=pokemonList[Math.floor(Math.random()*pokemonList.length)]; if(!pokedex.includes(found)) pokedex.push(found); saveGame(); document.getElementById('exploreResult').textContent=You found ${found}!; renderPokedex(); }
@@ -81,6 +79,8 @@ function tradePokemon(name){ const newPoke=pokemonList[Math.floor(Math.random()*
 function generateCode(pokemon){ const code='TR-'+Math.random().toString(36).substring(2,6).toUpperCase(); trades[code]=pokemon; pokedex=pokedex.filter(p=>p!==pokemon); saveGame(); renderPokedex(); renderTradePlayers(); document.getElementById('tradePlayerResult').textContent=Your code: ${code}; }
 
 function redeemTrade(){ const code=document.getElementById('redeemCode').value.trim().toUpperCase(); if(trades[code]){ const pokemon=trades[code]; if(!pokedex.includes(pokemon)) pokedex.push(pokemon); delete trades[code]; saveGame(); renderPokedex(); renderTradePlayers(); document.getElementById('tradePlayerResult').textContent=You received ${pokemon}!; } else { document.getElementById('tradePlayerResult').textContent='Invalid or expired code.'; } }
+
+// --- Tab switching --- document.querySelectorAll('nav button').forEach(btn => { btn.addEventListener('click', ()=>{ const tab = btn.getAttribute('data-tab'); document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active')); document.getElementById(tab).classList.add('active'); }); });
 
 renderPokedex(); </script>
 
