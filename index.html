@@ -1,523 +1,340 @@
 <!doctype html>
+
 <html lang="en">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Accessible Madden — Text Adventure Prototype</title>
-<style>
-  :focus { outline: 3px solid #ffcc00; outline-offset: 2px; }
-  body { font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial; background:#0b1220; color:#e6eef6; margin:0; padding:18px; }
-  main { max-width:900px; margin:0 auto; }
-  header h1 { margin:0 0 8px 0; font-size:1.5rem; }
-  .row { display:flex; gap:12px; flex-wrap:wrap; align-items:center; }
-  .panel { background:#111827; padding:12px; border-radius:8px; box-shadow: 0 4px 10px rgba(0,0,0,0.6); }
-  button { background:#1f6feb; color:white; border:0; padding:10px 14px; border-radius:6px; cursor:pointer; }
-  button.secondary { background:#374151; }
-  button.ghost { background:transparent; border:1px solid #334155; color:#cbd5e1; }
-  select { padding:8px; border-radius:6px; background:#0b1228; color:#e6eef6; border:1px solid #334155; }
-  .play-list { display:flex; gap:8px; flex-wrap:wrap; margin-top:8px; }
-  .play-item { background:#081126; padding:10px 12px; border-radius:6px; border:1px solid #1f2937; }
-  .status { margin-top:12px; }
-  .live { padding:12px; background:#041022; border-radius:8px; margin-top:12px; min-height:64px; }
-  .visually-hidden { position:absolute !important; clip:rect(1px,1px,1px,1px); clip-path:inset(50%); height:1px; width:1px; overflow:hidden; white-space:nowrap; }
-  footer { margin-top:18px; font-size:0.9rem; color:#94a3b8; }
-  .stat-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin-top:8px; }
-  .card { background:#0b1228; padding:10px; border-radius:6px; border:1px solid #1f2937;}
-</style>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Pokémon Adventure — Mobile Web App</title>
+  <meta name="description" content="Explore, collect, battle, and heal Pokémon — a mobile-first accessible web app that stores your collection locally." />
+  <style>
+    :root{
+      --bg:#0f1724;
+      --card:#0b1220;
+      --accent:#1e90ff;
+      --muted:#94a3b8;
+      --success:#16a34a;
+      --danger:#ef4444;
+      --glass: rgba(255,255,255,0.03);
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%;margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,'Helvetica Neue',Arial;color:#e6eef8;background:linear-gradient(180deg,var(--bg),#071025);-webkit-font-smoothing:antialiased}
+    .app{max-width:540px;margin:0 auto;min-height:100vh;display:flex;flex-direction:column}
+    header{padding:14px 16px;background:linear-gradient(180deg,rgba(255,255,255,0.02),transparent);display:flex;align-items:center;justify-content:space-between}
+    header h1{font-size:18px;margin:0}
+    header button{background:transparent;border:1px solid var(--glass);color:var(--muted);padding:8px 12px;border-radius:10px}main{flex:1;padding:16px;}
+.card{background:linear-gradient(180deg,rgba(255,255,255,0.02),transparent);border-radius:14px;padding:12px;margin-bottom:12px;box-shadow:0 6px 18px rgba(2,6,23,0.6)}
+.center{display:flex;align-items:center;justify-content:center}
+
+/* Bottom tab bar */
+.tabbar{position:sticky;bottom:0;display:flex;gap:6px;padding:10px;background:linear-gradient(0deg,rgba(2,6,23,0.6),transparent);backdrop-filter:blur(6px);justify-content:space-around}
+.tabbtn{flex:1;padding:10px;border-radius:12px;background:var(--card);text-align:center;border:1px solid rgba(255,255,255,0.02)}
+.tabbtn[aria-current="true"]{outline:3px solid rgba(30,144,255,0.16);box-shadow:0 6px 12px rgba(30,144,255,0.06)}
+.tabbtn .label{display:block;font-size:12px;color:var(--muted)}
+.tabbtn .icon{font-size:18px;margin-bottom:6px}
+
+/* Pokedex grid */
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.mon{background:linear-gradient(0deg,rgba(255,255,255,0.02),transparent);padding:10px;border-radius:10px;text-align:center;border:1px solid rgba(255,255,255,0.02)}
+.sprite{font-size:36px;height:48px;display:flex;align-items:center;justify-content:center}
+.name{font-size:13px;margin-top:6px}
+.locked{filter:grayscale(100%) opacity(0.28)}
+
+/* explore area */
+.explore-area{display:flex;flex-direction:column;gap:10px}
+.big-card{padding:18px;border-radius:14px;text-align:center}
+.action-row{display:flex;gap:8px;justify-content:center}
+.btn{padding:12px 14px;border-radius:10px;border:none;font-weight:600}
+.btn.primary{background:var(--accent);color:white}
+.btn.secondary{background:transparent;border:1px solid rgba(255,255,255,0.06);color:var(--muted)}
+.btn.warn{background:var(--danger);color:white}
+
+/* battle */
+.battle-screen{display:flex;flex-direction:column;gap:12px}
+.battle-row{display:flex;justify-content:space-between;align-items:center}
+.stat{font-size:13px;color:var(--muted)}
+
+/* footer text */
+.muted{color:var(--muted);font-size:13px}
+
+/* responsive */
+@media(min-width:540px){.app{border-radius:16px;margin-top:24px;box-shadow:0 12px 40px rgba(2,6,23,0.6)}}
+
+/* focus for accessibility */
+button:focus{outline:3px solid rgba(30,144,255,0.16)}
+
+  </style>
 </head>
 <body>
-<main>
-  <header>
-    <h1>Accessible Madden — Text Adventure Prototype</h1>
-    <p id="brief" class="panel">Screen-reader optimized. Keyboard: use <kbd>1</kbd>-<kbd>6</kbd> to highlight plays, <kbd>Enter</kbd> to execute, <kbd>R</kbd> repeat last commentary, <kbd>S</kbd> show stats, <kbd>H</kbd> help.</p>
-  </header>
-
-  <!-- Live region for screen readers -->
-  <div id="sr-live" class="visually-hidden" role="status" aria-live="assertive"></div>
-
-  <!-- Game controls -->
-  <section class="panel" aria-labelledby="game-controls-label">
-    <h2 id="game-controls-label">Game Controls</h2>
-
-    <div class="row" style="margin-top:8px;">
+  <div class="app" role="application" aria-labelledby="appTitle">
+    <header>
+      <h1 id="appTitle">Pokémon Adventure</h1>
       <div>
-        <label for="modeSelect">Mode</label><br/>
-        <select id="modeSelect" aria-label="Game mode">
-          <option value="quick">Quick Play</option>
-          <option value="franchise">Franchise</option>
-        </select>
+        <button id="closeBtn" aria-label="Close button. Double tap to activate.">Close</button>
+      </div>
+    </header><main id="main">
+  <!-- Home / Pokedex -->
+  <section id="home" class="tab card" role="region" aria-labelledby="homeTitle">
+    <h2 id="homeTitle">Home — Your Pokédex</h2>
+    <p class="muted">All the Pokémon you've collected. Double tap a Pokémon to view details.</p>
+    <div id="pokedexGrid" class="grid" aria-live="polite"></div>
+  </section>
+
+  <!-- Explore -->
+  <section id="explore" class="tab card" role="region" aria-labelledby="exploreTitle" hidden>
+    <h2 id="exploreTitle">Explore</h2>
+    <p class="muted">Tap "Explore Area" to find wild Pokémon. Then try to catch them.</p>
+    <div class="explore-area">
+      <div id="wildCard" class="big-card card center" aria-live="polite">
+        <div id="wildSprite" class="sprite" aria-hidden="true">🌱</div>
+        <div id="wildName" class="name">No Pokémon found yet</div>
+        <div id="wildInfo" class="muted">—</div>
       </div>
 
-      <div>
-        <label for="difficulty">Difficulty</label><br/>
-        <select id="difficulty" aria-label="Difficulty level">
-          <option>Rookie</option>
-          <option>Pro</option>
-          <option>All-Pro</option>
-          <option>All-Madden</option>
-        </select>
+      <div class="action-row">
+        <button id="exploreBtn" class="btn primary" aria-label="Explore Area. Double tap to activate.">Explore Area</button>
+        <button id="runBtn" class="btn secondary" aria-label="Run away. Double tap to activate.">Run</button>
       </div>
 
-      <div>
-        <label for="quarterLength">Quarter Length (min)</label><br/>
-        <select id="quarterLength" aria-label="Quarter length">
-          <option>2</option>
-          <option selected>5</option>
-          <option>10</option>
-          <option>15</option>
-        </select>
-      </div>
-
-      <div>
-        <button id="newGameBtn">New Game (Start)</button>
-      </div>
-    </div>
-
-    <div class="status" aria-hidden="false" id="statusSummary" style="margin-top:12px;">
-      <div class="stat-grid">
-        <div class="card"><strong id="teamHome">Home: 49ers</strong></div>
-        <div class="card"><strong id="teamAway">Away: —</strong></div>
-        <div class="card">Quarter: <span id="quarter">0</span></div>
-        <div class="card">Time Left: <span id="timeleft">00:00</span></div>
+      <div class="action-row">
+        <button id="catchBtn" class="btn primary" disabled aria-label="Catch Pokémon. Double tap to activate.">Catch</button>
+        <button id="fleeBtn" class="btn secondary" disabled aria-label="Flee. Double tap to activate.">Flee</button>
       </div>
     </div>
   </section>
 
-  <!-- Play area -->
-  <section class="panel" aria-labelledby="playbook-label" id="playArea" style="margin-top:12px; display:none;">
-    <h2 id="playbook-label">Playbook & Drive</h2>
-
-    <div>
-      <p id="driveInfo">No game in progress.</p>
-      <div class="play-list" role="list" aria-label="Playbook">
-        <!-- play items inserted here -->
+  <!-- Battle -->
+  <section id="battle" class="tab card" role="region" aria-labelledby="battleTitle" hidden>
+    <h2 id="battleTitle">Battle</h2>
+    <p class="muted">Pick one of your Pokémon to fight a wild Pokémon. Winning may reward you with a special Pokémon or item.</p>
+    <div id="battleArea" class="battle-screen">
+      <div id="selectYour" class="card">
+        <div class="muted">Choose your Pokémon</div>
+        <div id="yourGrid" class="grid" aria-live="polite"></div>
       </div>
-      <div style="margin-top:10px;">
-        <button id="selectBtn" class="secondary">Select Play</button>
-        <button id="executeBtn">Execute Play</button>
-        <button id="endDriveBtn" class="ghost">End Drive</button>
-        <button id="statsBtn" class="ghost">Show Stats</button>
+
+      <div id="battleCard" class="card" hidden>
+        <div class="battle-row">
+          <div>
+            <div id="yourPickSprite" class="sprite">🙂</div>
+            <div id="yourPickName" class="name">—</div>
+            <div id="yourPickHP" class="muted">HP: — / —</div>
+          </div>
+          <div>
+            <div id="wildPickSprite" class="sprite">👾</div>
+            <div id="wildPickName" class="name">—</div>
+            <div id="wildPickHP" class="muted">HP: — / —</div>
+          </div>
+        </div>
+        <div class="action-row">
+          <button id="attackBtn" class="btn primary" aria-label="Attack. Double tap to activate.">Attack</button>
+          <button id="useItemBtn" class="btn secondary" aria-label="Use item. Double tap to activate.">Use Item</button>
+        </div>
+        <div id="battleLog" class="muted" style="padding-top:8px;min-height:40px" aria-live="polite"></div>
       </div>
     </div>
-
-    <div class="live panel" id="commentaryLive" aria-live="polite" role="log">Commentary will appear here.</div>
   </section>
 
-  <!-- Halftime & Postgame panels -->
-  <section id="halftimePanel" class="panel" style="display:none; margin-top:12px;">
-    <h2>Halftime Show</h2>
-    <div id="halftimeContent">Halftime summary will appear here.</div>
-    <div style="margin-top:8px;">
-      <button id="endHalftimeBtn">End Halftime</button>
+  <!-- Cookie Center (Heal) -->
+  <section id="cooki" class="tab card" role="region" aria-labelledby="cookiTitle" hidden>
+    <h2 id="cookiTitle">Cookie Center</h2>
+    <p class="muted">Heal your Pokémon here — use cookies to restore HP.</p>
+    <div class="card">
+      <div class="muted">Your cookies: <span id="cookieCount">0</span></div>
+      <div style="margin-top:10px" class="action-row">
+        <button id="healAllBtn" class="btn primary" aria-label="Heal all Pokémon. Double tap to activate.">Heal All</button>
+        <button id="healSelectedBtn" class="btn secondary" aria-label="Heal selected Pokémon. Double tap to activate.">Heal Selected</button>
+      </div>
+      <div class="muted" style="margin-top:10px">Tip: Winning battles earns cookies. Explore to catch more Pokémon.</div>
+    </div>
+
+    <div style="margin-top:8px">
+      <div class="muted">Your Pokémon (select to heal):</div>
+      <div id="healGrid" class="grid" aria-live="polite"></div>
     </div>
   </section>
 
-  <section id="postgamePanel" class="panel" style="display:none; margin-top:12px;">
-    <h2>Postgame Show</h2>
-    <div id="postgameContent">Postgame summary will appear here.</div>
-    <div style="margin-top:8px;">
-      <button id="newGameAfterBtn">Start New Game</button>
-    </div>
-  </section>
-
-  <footer>
-    <p>Accessible prototype — everything stays in this chat / this file until you share it.</p>
-  </footer>
 </main>
 
-<script>
-/* ============================
-   Accessible Madden — Prototype
-   ============================
-   - Quick-play text adventure with 4 quarters, halftime, postgame show
-   - Screen reader friendly via aria-live regions and visible focus
-   - Keyboard shortcuts: 1-6 to choose plays, Enter to execute, R repeat, S stats, H help
-*/
+<nav class="tabbar" role="tablist" aria-label="Main tabs">
+  <button class="tabbtn" role="tab" aria-current="true" data-tab="home" aria-label="Home, Pokédex tab. Double tap to activate."><div class="icon">📚</div><span class="label">Home</span></button>
+  <button class="tabbtn" role="tab" data-tab="explore" aria-label="Explore tab. Double tap to activate."><div class="icon">🌿</div><span class="label">Explore</span></button>
+  <button class="tabbtn" role="tab" data-tab="battle" aria-label="Battle tab. Double tap to activate."><div class="icon">⚔️</div><span class="label">Battle</span></button>
+  <button class="tabbtn" role="tab" data-tab="cooki" aria-label="Cookie Center tab. Double tap to activate."><div class="icon">🍪</div><span class="label">Cookie Center</span></button>
+</nav>
 
-/* --- Config / state --- */
-const HOME_TEAM = "San Francisco 49ers";
-const ALL_TEAMS = [
-  "San Francisco 49ers","Arizona Cardinals","Atlanta Falcons","Baltimore Ravens",
-  "Buffalo Bills","Carolina Panthers","Chicago Bears","Cincinnati Bengals",
-  "Cleveland Browns","Dallas Cowboys","Denver Broncos","Detroit Lions",
-  "Green Bay Packers","Houston Texans","Indianapolis Colts","Jacksonville Jaguars",
-  "Kansas City Chiefs","Las Vegas Raiders","Los Angeles Chargers","Los Angeles Rams",
-  "Miami Dolphins","Minnesota Vikings","New England Patriots","New Orleans Saints",
-  "New York Giants","New York Jets","Philadelphia Eagles","Pittsburgh Steelers",
-  "Seattle Seahawks","Tampa Bay Buccaneers","Tennessee Titans","Washington Commanders"
-];
+  </div>  <script>
+    // --- Data ---
+    const POKEMON = [
+      {id:1, name:'Pikachu', emoji:'⚡', rarity:0.18, maxHP:60},
+      {id:2, name:'Bulbasaur', emoji:'🌱', rarity:0.15, maxHP:64},
+      {id:3, name:'Charmander', emoji:'🔥', rarity:0.15, maxHP:62},
+      {id:4, name:'Squirtle', emoji:'💧', rarity:0.15, maxHP:63},
+      {id:5, name:'Eevee', emoji:'✨', rarity:0.12, maxHP:70},
+      {id:6, name:'Jigglypuff', emoji:'🎤', rarity:0.1, maxHP:78},
+      {id:7, name:'Meowth', emoji:'🪙', rarity:0.08, maxHP:58},
+      {id:8, name:'Snorlax', emoji:'😴', rarity:0.05, maxHP:160},
+      {id:9, name:'Psyduck', emoji:'🤯', rarity:0.06, maxHP:66},
+      {id:10, name:'Gengar', emoji:'👻', rarity:0.04, maxHP:88}
+    ];
 
-const PLAYBOOK = [
-  { id:1, name:"Inside Zone", type:"run", desc:"Hand off inside gap." },
-  { id:2, name:"Outside Toss", type:"run", desc:"Pitch outside to the running back." },
-  { id:3, name:"Draw", type:"run", desc:"Delayed handoff after pass look." },
-  { id:4, name:"Quick Slant", type:"pass", desc:"Short slant route across the middle." },
-  { id:5, name:"Deep Post", type:"pass", desc:"Quarterback looks deep to the post." },
-  { id:6, name:"Play Action", type:"pass", desc:"Fake run then pass downfield." }
-];
+    // Local storage keys
+    const KEY = 'pkm_adventure_v1';
 
-let state = {
-  home: HOME_TEAM,
-  away: null,
-  quarter: 0,
-  quarterLengthMin: 5,
-  timeLeftSec: 0,   // seconds remaining in current quarter
-  ballYardline: 25, // 1..99 where 100=opponent endzone? We'll treat 0-100 with 25 start
-  down: 1,
-  togo: 10,
-  possession: 'home', // 'home' or 'away'
-  score: { home:0, away:0 },
-  driveSeq: [], // logs plays this drive
-  lastComment: '',
-  gameRunning: false,
-  halftimeShown: false,
-  gameOver: false,
-  selectedPlayIdx: 0
-};
+    // --- App State ---
+    let state = {collection:{}, party:[], cookies:0};
+    let wild = null; // current wild encounter
+    let selectedBattleMon = null; // player's chosen mon copy with hp
+    let selectedHeal = null;
 
-/* --- DOM references --- */
-const srLive = document.getElementById('sr-live');
-const playArea = document.getElementById('playArea');
-const driveInfo = document.getElementById('driveInfo');
-const commentaryLive = document.getElementById('commentaryLive');
-const playListDiv = document.querySelector('.play-list');
-
-const quarterEl = document.getElementById('quarter');
-const timeLeftEl = document.getElementById('timeleft');
-const teamHomeEl = document.getElementById('teamHome');
-const teamAwayEl = document.getElementById('teamAway');
-
-const newGameBtn = document.getElementById('newGameBtn');
-const selectBtn = document.getElementById('selectBtn');
-const executeBtn = document.getElementById('executeBtn');
-const endDriveBtn = document.getElementById('endDriveBtn');
-const statsBtn = document.getElementById('statsBtn');
-const statsPanelBtn = document.getElementById('statsBtn');
-
-const halftimePanel = document.getElementById('halftimePanel');
-const halftimeContent = document.getElementById('halftimeContent');
-const endHalftimeBtn = document.getElementById('endHalftimeBtn');
-
-const postgamePanel = document.getElementById('postgamePanel');
-const postgameContent = document.getElementById('postgameContent');
-const newGameAfterBtn = document.getElementById('newGameAfterBtn');
-
-/* --- helpers: announcements (ARIA + SpeechSynthesis) --- */
-function announce(text, polite=false){
-  // ARIA live region (always available for screen readers)
-  srLive.textContent = text;
-  // Also add to commentary area for visual users
-  commentaryLive.innerHTML = `<strong>${new Date().toLocaleTimeString()}</strong> — ${escapeHtml(text)}`;
-  state.lastComment = text;
-  // Optional: speech synthesis for additional audio (user/browser dependent)
-  try {
-    if(window.speechSynthesis && !polite){
-      const msg = new SpeechSynthesisUtterance(text);
-      // keep short, avoid long chattiness
-      window.speechSynthesis.cancel();
-      window.speechSynthesis.speak(msg);
+    // --- Utilities ---
+    function save() {localStorage.setItem(KEY, JSON.stringify(state));}
+    function load(){
+      try{const s=localStorage.getItem(KEY); if(s){state=JSON.parse(s);} else {initNew();}}
+      catch(e){console.error(e); initNew();}
     }
-  } catch(e){ /* ignore speech failures */ }
-}
-function escapeHtml(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;'); }
+    function initNew(){state={collection:{},party:[],cookies:0}; // give starter pokedex entry
+      // give one starter: Pikachu
+      addToCollection(1); state.party=[1]; state.cookies=3; save();}
 
-/* --- UI build: playbook items --- */
-function buildPlaybook(){
-  playListDiv.innerHTML = '';
-  PLAYBOOK.forEach((p, idx) => {
-    const btn = document.createElement('button');
-    btn.className = 'play-item';
-    btn.setAttribute('role','listitem');
-    btn.setAttribute('data-idx', idx);
-    btn.tabIndex = 0;
-    btn.innerHTML = `${p.id}. ${p.name} <div style="font-size:0.9rem;color:#94a3b8">${p.desc}</div>`;
-    btn.addEventListener('click', () => {
-      setSelectedPlay(idx);
-    });
-    playListDiv.appendChild(btn);
-  });
-  setSelectedPlay(0);
-}
+    function addToCollection(id){ if(!state.collection[id]){ state.collection[id]={id: id, owned:true, seen:true, hp: getPokemonById(id).maxHP}; save(); }}
+    function getPokemonById(id){ return POKEMON.find(p=>p.id===id); }
+    function rand(){return Math.random();}
 
-/* highlight + announce play */
-function setSelectedPlay(idx){
-  const items = playListDiv.querySelectorAll('.play-item');
-  items.forEach((it,i)=> {
-    it.style.boxShadow = i===idx ? '0 0 0 3px rgba(99,102,241,0.25)' : 'none';
-    it.style.border = i===idx ? '1px solid #6366f1' : '1px solid #1f2937';
-  });
-  state.selectedPlayIdx = idx;
-  const p = PLAYBOOK[idx];
-  announce(`Highlighted: ${p.name}. ${p.desc}`);
-  // focus the selected element for keyboard users
-  items[idx].focus();
-}
+    // Pick a random POKEMON based on rarity weights
+    function pickWild(){
+      // weight is rarity; normalize
+      const pool = POKEMON.slice();
+      const total = pool.reduce((s,p)=>s+p.rarity,0);
+      let r=Math.random()*total; for(const p of pool){ r-=p.rarity; if(r<=0) return p; }
+      return pool[pool.length-1];
+    }
 
-/* --- Game flow helpers --- */
-function resetGameDefaults(){
-  state.quarterLengthMin = parseInt(document.getElementById('quarterLength').value,10) || 5;
-  state.quarter = 1;
-  state.timeLeftSec = state.quarterLengthMin * 60;
-  state.ballYardline = 25;
-  state.down = 1;
-  state.togo = 10;
-  state.possession = 'home';
-  state.score = { home:0, away:0 };
-  state.driveSeq = [];
-  state.lastComment = '';
-  state.gameRunning = true;
-  state.halftimeShown = false;
-  state.gameOver = false;
-  state.selectedPlayIdx = 0;
-  // choose away team randomly
-  const others = ALL_TEAMS.filter(t => t !== state.home);
-  state.away = others[Math.floor(Math.random()*others.length)];
-  teamHomeEl.textContent = `Home: ${state.home} (${state.score.home})`;
-  teamAwayEl.textContent = `Away: ${state.away} (${state.score.away})`;
-  quarterEl.textContent = state.quarter;
-  updateTimeUI();
-  buildPlaybook();
-  playArea.style.display = 'block';
-  halftimePanel.style.display = 'none';
-  postgamePanel.style.display = 'none';
-  announce(`Kickoff! ${state.home} vs ${state.away}. ${state.home} will receive the opening kickoff. First and ten at the 25.`);
-}
+    // --- UI helpers ---
+    function $(sel){return document.querySelector(sel);} function $all(sel){return [...document.querySelectorAll(sel)];}
 
-/* update time UI formatted */
-function updateTimeUI(){
-  const mm = Math.floor(state.timeLeftSec/60).toString().padStart(2,'0');
-  const ss = (state.timeLeftSec%60).toString().padStart(2,'0');
-  timeLeftEl.textContent = `${mm}:${ss}`;
-  quarterEl.textContent = state.quarter;
-  teamHomeEl.textContent = `Home: ${state.home} (${state.score.home})`;
-  teamAwayEl.textContent = `Away: ${state.away} (${state.score.away})`;
-  driveInfo.textContent = `${state.possession === 'home' ? state.home : state.away} ball — Down ${state.down} and ${state.togo}, ball at the ${state.ballYardline} yard line.`;
-}
-
-/* short helper to advance clock by approximate amount (drives shrink time) */
-function advanceClockBySeconds(sec){
-  state.timeLeftSec = Math.max(0, state.timeLeftSec - sec);
-  updateTimeUI();
-  if(state.timeLeftSec <= 0){
-    endQuarter();
-  }
-}
-
-/* Quarter and halftime handling */
-function endQuarter(){
-  if(state.quarter === 2 && !state.halftimeShown){
-    // show halftime
-    state.halftimeShown = true;
-    showHalftime();
-    return;
-  }
-  if(state.quarter >= 4){
-    finishGame();
-    return;
-  }
-  // advance quarter
-  state.quarter += 1;
-  state.timeLeftSec = state.quarterLengthMin * 60;
-  announce(`Quarter ${state.quarter} begins. ${state.possession === 'home' ? state.home : state.away} has the ball.`);
-  updateTimeUI();
-}
-
-/* halftime display */
-function showHalftime(){
-  playArea.style.display = 'none';
-  halftimePanel.style.display = 'block';
-  const summary = `${state.home} ${state.score.home}, ${state.away} ${state.score.away}. Halftime stats placeholder.`;
-  halftimeContent.textContent = summary;
-  announce(`Halftime. ${summary}`);
-}
-
-/* end halftime */
-endHalftimeBtn.addEventListener('click', () => {
-  halftimePanel.style.display = 'none';
-  // start 3rd quarter
-  state.quarter = 3;
-  state.timeLeftSec = state.quarterLengthMin*60;
-  playArea.style.display = 'block';
-  announce(`Second half begins. Quarter ${state.quarter}. ${state.possession === 'home' ? state.home : state.away} will receive.`);
-  updateTimeUI();
-});
-
-/* finish game */
-function finishGame(){
-  state.gameRunning = false;
-  state.gameOver = true;
-  playArea.style.display = 'none';
-  postgamePanel.style.display = 'block';
-  const summary = `Final score: ${state.home} ${state.score.home}, ${state.away} ${state.score.away}.`;
-  postgameContent.textContent = summary + " Postgame highlights: placeholder highlights.";
-  announce(`Game over. ${summary} Postgame show now available.`);
-}
-
-/* new game after postgame */
-newGameAfterBtn.addEventListener('click', () => {
-  postgamePanel.style.display = 'none';
-  document.getElementById('mainMenu').style.display = 'block';
-  announce('Returned to main menu.');
-});
-
-/* --- Play execution simulation --- */
-function simulatePlay(playObj){
-  // basic deterministic-ish randomness influenced by difficulty
-  const diff = document.getElementById('difficulty').value;
-  const difficultyModifier = diff === 'Rookie' ? 0.15 : diff === 'Pro' ? 0 : diff === 'All-Pro' ? -0.05 : -0.12;
-  const rand = Math.random() + difficultyModifier; // higher is better for offense (if home has ball)
-  let yards = 0, text='';
-  if(playObj.type === 'run'){
-    // runs: mostly short gains
-    yards = Math.floor( (rand > 0.6 ? 6 : (rand > 0.3 ? 3 : -1)) + (Math.random()*3) );
-    if(yards < 0) text = `Tackle for loss of ${Math.abs(yards)} yards.`;
-    else text = `Run for ${yards} yards.`;
-  } else {
-    // pass
-    if(rand > 0.55){
-      yards = Math.floor(5 + Math.random()*15);
-      text = `Complete for ${yards} yards.`;
-    } else if(rand > 0.3){
-      yards = 0;
-      text = `Incomplete pass.`;
-    } else {
-      // turnover chance
-      const pick = Math.random() < 0.08;
-      if(pick){
-        text = `Interception! Turnover.`;
-        yards = 0;
-        // flip possession
-        togglePossession(true);
-      } else {
-        text = `Sack or pressure; no gain.`;
-        yards = -2;
+    // Render Pokedex Grid
+    function renderPokedex(){ const grid=$('#pokedexGrid'); grid.innerHTML='';
+      for(const p of POKEMON){ const owned = !!state.collection[p.id]; const div=document.createElement('button'); div.className='mon'; div.setAttribute('aria-label', owned?`${p.name}, collected`:`Unknown Pokémon, locked`); div.dataset.id=p.id; div.type='button';
+        div.innerHTML=`<div class="sprite ${owned? '':'locked'}">${owned? p.emoji : '❓'}</div><div class="name">${owned? p.name : 'Unknown'}</div>`;
+        div.addEventListener('click',()=> showMonDetails(p.id));
+        grid.appendChild(div);
       }
     }
-  }
 
-  // Apply yards if not turnover that flipped
-  if(!text.toLowerCase().includes('interception')){
-    // advance ball
-    state.ballYardline = Math.min(100, state.ballYardline + yards); // moving towards opponent end zone
-  }
+    function showMonDetails(id){ const p=getPokemonById(Number(id)); const owned = !!state.collection[p.id]; alert(`${p.name}\n\n${owned? 'Owned' : 'Not owned yet'}\nHP: ${p.maxHP}\nRarity: ${Math.round(p.rarity*100)}%`); }
 
-  // update down / togo
-  if(yards >= state.togo){
-    // first down
-    state.down = 1;
-    state.togo = 10;
-  } else {
-    state.down = Math.min(4, state.down + 1);
-    state.togo = Math.max(1, state.togo - Math.max(0,yards));
-  }
+    // Explore UI
+    function renderWild(){ if(!wild){ $('#wildSprite').textContent='🌱'; $('#wildName').textContent='No Pokémon found yet'; $('#wildInfo').textContent='—'; $('#catchBtn').disabled=true; $('#fleeBtn').disabled=true; } else { $('#wildSprite').textContent=wild.emoji; $('#wildName').textContent=wild.name; $('#wildInfo').textContent=`Rarity: ${Math.round(wild.rarity*100)}%`; $('#catchBtn').disabled=false; $('#fleeBtn').disabled=false; }}
 
-  // Check touchdown
-  if(state.ballYardline >= 100){
-    // touchdown for possession team
-    const scorer = state.possession;
-    state.score[scorer === 'home' ? 'home' : 'away'] += 7;
-    announce(`${playObj.name}. ${text} Touchdown ${scorer === 'home' ? state.home : state.away}! Score update: ${state.home} ${state.score.home}, ${state.away} ${state.score.away}.`);
-    // reset after kickoff — start opponent possession at 25
-    state.ballYardline = 25;
-    togglePossession(true); // possession flips on kickoff
-    // small clock advance
-    advanceClockBySeconds(45 + Math.floor(Math.random()*20));
-    return;
-  }
-
-  // If turnover earlier toggled possession, we already toggled; else continue
-  if(!text.toLowerCase().includes('interception')){
-    announce(`${playObj.name}. ${text} Down ${state.down} and ${state.togo} at the ${state.ballYardline}.`);
-  } else {
-    // if interception, we already announced togglePossession
-    announce(text + ` ${state.possession === 'home' ? state.home : state.away} takes over at the ${state.ballYardline}.`);
-  }
-
-  // if 4th down and failed, simulate punt (simple)
-  if(state.down > 4){
-    // automatic punt -> opponent gets ball at 25 (simplified)
-    announce(`Turnover on downs. ${state.possession === 'home' ? state.away : state.home} takes over at the 25.`);
-    togglePossession(true);
-  }
-
-  // Short clock advance per play
-  advanceClockBySeconds(20 + Math.floor(Math.random()*25));
-}
-
-/* toggle possession: if kickoff or turnover, pass true to reset ball to 25 */
-function togglePossession(resetTo25=false){
-  state.possession = (state.possession === 'home') ? 'away' : 'home';
-  if(resetTo25) state.ballYardline = 25;
-  // reset down/togo
-  state.down = 1;
-  state.togo = 10;
-  announce(`${state.possession === 'home' ? state.home : state.away} now has possession. First and ten at the ${state.ballYardline}.`);
-  updateTimeUI();
-}
-
-/* --- UI action bindings --- */
-newGameBtn.addEventListener('click', () => {
-  // hide UI parts and start new game
-  document.getElementById('mainMenu').style.display='none';
-  resetGameDefaults();
-});
-
-selectBtn.addEventListener('click', () => {
-  setSelectedPlay(state.selectedPlayIdx);
-  announce(`Selected ${PLAYBOOK[state.selectedPlayIdx].name}. Press Execute Play to run it.`);
-});
-
-executeBtn.addEventListener('click', () => {
-  // Ensure a direct gesture executes the play
-  const p = PLAYBOOK[state.selectedPlayIdx];
-  announce(`Executing ${p.name}.`);
-  simulatePlay(p);
-});
-
-endDriveBtn.addEventListener('click', () => {
-  announce('Drive ended. Returning to main menu.');
-  playArea.style.display = 'none';
-  document.getElementById('mainMenu').style.display = 'block';
-});
-
-statsBtn.addEventListener('click', () => {
-  const s = `Score: ${state.home} ${state.score.home}, ${state.away} ${state.score.away}. Quarter ${state.quarter}. Time ${timeLeftEl.textContent}.`;
-  announce(s);
-});
-
-/* help / keyboard interactions */
-document.addEventListener('keydown', (ev) => {
-  if(!state.gameRunning) return;
-  const k = ev.key;
-  if(k >= '1' && k <= '6'){
-    const idx = parseInt(k,10)-1;
-    if(idx >=0 && idx < PLAYBOOK.length){
-      setSelectedPlay(idx);
+    // Battle UI
+    function renderYourGrid(){ const grid=$('#yourGrid'); grid.innerHTML='';
+      const ownedIds = Object.keys(state.collection).map(Number);
+      if(ownedIds.length===0){ grid.innerHTML='<div class="muted">No Pokémon yet — explore to find some!</div>'; return; }
+      for(const id of ownedIds){ const p=getPokemonById(id); const btn=document.createElement('button'); btn.className='mon'; btn.type='button'; btn.dataset.id=id; const hp=state.collection[id].hp || p.maxHP; btn.innerHTML=`<div class="sprite">${p.emoji}</div><div class="name">${p.name}</div><div class="muted">HP: ${hp}/${p.maxHP}</div>`;
+          btn.addEventListener('click',()=> pickYourMonForBattle(id)); grid.appendChild(btn); }
     }
-  } else if(k === 'Enter'){
-    // execute
-    executeBtn.focus();
-    executeBtn.click();
-  } else if(k.toLowerCase() === 'r'){
-    // repeat last commentary
-    announce(state.lastComment || 'No last commentary.');
-  } else if(k.toLowerCase() === 's'){
-    statsBtn.click();
-  } else if(k.toLowerCase() === 'h'){
-    announce("Commands: 1-6 choose plays, Enter execute, R repeat last commentary, S show stats, H help.");
-  }
-});
 
-/* utility: initialize UI */
-(function init(){
-  // populate UI team
-  document.getElementById('teamHome').textContent = `Home: ${state.home} (0)`;
-  // New game remains visible
-  document.getElementById('mainMenu').style.display = 'block';
-  // build playbook (hidden until game start)
-  buildPlaybook();
-  announce("Prototype ready. Choose New Game to start.");
-})();
-</script>
-</body>
+    function pickYourMonForBattle(id){ const p=getPokemonById(Number(id)); const record = state.collection[id]; selectedBattleMon={ ...p, hp: record.hp ?? p.maxHP}; $('#yourPickSprite').textContent=p.emoji; $('#yourPickName').textContent=p.name; $('#yourPickHP').textContent=`HP: ${selectedBattleMon.hp} / ${p.maxHP}`; prepareWildForBattle(); $('#battleCard').hidden=false; }
+
+    function prepareWildForBattle(){ const w = pickWild(); // create copy with hp
+      wildPick = {...w, hp: Math.min(w.maxHP, Math.floor(w.maxHP * (0.6 + Math.random()*0.6)))}; // random HP between 60% - 120%
+      window.currentWild = wildPick; $('#wildPickSprite').textContent=wildPick.emoji; $('#wildPickName').textContent=wildPick.name; $('#wildPickHP').textContent=`HP: ${wildPick.hp} / ${wildPick.maxHP}`; $('#battleLog').textContent='A wild '+wildPick.name+' appeared!'; }
+
+    // Battle mechanics: simple turn-based where attack subtracts random damage
+    function playerAttack(){ if(!selectedBattleMon || !window.currentWild) return; const atk = Math.max(1, Math.floor( (5 + Math.random()*10) )); window.currentWild.hp -= atk; $('#battleLog').textContent = `${selectedBattleMon.name} attacks for ${atk} damage!`;
+      if(window.currentWild.hp <=0){ winBattle(); return; } else { $('#wildPickHP').textContent=`HP: ${Math.max(0,window.currentWild.hp)} / ${window.currentWild.maxHP}`; setTimeout(wildAttack,800); }
+    }
+    function wildAttack(){ if(!selectedBattleMon || !window.currentWild) return; const atk = Math.max(1, Math.floor( (3 + Math.random()*8) )); selectedBattleMon.hp -= atk; $('#battleLog').textContent = `${window.currentWild.name} attacks for ${atk} damage!`;
+      $('#yourPickHP').textContent=`HP: ${Math.max(0,selectedBattleMon.hp)} / ${selectedBattleMon.maxHP}`;
+      if(selectedBattleMon.hp <=0){ loseBattle(); return; } }
+
+    function winBattle(){ $('#battleLog').textContent = `You defeated ${window.currentWild.name}!`;
+      // reward: cookies and chance to add special pokemon
+      const gainedCookies = Math.floor(1 + Math.random()*3); state.cookies += gainedCookies; const gotRare = Math.random() < 0.35; if(gotRare){ // give random not-yet-owned pokemon if possible
+        const notOwned = POKEMON.filter(p=>!state.collection[p.id]); if(notOwned.length>0){ const pick = notOwned[Math.floor(Math.random()*notOwned.length)]; addToCollection(pick.id); $('#battleLog').textContent += ` You found a special Pokémon: ${pick.name}! (+${gainedCookies} cookies)`; } else { $('#battleLog').textContent += ` You earned ${gainedCookies} cookies!`; }
+      } else { $('#battleLog').textContent += ` You earned ${gainedCookies} cookies!`; }
+      // reduce party HP
+      if(selectedBattleMon){ // update saved HP for that pokemon id
+        state.collection[selectedBattleMon.id].hp = Math.max(0,selectedBattleMon.hp);
+      }
+      save(); renderAll(); setTimeout(()=>{ $('#battleCard').hidden=true; },900);
+    }
+    function loseBattle(){ $('#battleLog').textContent = `Your ${selectedBattleMon.name} fainted...`; // set hp to 0
+      state.collection[selectedBattleMon.id].hp = 0; save(); renderAll(); setTimeout(()=>{ $('#battleCard').hidden=true; },900);
+    }
+
+    // Items (simple)
+    function useItem(){ if(!selectedBattleMon) return; // heal some
+      const heal = Math.floor(6 + Math.random()*12); selectedBattleMon.hp = Math.min(selectedBattleMon.maxHP, selectedBattleMon.hp + heal); $('#battleLog').textContent = `${selectedBattleMon.name} regained ${heal} HP!`; $('#yourPickHP').textContent=`HP: ${selectedBattleMon.hp} / ${selectedBattleMon.maxHP}`;
+    }
+
+    // --- Explore actions ---
+    function doExplore(){ wild = pickWild(); renderWild(); $('#wildCard').classList.add('found'); $('#exploreBtn').textContent='Searching...'; setTimeout(()=>{ $('#exploreBtn').textContent='Explore Area'; renderWild(); },600);
+    }
+    function doCatch(){ if(!wild) return; // simple catch chance: based on rarity and randomness
+      const base = 0.35 + (0.5 - wild.rarity); // tweak so rarer are harder
+      const roll = Math.random(); const success = roll < base;
+      if(success){ addToCollection(wild.id); state.cookies += 1; alert(`Caught ${wild.name}! Added to your Pokédex.`); }
+      else { alert(`Oh no — ${wild.name} broke free!`); }
+      wild = null; renderWild(); renderAll(); save(); }
+    function doFlee(){ wild = null; renderWild(); }
+
+    // --- Cookie Center actions ---
+    function renderCookieCenter(){ $('#cookieCount').textContent = state.cookies; const g = $('#healGrid'); g.innerHTML=''; const ownedIds = Object.keys(state.collection).map(Number); if(ownedIds.length===0){ g.innerHTML='<div class="muted">You have no Pokémon.</div>'; return; }
+      for(const id of ownedIds){ const p = getPokemonById(id); const rec = state.collection[id]; const btn=document.createElement('button'); btn.className='mon'; btn.type='button'; btn.dataset.id=id; btn.innerHTML=`<div class="sprite">${p.emoji}</div><div class="name">${p.name}</div><div class="muted">HP: ${rec.hp || p.maxHP} / ${p.maxHP}</div>`; btn.addEventListener('click',()=>{ // toggle selection
+          const prev = selectedHeal; if(prev===id){ selectedHeal=null; btn.style.outline=''; } else { selectedHeal=id; // clear others
+            $all('#healGrid .mon').forEach(n=>n.style.outline=''); btn.style.outline='3px solid rgba(30,144,255,0.16)'; }
+        }); g.appendChild(btn); }
+    }
+    function healAll(){ if(state.cookies<=0){ alert('No cookies — win battles to earn cookies.'); return; } state.cookies = Math.max(0, state.cookies - 1); for(const k of Object.keys(state.collection)){ const id=Number(k); state.collection[id].hp = getPokemonById(id).maxHP; } save(); renderAll(); alert('All Pokémon healed. 1 cookie used.'); }
+    function healSelected(){ if(!selectedHeal){ alert('Select a Pokémon to heal.'); return; } if(state.cookies<=0){ alert('No cookies left.'); return; } state.cookies--; state.collection[selectedHeal].hp = getPokemonById(selectedHeal).maxHP; selectedHeal=null; save(); renderAll(); renderCookieCenter(); alert('Healed selected Pokémon.'); }
+
+    // --- Tab navigation ---
+    $all('.tabbtn').forEach(btn=> btn.addEventListener('click', ()=>{ const tab=btn.dataset.tab; showTab(tab); }));
+    function showTab(tabName){ $all('.tabbtn').forEach(b=> b.setAttribute('aria-current','false')); $all(`.tabbtn[data-tab="${tabName}"]`).forEach(b=> b.setAttribute('aria-current','true'));
+      $all('.tab').forEach(s=> s.hidden = s.id !== tabName);
+      // set focus into region for screen readers
+      setTimeout(()=>{ document.getElementById(tabName).focus?.(); },150);
+      // render relevant
+      if(tabName==='home') renderPokedex();
+      if(tabName==='explore') renderWild();
+      if(tabName==='battle'){ renderYourGrid(); }
+      if(tabName==='cooki') renderCookieCenter();
+    }
+
+    // --- General render ---
+    function renderAll(){ renderPokedex(); renderWild(); renderYourGrid(); renderCookieCenter(); $('#cookieCount').textContent = state.cookies; }
+
+    // --- Events ---
+    function wire(){ $('#closeBtn').addEventListener('click', ()=>{ // polite close experience
+        if(confirm('Exit Pokémon Adventure? The app will remain saved in your browser.')){ document.body.innerHTML = '<div style="padding:30px;color:#e6eef8;background:#071025;height:100vh;display:flex;align-items:center;justify-content:center"><div><h2>Goodbye!</h2><p class="muted">Return to this page to play again. Your Pokédex is saved locally.</p></div></div>';} });
+
+      $('#exploreBtn').addEventListener('click', doExplore);
+      $('#runBtn').addEventListener('click', ()=>{ wild=null; renderWild(); });
+      $('#catchBtn').addEventListener('click', doCatch);
+      $('#fleeBtn').addEventListener('click', doFlee);
+
+      $('#attackBtn').addEventListener('click', ()=>{ playerAttack(); });
+      $('#useItemBtn').addEventListener('click', useItem);
+
+      $('#healAllBtn').addEventListener('click', healAll);
+      $('#healSelectedBtn').addEventListener('click', healSelected);
+
+      // allow tapping pokedex items to view
+      document.addEventListener('keydown', (e)=>{ if(e.key==='Escape') showTab('home'); });
+    }
+
+    // --- Boot ---
+    load(); wire(); renderAll(); // default tab
+    showTab('home');
+
+    // Accessibility: make sections focusable
+    $all('.tab').forEach(s=> s.tabIndex=0);
+
+    // small onboarding
+    if(!localStorage.getItem(KEY+'_seen_tour')){
+      localStorage.setItem(KEY+'_seen_tour','1');
+      setTimeout(()=> alert('Welcome to Pokémon Adventure! Use the tabs at the bottom to navigate. Explore to find Pokémon, then try battles later. Double tap buttons to activate them with a screen reader.'),400);
+    }
+  </script></body>
 </html>
