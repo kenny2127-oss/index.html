@@ -13,6 +13,8 @@
     <style>
         body {
             font-family: 'Inter', sans-serif;
+            background-color: #1e293b;
+            color: white;
         }
         /* Custom styles for a Madden-like feel */
         .madden-bg {
@@ -29,6 +31,35 @@
             transform: translateY(-2px);
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
         }
+        /* Football field specific styles */
+        .football-field {
+            background-color: #166534; /* Dark green field */
+            background-image: linear-gradient(to right, #166534 0%, #166534 5%, #15803d 5%, #15803d 10%, #166534 10%, #166534 15%, #15803d 15%, #15803d 20%, #166534 20%, #166534 25%, #15803d 25%, #15803d 30%, #166534 30%, #166534 35%, #15803d 35%, #15803d 40%, #166534 40%, #166534 45%, #15803d 45%, #15803d 50%, #166534 50%, #166534 55%, #15803d 55%, #15803d 60%, #166534 60%, #166534 65%, #15803d 65%, #15803d 70%, #166534 70%, #166534 75%, #15803d 75%, #15803d 80%, #166534 80%, #166534 85%, #15803d 85%, #15803d 90%, #166534 90%, #166534 95%, #15803d 95%, #15803d 100%);
+            border: 2px solid white;
+            position: relative;
+            width: 100%;
+            height: 0;
+            padding-top: 100%; /* Creates a square aspect ratio for the field */
+            overflow: hidden;
+            border-radius: 0.5rem;
+        }
+        .yard-line {
+            background-color: white;
+            position: absolute;
+            height: 100%;
+            width: 2px;
+            top: 0;
+        }
+        /* Position the yard lines */
+        .yard-line-50 { left: 50%; }
+        .yard-line-40 { left: 40%; }
+        .yard-line-30 { left: 30%; }
+        .yard-line-20 { left: 20%; }
+        .yard-line-10 { left: 10%; }
+        .yard-line-60 { left: 60%; }
+        .yard-line-70 { left: 70%; }
+        .yard-line-80 { left: 80%; }
+        .yard-line-90 { left: 90%; }
     </style>
 </head>
 <body class="madden-bg text-white">
@@ -134,7 +165,7 @@
                     </select>
                 </div>
                 <!-- Start Game Button -->
-                <button id="start-game-btn" class="w-full madden-button text-xl font-bold py-4 px-8 rounded-full shadow-lg">
+                <button id="start-game-settings-btn" class="w-full madden-button text-xl font-bold py-4 px-8 rounded-full shadow-lg">
                     START GAME
                 </button>
                 <!-- Back Button -->
@@ -143,14 +174,149 @@
                 </button>
             </div>
         </div>
+
+        <!-- Gameplay Screen (initially hidden) -->
+        <div id="gameplay-screen" class="w-full h-screen flex flex-col items-center justify-start hidden">
+            <!-- Scoreboard -->
+            <div class="w-full max-w-lg bg-gray-800 text-white p-4 rounded-lg shadow-lg flex justify-between items-center mb-4">
+                <div class="text-center">
+                    <h3 id="away-team-name" class="text-xl font-bold">AWAY</h3>
+                    <p id="away-team-score" class="text-3xl font-extrabold">0</p>
+                </div>
+                <div class="text-center">
+                    <h3 class="text-sm font-semibold">QTR</h3>
+                    <p id="game-quarter" class="text-xl font-bold">1</p>
+                </div>
+                <div class="text-center">
+                    <h3 class="text-sm font-semibold">TIME</h3>
+                    <p id="game-time" class="text-xl font-bold">15:00</p>
+                </div>
+                <div class="text-center">
+                    <h3 id="home-team-name" class="text-xl font-bold">HOME</h3>
+                    <p id="home-team-score" class="text-3xl font-extrabold">0</p>
+                </div>
+            </div>
+
+            <!-- The Field -->
+            <div class="football-field w-full max-w-lg">
+                <div class="yard-line yard-line-10"></div>
+                <div class="yard-line yard-line-20"></div>
+                <div class="yard-line yard-line-30"></div>
+                <div class="yard-line yard-line-40"></div>
+                <div class="yard-line yard-line-50"></div>
+                <div class="yard-line yard-line-60"></div>
+                <div class="yard-line yard-line-70"></div>
+                <div class="yard-line yard-line-80"></div>
+                <div class="yard-line yard-line-90"></div>
+            </div>
+
+            <!-- Back to Settings Button -->
+            <button id="back-to-settings-btn" class="w-full max-w-sm mt-8 text-lg py-3 rounded-full text-gray-400 border-2 border-gray-600">
+                BACK TO SETTINGS
+            </button>
+        </div>
+
     </div>
 
     <script>
+        // Roster data for the 49ers (will be moved to a separate file later)
+        const nflRosters = {
+            "San Francisco 49ers": {
+                offense: {
+                    quarterbacks: [
+                        { name: "Brock Purdy", rating: 89 },
+                        { name: "Joshua Dobbs", rating: 74 },
+                        { name: "Brandon Allen", rating: 68 }
+                    ],
+                    running_backs: [
+                        { name: "Christian McCaffrey", rating: 98 },
+                        { name: "Elijah Mitchell", rating: 79 },
+                        { name: "Jordan Mason", rating: 73 },
+                        { name: "Isaac Guerendo", rating: 72 }
+                    ],
+                    full_backs: [
+                        { name: "Kyle Juszczyk", rating: 91 }
+                    ],
+                    wide_receivers: [
+                        { name: "Deebo Samuel", rating: 94 },
+                        { name: "Brandon Aiyuk", rating: 91 },
+                        { name: "Jauan Jennings", rating: 80 },
+                        { name: "Ricky Pearsall", rating: 77 },
+                        { name: "Jacob Cowing", rating: 70 },
+                        { name: "Trent Taylor", rating: 69 }
+                    ],
+                    tight_ends: [
+                        { name: "George Kittle", rating: 97 },
+                        { name: "Cameron Latu", rating: 71 },
+                        { name: "Brayden Willis", rating: 68 }
+                    ],
+                    offensive_line: [
+                        { name: "Trent Williams", rating: 98 },
+                        { name: "Jon Feliciano", rating: 78 },
+                        { name: "Jake Brendel", rating: 79 },
+                        { name: "Aaron Banks", rating: 82 },
+                        { name: "Colton McKivitz", rating: 80 },
+                        { name: "Jaylon Moore", rating: 73 },
+                        { name: "Spencer Burford", rating: 72 },
+                        { name: "Dominick Puni", rating: 68 },
+                        { name: "Drake Nugent", rating: 66 }
+                    ]
+                },
+                defense: {
+                    defensive_line: [
+                        { name: "Nick Bosa", rating: 95 },
+                        { name: "Javon Hargrave", rating: 89 },
+                        { name: "Javon Kinlaw", rating: 80 },
+                        { name: "Leonard Floyd", rating: 86 },
+                        { name: "Maliek Collins", rating: 81 },
+                        { name: "Drake Jackson", rating: 72 },
+                        { name: "Kevin Givens", rating: 77 },
+                        { name: "T.Y. McGill", rating: 70 },
+                        { name: "Jordan Elliott", rating: 75 }
+                    ],
+                    linebackers: [
+                        { name: "Fred Warner", rating: 98 },
+                        { name: "Dre Greenlaw", rating: 90 },
+                        { name: "De'Vondre Campbell", rating: 85 },
+                        { name: "Oren Burks", rating: 74 },
+                        { name: "Jaylen Moody", rating: 69 },
+                        { name: "Jalen Graham", rating: 68 }
+                    ],
+                    cornerbacks: [
+                        { name: "Charvarius Ward", rating: 92 },
+                        { name: "Deommodore Lenoir", rating: 85 },
+                        { name: "Ambry Thomas", rating: 75 },
+                        { name: "Rock Ya-Sin", rating: 78 },
+                        { name: "Renardo Green", rating: 73 },
+                        { name: "Samuel Womack III", rating: 69 }
+                    ],
+                    safeties: [
+                        { name: "Talanoa Hufanga", rating: 88 },
+                        { name: "Ji'Ayir Brown", rating: 79 },
+                        { name: "Tashaun Gipson Sr.", rating: 75 },
+                        { name: "George Odum", rating: 77 }
+                    ]
+                },
+                special_teams: {
+                    kicker: [
+                        { name: "Jake Moody", rating: 79 }
+                    ],
+                    punter: [
+                        { name: "Mitch Wishnowsky", rating: 81 }
+                    ],
+                    long_snapper: [
+                        { name: "Taybor Pepper", rating: 73 }
+                    ]
+                }
+            }
+        };
+
         // Get references to all the main elements
         const titleScreen = document.getElementById('title-screen');
         const mainMenu = document.getElementById('main-menu');
         const teamSelection = document.getElementById('team-selection');
         const gameSettings = document.getElementById('game-settings');
+        const gameplayScreen = document.getElementById('gameplay-screen');
         const messageBox = document.getElementById('message-box');
 
         // Buttons
@@ -162,8 +328,13 @@
         const settingsBtn = document.getElementById('settings-btn');
         const continueBtn = document.getElementById('continue-btn');
         const backToMainMenuBtn = document.getElementById('back-to-main-menu');
-        const startGameBtn = document.getElementById('start-game-btn');
+        const startGameSettingsBtn = document.getElementById('start-game-settings-btn');
         const backToTeamSelectionBtn = document.getElementById('back-to-team-selection');
+        const backToSettingsBtn = document.getElementById('back-to-settings-btn');
+        
+        // Gameplay Screen Elements
+        const homeTeamNameEl = document.getElementById('home-team-name');
+        const awayTeamNameEl = document.getElementById('away-team-name');
         
         // Get the select elements
         const homeTeamSelect = document.getElementById('home-team');
@@ -194,19 +365,19 @@
             // Dynamically add all teams
             nflTeams.forEach(team => {
                 const homeOption = document.createElement('option');
-                homeOption.value = team.replace(/\s/g, ''); // Remove spaces for value
+                homeOption.value = team;
                 homeOption.textContent = team;
                 homeTeamSelect.appendChild(homeOption);
 
                 const awayOption = document.createElement('option');
-                awayOption.value = team.replace(/\s/g, '');
+                awayOption.value = team;
                 awayOption.textContent = team;
                 awayTeamSelect.appendChild(awayOption);
             });
 
             // Set default selections
-            homeTeamSelect.value = 'SanFrancisco49ers';
-            awayTeamSelect.value = 'PhiladelphiaEagles';
+            homeTeamSelect.value = 'San Francisco 49ers';
+            awayTeamSelect.value = 'Philadelphia Eagles';
         }
 
         // Call the function to populate teams on page load
@@ -220,6 +391,7 @@
             mainMenu.classList.add('hidden');
             teamSelection.classList.add('hidden');
             gameSettings.classList.add('hidden');
+            gameplayScreen.classList.add('hidden');
         }
 
         /**
@@ -290,24 +462,31 @@
             showScreen(teamSelection);
         });
         
-        // Listen for the Start Game button
-        startGameBtn.addEventListener('click', () => {
-            const homeTeam = homeTeamSelect.options[homeTeamSelect.selectedIndex].text;
-            const awayTeam = awayTeamSelect.options[awayTeamSelect.selectedIndex].text;
+        // Listen for the Start Game button on the game settings screen
+        startGameSettingsBtn.addEventListener('click', () => {
+            const homeTeam = homeTeamSelect.value;
+            const awayTeam = awayTeamSelect.value;
             const quarterLength = quarterLengthSelect.value;
             const timeOfDay = timeOfDaySelect.value;
             const weather = weatherSelect.value;
 
-            // Log the selected game settings to the console for now.
-            // In a real game, this would trigger the game scene to load.
-            console.log(`Starting game with settings:`);
-            console.log(`- Home Team: ${homeTeam}`);
-            console.log(`- Away Team: ${awayTeam}`);
-            console.log(`- Quarter Length: ${quarterLength} minutes`);
-            console.log(`- Time of Day: ${timeOfDay}`);
-            console.log(`- Weather: ${weather}`);
-            
-            showMessage(`Game between the ${awayTeam} and the ${homeTeam} is ready!`);
+            // Set the team names on the scoreboard
+            homeTeamNameEl.textContent = homeTeam.toUpperCase();
+            awayTeamNameEl.textContent = awayTeam.toUpperCase();
+
+            // Check if the 49ers are selected to show roster data
+            if (homeTeam === "San Francisco 49ers") {
+                const roster = nflRosters[homeTeam];
+                console.log(`Starting QB for the ${homeTeam}:`, roster.offense.quarterbacks[0].name);
+            }
+
+            // Show the gameplay screen
+            showScreen(gameplayScreen);
+        });
+
+        // Listen for the "Back" button on the gameplay screen
+        backToSettingsBtn.addEventListener('click', () => {
+            showScreen(gameSettings);
         });
     </script>
 </body>
