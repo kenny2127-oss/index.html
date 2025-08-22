@@ -22,13 +22,13 @@ input{padding:6px;border-radius:6px;border:none;margin:2px;width:100%;}
 </style>
 </head>
 <body>
-<header><h1>Pokémon Adventure</h1></header><nav>
-<button data-tab="home" class="activeTab">Home</button>
-<button data-tab="explore">Explore</button>
-<button data-tab="battle">Battle</button>
-<button data-tab="center">Poké Center</button>
-<button data-tab="trade">Trading Center</button>
-<button data-tab="tradePlayers">Trade with Players</button>
+<header><h1>Pokémon Adventure</h1></header><!-- Live region for accessibility announcements --><div id="tabAnnouncement" aria-live="polite" style="position:absolute; left:-9999px;"></div><nav role="tablist">
+<button role="tab" aria-selected="true" aria-controls="home" data-tab="home" class="activeTab">Home</button>
+<button role="tab" aria-selected="false" aria-controls="explore" data-tab="explore">Explore</button>
+<button role="tab" aria-selected="false" aria-controls="battle" data-tab="battle">Battle</button>
+<button role="tab" aria-selected="false" aria-controls="center" data-tab="center">Poké Center</button>
+<button role="tab" aria-selected="false" aria-controls="trade" data-tab="trade">Trading Center</button>
+<button role="tab" aria-selected="false" aria-controls="tradePlayers" data-tab="tradePlayers">Trade with Players</button>
 </nav><main>
 <section id="home" class="tab active">
 <h2>Your Pokédex</h2>
@@ -62,10 +62,18 @@ document.addEventListener('DOMContentLoaded', () => {
   const pokemonList = ["Pikachu","Bulbasaur","Charmander","Squirtle","Eevee","Jigglypuff","Meowth","Snorlax","Psyduck","Gengar"];
   let pokedex = JSON.parse(localStorage.getItem('pokedex')) || [];
   let trades = JSON.parse(localStorage.getItem('trades')) || {};
+  const liveRegion = document.getElementById('tabAnnouncement');
 
   function saveGame(){
     localStorage.setItem('pokedex', JSON.stringify(pokedex));
     localStorage.setItem('trades', JSON.stringify(trades));
+  }
+
+  function speakText(text){
+    if('speechSynthesis' in window){
+      const utter=new SpeechSynthesisUtterance(text);
+      speechSynthesis.speak(utter);
+    }
   }
 
   function renderPokedex(){
@@ -156,13 +164,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  function speakText(text){
-    if('speechSynthesis' in window){
-      const utter=new SpeechSynthesisUtterance(text);
-      speechSynthesis.speak(utter);
-    }
-  }
-
   // Button event listeners
   document.getElementById('exploreBtn').addEventListener('click', explorePokemon);
   document.getElementById('healBtn').addEventListener('click', healPokemon);
@@ -174,23 +175,14 @@ document.addEventListener('DOMContentLoaded', () => {
     if(e.target.classList.contains('offerBtn')) generateCode(e.target.dataset.poke);
   });
 
-  // Tab switching with voiceover
+  // Tab switching with live region announcements
   document.querySelectorAll('nav button[data-tab]').forEach(btn => {
     btn.addEventListener('click', () => {
       const tab = btn.getAttribute('data-tab');
       document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
       const section = document.getElementById(tab);
       if(section) section.classList.add('active');
-      document.querySelectorAll('nav button').forEach(b => b.classList.remove('activeTab'));
-      btn.classList.add('activeTab');
-      speakText(`${btn.textContent} tab selected`);
-    });
-  });
 
-  // Initial render
-  renderPokedex();
-  renderTrade();
-  renderTradePlayers();
-});
-</script></body>
-</html>
+      // Update aria-selected
+      document.querySelectorAll('nav button[data-tab]').forEach(b => {
+        b.classList
