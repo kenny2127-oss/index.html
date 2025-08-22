@@ -1,4 +1,5 @@
 <!doctype html>
+
 <html lang="en">
 <head>
 <meta charset="utf-8">
@@ -21,58 +22,42 @@ input{padding:6px;border-radius:6px;border:none;margin:2px;width:100%;}
 </style>
 </head>
 <body>
-<header><h1>Pokémon Adventure</h1></header>
-
-<nav>
+<header><h1>Pokémon Adventure</h1></header><nav>
 <button data-tab="home" class="activeTab">Home</button>
 <button data-tab="explore">Explore</button>
 <button data-tab="battle">Battle</button>
 <button data-tab="center">Poké Center</button>
 <button data-tab="trade">Trading Center</button>
 <button data-tab="tradePlayers">Trade with Players</button>
-</nav>
-
-<main>
+</nav><main>
 <section id="home" class="tab active">
 <h2>Your Pokédex</h2>
 <div id="pokedex" class="grid"></div>
-</section>
-
-<section id="explore" class="tab">
+</section><section id="explore" class="tab">
 <h2>Explore</h2>
 <button id="exploreBtn">Explore Area</button>
 <div id="exploreResult"></div>
-</section>
-
-<section id="battle" class="tab">
+</section><section id="battle" class="tab">
 <h2>Battle</h2>
 <div id="battleResult">Battles coming soon!</div>
-</section>
-
-<section id="center" class="tab">
+</section><section id="center" class="tab">
 <h2>Poké Center</h2>
 <button id="healBtn">Heal All Pokémon</button>
 <div id="healResult"></div>
-</section>
-
-<section id="trade" class="tab">
+</section><section id="trade" class="tab">
 <h2>Trading Center</h2>
 <div id="tradeGrid" class="grid"></div>
 <div id="tradeResult"></div>
-</section>
-
-<section id="tradePlayers" class="tab">
+</section><section id="tradePlayers" class="tab">
 <h2>Trade with Other Players</h2>
-<p>Offer one of your Pokémon to generate a short code:</p>
+<p>Select one of your Pokémon to generate a trade code to give to someone else:</p>
 <div id="offerGrid" class="grid"></div>
-<p>Enter a code to receive a Pokémon from another player:</p>
+<p>Or enter a code to receive a Pokémon from another player:</p>
 <input type="text" id="redeemCode" placeholder="Enter trade code">
 <button id="redeemBtn">Redeem Code</button>
 <div id="tradePlayerResult"></div>
 </section>
-</main>
-
-<script>
+</main><script>
 document.addEventListener('DOMContentLoaded', () => {
   const pokemonList = ["Pikachu","Bulbasaur","Charmander","Squirtle","Eevee","Jigglypuff","Meowth","Snorlax","Psyduck","Gengar"];
   let pokedex = JSON.parse(localStorage.getItem('pokedex')) || [];
@@ -99,6 +84,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if(!pokedex.includes(found)) pokedex.push(found);
     saveGame();
     document.getElementById('exploreResult').textContent=`You found ${found}!`;
+    speakText(`You found ${found}`);
     renderPokedex();
     renderTrade();
     renderTradePlayers();
@@ -106,6 +92,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function healPokemon(){
     document.getElementById('healResult').textContent='All Pokémon healed!';
+    speakText('All Pokémon healed');
   }
 
   function renderTrade(){
@@ -125,6 +112,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if(!pokedex.includes(newPoke)) pokedex.push(newPoke);
     saveGame();
     document.getElementById('tradeResult').textContent=`Traded ${name} for ${newPoke}!`;
+    speakText(`Traded ${name} for ${newPoke}`);
     renderPokedex();
     renderTrade();
   }
@@ -135,19 +123,20 @@ document.addEventListener('DOMContentLoaded', () => {
     pokedex.forEach(p=>{
       const div=document.createElement('div');
       div.className='card';
-      div.innerHTML=`${p}<br><button class='offerBtn' data-poke='${p}'>Offer</button>`;
+      div.innerHTML=`${p}<br><button class='offerBtn' data-poke='${p}'>Generate Code</button>`;
       container.appendChild(div);
     });
   }
 
   function generateCode(pokemon){
-    const code='TR-'+Math.random().toString(36).substring(2,6).toUpperCase();
+    const code='TR-'+Math.random().toString(36).substring(2,8).toUpperCase();
     trades[code]=pokemon;
     pokedex=pokedex.filter(p=>p!==pokemon);
     saveGame();
     renderPokedex();
     renderTradePlayers();
-    document.getElementById('tradePlayerResult').textContent=`Your code: ${code}`;
+    document.getElementById('tradePlayerResult').textContent=`Your trade code for ${pokemon}: ${code}`;
+    speakText(`Your trade code for ${pokemon} is ${code}`);
   }
 
   function redeemTrade(){
@@ -160,8 +149,17 @@ document.addEventListener('DOMContentLoaded', () => {
       renderPokedex();
       renderTradePlayers();
       document.getElementById('tradePlayerResult').textContent=`You received ${pokemon}!`;
+      speakText(`You received ${pokemon}`);
     } else {
       document.getElementById('tradePlayerResult').textContent='Invalid or expired code.';
+      speakText('Invalid or expired code');
+    }
+  }
+
+  function speakText(text){
+    if('speechSynthesis' in window){
+      const utter=new SpeechSynthesisUtterance(text);
+      speechSynthesis.speak(utter);
     }
   }
 
@@ -170,21 +168,22 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('healBtn').addEventListener('click', healPokemon);
   document.getElementById('redeemBtn').addEventListener('click', redeemTrade);
 
-  // Dynamic trade buttons
+  // Dynamic buttons for trade and offer
   document.body.addEventListener('click', e=>{
     if(e.target.classList.contains('tradeBtn')) tradePokemon(e.target.dataset.poke);
     if(e.target.classList.contains('offerBtn')) generateCode(e.target.dataset.poke);
   });
 
-  // Tab switching
+  // Tab switching with voiceover
   document.querySelectorAll('nav button[data-tab]').forEach(btn => {
     btn.addEventListener('click', () => {
       const tab = btn.getAttribute('data-tab');
       document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
       const section = document.getElementById(tab);
-      if (section) section.classList.add('active');
+      if(section) section.classList.add('active');
       document.querySelectorAll('nav button').forEach(b => b.classList.remove('activeTab'));
       btn.classList.add('activeTab');
+      speakText(`${btn.textContent} tab selected`);
     });
   });
 
@@ -193,6 +192,5 @@ document.addEventListener('DOMContentLoaded', () => {
   renderTrade();
   renderTradePlayers();
 });
-</script>
-</body>
+</script></body>
 </html>
