@@ -64,9 +64,10 @@ nav button.activeTab{background:#63b3ed; font-weight:bold;}
 </section>
 </main>
 <script>
-const pokemonList = ["Pikachu","Bulbasaur","Charmander","Squirtle","Eevee","Jigglypuff","Meowth","Snorlax","Psyduck","Gengar"];
-let pokedex = JSON.parse(localStorage.getItem('pokedex')) || [];
-let trades = JSON.parse(localStorage.getItem('trades')) || {};function saveGame(){ localStorage.setItem('pokedex', JSON.stringify(pokedex)); localStorage.setItem('trades', JSON.stringify(trades)); }
+document.addEventListener('DOMContentLoaded', () => {
+  const pokemonList = ["Pikachu","Bulbasaur","Charmander","Squirtle","Eevee","Jigglypuff","Meowth","Snorlax","Psyduck","Gengar"];
+  let pokedex = JSON.parse(localStorage.getItem('pokedex')) || [];
+  let trades = JSON.parse(localStorage.getItem('trades')) || {};function saveGame(){ localStorage.setItem('pokedex', JSON.stringify(pokedex)); localStorage.setItem('trades', JSON.stringify(trades)); }
 
 function renderPokedex(){ const container = document.getElementById('pokedex'); container.innerHTML=''; pokemonList.forEach(p=>{ const div=document.createElement('div'); div.className='card'; div.textContent=pokedex.includes(p)?p:'???'; container.appendChild(div); }); }
 
@@ -86,7 +87,7 @@ function redeemTrade(){ const code=document.getElementById('redeemCode').value.t
 
 // --- Tab switching --- document.querySelectorAll('nav button').forEach(btn => { btn.addEventListener('click', ()=>{ const tab = btn.getAttribute('data-tab'); document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active')); document.getElementById(tab).classList.add('active'); document.querySelectorAll('nav button').forEach(b=>b.classList.remove('activeTab')); btn.classList.add('activeTab'); }); });
 
-renderPokedex(); </script>
+renderPokedex(); }); </script>
 
 </body>
 </html>
