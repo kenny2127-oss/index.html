@@ -1,225 +1,314 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Accessible Madden Prototype</title>
-<style>
-  body { font-family: Arial, sans-serif; background: #111; color: #fff; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; min-height: 100vh; padding: 20px; }
-  .menu, .submenu, .playbook, .franchiseMenu { margin: 10px 0; }
-  button, select { font-size: 1.2em; margin: 5px; padding: 10px 20px; }
-  .playbook, .franchiseMenu { display: none; flex-direction: column; align-items: center; }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Madden-Style Team Selection</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #111827;
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
+            flex-direction: column;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 600px;
+            padding: 1rem;
+        }
+
+        .screen {
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            min-height: 80vh;
+            width: 100%;
+            transition: opacity 0.5s ease-in-out;
+        }
+        
+        .screen.hidden {
+            display: none;
+        }
+
+        /* Animations */
+        .slide-in {
+            animation: slideIn 0.5s forwards;
+        }
+        
+        @keyframes slideIn {
+            from {
+                transform: translateY(20px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .fade-out {
+            animation: fadeOut 0.5s forwards;
+        }
+
+        @keyframes fadeOut {
+            from {
+                opacity: 1;
+            }
+            to {
+                opacity: 0;
+            }
+        }
+        
+        /* Combo Box Styles */
+        .select-container {
+            width: 100%;
+            margin-bottom: 1rem;
+        }
+
+        select {
+            background-color: #1f2937;
+            color: white;
+            padding: 0.75rem 1rem;
+            border: 2px solid transparent;
+            border-radius: 0.5rem;
+            width: 100%;
+            transition: all 0.3s ease-in-out;
+            cursor: pointer;
+        }
+
+        select:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.5);
+        }
+
+        /* Roster Display */
+        .roster-display {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            width: 100%;
+            max-width: 800px;
+            margin-top: 2rem;
+            text-align: left;
+        }
+
+        .roster-column h3 {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+
+        .player-item {
+            display: flex;
+            justify-content: space-between;
+            background-color: #1f2937;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+    </style>
 </head>
-<body>
+<body class="bg-gray-900 text-gray-100 flex items-center justify-center min-h-screen">
+    <div class="container">
+        <!-- Main Menu Screen -->
+        <div id="main-menu" class="screen">
+            <h1 class="text-4xl font-bold mb-4">Madden-Style App</h1>
+            <p class="text-lg text-gray-400 mb-8">Ready to play?</p>
+            <button id="start-button" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-full shadow-lg transition-all transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-blue-500 focus:ring-opacity-50">
+                Play Now
+            </button>
+        </div>
 
-<h1>Accessible Madden Prototype</h1>
+        <!-- Team Selection Screen -->
+        <div id="team-selection" class="screen hidden">
+            <h2 class="text-2xl font-bold mb-4">Choose Your Teams</h2>
+            <div class="select-container">
+                <label for="home-team-select" class="block text-lg font-semibold mb-2">Home Team</label>
+                <select id="home-team-select"></select>
+            </div>
+            <div class="select-container">
+                <label for="away-team-select" class="block text-lg font-semibold mb-2">Away Team</label>
+                <select id="away-team-select"></select>
+            </div>
+            <p id="selection-message" class="mt-4 text-sm text-gray-400"></p>
+            <button id="confirm-button" class="mt-8 bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-8 rounded-full shadow-lg transition-all transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-green-500 focus:ring-opacity-50" style="display: none;">
+                Confirm Selection
+            </button>
+        </div>
+        
+        <!-- Roster Display Screen -->
+        <div id="roster-display-screen" class="screen hidden">
+            <h2 class="text-3xl font-bold mb-4">Team Rosters</h2>
+            <div class="roster-display" id="rosters-container">
+                <!-- Roster content will be dynamically inserted here -->
+            </div>
+            <button id="back-to-menu-button" class="mt-8 bg-gray-600 hover:bg-gray-700 text-white font-bold py-3 px-8 rounded-full shadow-lg transition-all transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-gray-500 focus:ring-opacity-50">
+                Back to Menu
+            </button>
+        </div>
+    </div>
 
-<!-- Start Game -->
-<div id="startScreen">
-  <button id="startGameBtn">Tap to Start Game</button>
-</div>
+    <script>
+        const mainMenuScreen = document.getElementById('main-menu');
+        const startButton = document.getElementById('start-button');
+        const teamSelectionScreen = document.getElementById('team-selection');
+        const homeTeamSelect = document.getElementById('home-team-select');
+        const awayTeamSelect = document.getElementById('away-team-select');
+        const confirmButton = document.getElementById('confirm-button');
+        const selectionMessage = document.getElementById('selection-message');
+        const rosterDisplayScreen = document.getElementById('roster-display-screen');
+        const rostersContainer = document.getElementById('rosters-container');
+        const backToMenuButton = document.getElementById('back-to-menu-button');
 
-<!-- Main Menu -->
-<div id="mainMenu" class="menu" style="display:none;">
-  <button onclick="openQuickPlay()">Quick Play</button>
-  <button onclick="openFranchise()">Franchise</button>
-  <button onclick="openPractice()">Practice</button>
-  <button onclick="openUltimateTeam()">Ultimate Team</button>
-  <button onclick="openSettings()">Settings</button>
-</div>
+        const teams = [
+            { name: "Arizona Cardinals", roster: [{num: 1, pos: 'QB', name: 'Kyler Murray'}, {num: 20, pos: 'RB', name: 'James Conner'}] },
+            { name: "Atlanta Falcons", roster: [{num: 4, pos: 'QB', name: 'Kirk Cousins'}, {num: 7, pos: 'RB', name: 'Bijan Robinson'}] },
+            { name: "Baltimore Ravens", roster: [{num: 8, pos: 'QB', name: 'Lamar Jackson'}, {num: 31, pos: 'RB', name: 'Derrick Henry'}] },
+            { name: "Buffalo Bills", roster: [{num: 17, pos: 'QB', name: 'Josh Allen'}, {num: 25, pos: 'RB', name: 'James Cook'}] },
+            { name: "Carolina Panthers", roster: [{num: 9, pos: 'QB', name: 'Bryce Young'}, {num: 22, pos: 'RB', name: 'Chuba Hubbard'}] },
+            { name: "Chicago Bears", roster: [{num: 18, pos: 'WR', name: 'DJ Moore'}, {num: 2, pos: 'RB', name: 'D\'Andre Swift'}] },
+            { name: "Cincinnati Bengals", roster: [{num: 9, pos: 'QB', name: 'Joe Burrow'}, {num: 28, pos: 'RB', name: 'Joe Mixon'}] },
+            { name: "Cleveland Browns", roster: [{num: 4, pos: 'QB', name: 'Deshaun Watson'}, {num: 24, pos: 'RB', name: 'Nick Chubb'}] },
+            { name: "Dallas Cowboys", roster: [{num: 4, pos: 'QB', name: 'Dak Prescott'}, {num: 20, pos: 'RB', name: 'Tony Pollard'}] },
+            { name: "Denver Broncos", roster: [{num: 3, pos: 'QB', name: 'Bo Nix'}, {num: 33, pos: 'RB', name: 'Javonte Williams'}] },
+            { name: "Detroit Lions", roster: [{num: 16, pos: 'QB', name: 'Jared Goff'}, {num: 5, pos: 'RB', name: 'Jahmyr Gibbs'}] },
+            { name: "Green Bay Packers", roster: [{num: 1, pos: 'QB', name: 'Jordan Love'}, {num: 33, pos: 'RB', name: 'Aaron Jones'}] },
+            { name: "Houston Texans", roster: [{num: 7, pos: 'QB', name: 'C.J. Stroud'}, {num: 3, pos: 'RB', name: 'Devin Singletary'}] },
+            { name: "Indianapolis Colts", roster: [{num: 5, pos: 'QB', name: 'Anthony Richardson'}, {num: 28, pos: 'RB', name: 'Jonathan Taylor'}] },
+            { name: "Jacksonville Jaguars", roster: [{num: 16, pos: 'QB', name: 'Trevor Lawrence'}, {num: 27, pos: 'RB', name: 'Travis Etienne'}] },
+            { name: "Kansas City Chiefs", roster: [{num: 15, pos: 'QB', name: 'Patrick Mahomes'}, {num: 10, pos: 'RB', name: 'Isiah Pacheco'}] },
+            { name: "Las Vegas Raiders", roster: [{num: 4, pos: 'QB', name: 'Aidan O\'Connell'}, {num: 8, pos: 'RB', name: 'Josh Jacobs'}] },
+            { name: "Los Angeles Chargers", roster: [{num: 10, pos: 'QB', name: 'Justin Herbert'}, {num: 28, pos: 'RB', name: 'Austin Ekeler'}] },
+            { name: "Los Angeles Rams", roster: [{num: 9, pos: 'QB', name: 'Matthew Stafford'}, {num: 3, pos: 'RB', name: 'Kyren Williams'}] },
+            { name: "Miami Dolphins", roster: [{num: 1, pos: 'QB', name: 'Tua Tagovailoa'}, {num: 31, pos: 'RB', name: 'Raheem Mostert'}] },
+            { name: "Minnesota Vikings", roster: [{num: 10, pos: 'WR', name: 'Justin Jefferson'}, {num: 4, pos: 'RB', name: 'Aaron Jones'}] },
+            { name: "New England Patriots", roster: [{num: 14, pos: 'QB', name: 'Jacoby Brissett'}, {num: 38, pos: 'RB', name: 'Rhamondre Stevenson'}] },
+            { name: "New Orleans Saints", roster: [{num: 4, pos: 'QB', name: 'Derek Carr'}, {num: 41, pos: 'RB', name: 'Alvin Kamara'}] },
+            { name: "New York Giants", roster: [{num: 8, pos: 'QB', name: 'Daniel Jones'}, {num: 26, pos: 'RB', name: 'Saquon Barkley'}] },
+            { name: "New York Jets", roster: [{num: 8, pos: 'QB', name: 'Aaron Rodgers'}, {num: 32, pos: 'RB', name: 'Breece Hall'}] },
+            { name: "Philadelphia Eagles", roster: [{num: 1, pos: 'QB', name: 'Jalen Hurts'}, {num: 14, pos: 'RB', name: 'Saquon Barkley'}] },
+            { name: "Pittsburgh Steelers", roster: [{num: 3, pos: 'QB', name: 'Russell Wilson'}, {num: 22, pos: 'RB', name: 'Najee Harris'}] },
+            { name: "San Francisco 49ers", roster: [{num: 13, pos: 'QB', name: 'Brock Purdy'}, {num: 23, pos: 'RB', name: 'Christian McCaffrey'}] },
+            { name: "Seattle Seahawks", roster: [{num: 7, pos: 'QB', name: 'Geno Smith'}, {num: 9, pos: 'RB', name: 'Kenneth Walker'}] },
+            { name: "Tampa Bay Buccaneers", roster: [{num: 3, pos: 'QB', name: 'Baker Mayfield'}, {num: 1, pos: 'RB', name: 'Rachaad White'}] },
+            { name: "Tennessee Titans", roster: [{num: 8, pos: 'QB', name: 'Will Levis'}, {num: 26, pos: 'RB', name: 'Tony Pollard'}] },
+            { name: "Washington Commanders", roster: [{num: 17, pos: 'WR', name: 'Terry McLaurin'}, {num: 8, pos: 'RB', name: 'Brian Robinson Jr.'}] }
+        ];
 
-<!-- Quick Play Menu -->
-<div id="quickPlayMenu" class="submenu" style="display:none;">
-  <h2>Quick Play</h2>
-  <div>
-    <h3>Home Team</h3>
-    <select id="homeTeamSelect"></select>
-  </div>
-  <div>
-    <h3>Away Team (Random)</h3>
-    <select id="awayTeamSelect" disabled></select>
-  </div>
-  <div>
-    <button onclick="startQuickPlay()">Start Game</button>
-    <button onclick="backToMain()">Back</button>
-  </div>
-</div>
+        // Function to populate a select element
+        const populateSelect = (selectElement, teamsArray) => {
+            selectElement.innerHTML = '';
+            const defaultOption = document.createElement('option');
+            defaultOption.value = "";
+            defaultOption.textContent = "Select a team...";
+            selectElement.appendChild(defaultOption);
+            
+            teamsArray.forEach(team => {
+                const option = document.createElement('option');
+                option.value = team.name;
+                option.textContent = team.name;
+                selectElement.appendChild(option);
+            });
+        };
 
-<!-- Settings Menu -->
-<div id="settingsMenu" class="submenu" style="display:none;">
-  <label for="difficulty">Difficulty:</label>
-  <select id="difficulty">
-    <option>Rookie</option>
-    <option>Pro</option>
-    <option>All-Pro</option>
-    <option>All-Madden</option>
-  </select><br>
-  <label for="quarterLength">Quarter Length (min):</label>
-  <select id="quarterLength">
-    <option>2</option>
-    <option selected>5</option>
-    <option>10</option>
-    <option>15</option>
-  </select><br>
-  <label for="gameSpeed">Game Speed:</label>
-  <select id="gameSpeed">
-    <option>Slow</option>
-    <option selected>Normal</option>
-    <option>Fast</option>
-  </select><br>
-  <div id="volumeDisplay">Crowd Volume: 50%</div>
-  <button onclick="backToMain()">Back</button>
-</div>
+        const switchScreen = (currentScreen, nextScreen) => {
+            currentScreen.classList.add('fade-out');
+            setTimeout(() => {
+                currentScreen.classList.add('hidden');
+                currentScreen.classList.remove('fade-out');
+                nextScreen.classList.remove('hidden');
+                nextScreen.classList.add('slide-in');
+            }, 500);
+        };
 
-<!-- Playbook -->
-<div id="playbookMenu" class="playbook">
-  <h2>Playbook</h2>
-  <div id="playName">Select a play</div>
-  <button onclick="choosePlay()">Select Play</button>
-  <button onclick="endDrive()">End Drive</button>
-</div>
+        const validateSelection = () => {
+            const homeTeam = homeTeamSelect.value;
+            const awayTeam = awayTeamSelect.value;
 
-<!-- Franchise Menu -->
-<div id="franchiseMenu" class="franchiseMenu">
-  <h2>Franchise Mode</h2>
-  <div id="franchiseOptions"></div>
-  <button onclick="backToMain()">Back</button>
-</div>
+            if (homeTeam && awayTeam) {
+                if (homeTeam === awayTeam) {
+                    selectionMessage.textContent = "Home and Away teams must be different.";
+                    confirmButton.style.display = 'none';
+                } else {
+                    selectionMessage.textContent = "";
+                    confirmButton.style.display = 'block';
+                }
+            } else {
+                confirmButton.style.display = 'none';
+            }
+        };
 
-<!-- Commentary -->
-<div id="commentary" style="margin-top:20px; max-width:500px;"></div>
+        const displayRosters = () => {
+            const homeTeamName = homeTeamSelect.value;
+            const awayTeamName = awayTeamSelect.value;
+            
+            const homeTeam = teams.find(t => t.name === homeTeamName);
+            const awayTeam = teams.find(t => t.name === awayTeamName);
+            
+            rostersContainer.innerHTML = '';
+            
+            // Home Team Roster
+            const homeRosterCol = document.createElement('div');
+            homeRosterCol.className = 'roster-column';
+            homeRosterCol.innerHTML = `<h3>${homeTeam.name} Roster</h3>`;
+            homeTeam.roster.forEach(player => {
+                const playerEl = document.createElement('div');
+                playerEl.className = 'player-item';
+                playerEl.innerHTML = `<span>#${player.num} ${player.pos}</span> <span>${player.name}</span>`;
+                homeRosterCol.appendChild(playerEl);
+            });
+            rostersContainer.appendChild(homeRosterCol);
 
-<script>
-const commentaryDiv = document.getElementById('commentary');
+            // Away Team Roster
+            const awayRosterCol = document.createElement('div');
+            awayRosterCol.className = 'roster-column';
+            awayRosterCol.innerHTML = `<h3>${awayTeam.name} Roster</h3>`;
+            awayTeam.roster.forEach(player => {
+                const playerEl = document.createElement('div');
+                playerEl.className = 'player-item';
+                playerEl.innerHTML = `<span>#${player.num} ${player.pos}</span> <span>${player.name}</span>`;
+                awayRosterCol.appendChild(playerEl);
+            });
+            rostersContainer.appendChild(awayRosterCol);
+        };
 
-// Teams
-const teams = [
-  "San Francisco 49ers","Arizona Cardinals","Atlanta Falcons","Baltimore Ravens",
-  "Buffalo Bills","Carolina Panthers","Chicago Bears","Cincinnati Bengals",
-  "Cleveland Browns","Dallas Cowboys","Denver Broncos","Detroit Lions",
-  "Green Bay Packers","Houston Texans","Indianapolis Colts","Jacksonville Jaguars",
-  "Kansas City Chiefs","Las Vegas Raiders","Los Angeles Chargers","Los Angeles Rams",
-  "Miami Dolphins","Minnesota Vikings","New England Patriots","New Orleans Saints",
-  "New York Giants","New York Jets","Philadelphia Eagles","Pittsburgh Steelers",
-  "Seattle Seahawks","Tampa Bay Buccaneers","Tennessee Titans","Washington Commanders"
-];
+        // Event listeners
+        startButton.addEventListener('click', () => {
+            populateSelect(homeTeamSelect, teams);
+            populateSelect(awayTeamSelect, teams);
+            switchScreen(mainMenuScreen, teamSelectionScreen);
+        });
 
-// Populate Home Team select
-const homeSelect = document.getElementById('homeTeamSelect');
-teams.forEach(team=>{
-  const option=document.createElement('option');
-  option.value=team;
-  option.innerText=team;
-  homeSelect.appendChild(option);
-});
+        homeTeamSelect.addEventListener('change', validateSelection);
+        awayTeamSelect.addEventListener('change', validateSelection);
 
-// Populate Away Team placeholder
-const awaySelect = document.getElementById('awayTeamSelect');
+        confirmButton.addEventListener('click', () => {
+            displayRosters();
+            switchScreen(teamSelectionScreen, rosterDisplayScreen);
+        });
 
-// Playbook
-const plays = ["Inside Zone Run","Outside Zone Run","QB Sneak","Short Pass","Deep Pass","Screen Pass"];
-let currentPlayIndex=0;
-
-// Crowd volume (placeholder)
-let crowdVolume=0.5;
-
-// Initial tap to unlock
-document.getElementById('startGameBtn').addEventListener('click', ()=>{
-  document.getElementById('startScreen').style.display='none';
-  document.getElementById('mainMenu').style.display='block';
-  speak("Audio unlocked. Main menu. Quick Play, Franchise, Practice, Ultimate Team, Settings.");
-});
-
-// TTS function
-function speak(text){ if('speechSynthesis' in window){ const msg=new SpeechSynthesisUtterance(text); window.speechSynthesis.cancel(); window.speechSynthesis.speak(msg); }}
-
-// Main Menu
-function openQuickPlay(){
-  document.getElementById('mainMenu').style.display='none';
-  document.getElementById('quickPlayMenu').style.display='block';
-  speak("Quick Play menu. Choose Home team.");
-}
-
-function openFranchise(){
-  document.getElementById('mainMenu').style.display='none';
-  document.getElementById('franchiseMenu').style.display='flex';
-  loadFranchiseMenu();
-}
-
-function openPractice(){ document.getElementById('mainMenu').style.display='none'; speak("Practice mode coming soon."); }
-function openUltimateTeam(){ document.getElementById('mainMenu').style.display='none'; speak("Ultimate Team mode coming soon."); }
-function openSettings(){ document.getElementById('mainMenu').style.display='none'; document.getElementById('settingsMenu').style.display='block'; speak("Settings menu. Choose difficulty, quarter length, game speed, adjust crowd volume."); }
-function backToMain(){ document.getElementById('mainMenu').style.display='block'; document.getElementById('quickPlayMenu').style.display='none'; document.getElementById('settingsMenu').style.display='none'; document.getElementById('playbookMenu').style.display='none'; document.getElementById('franchiseMenu').style.display='none'; speak("Main menu. Quick Play, Franchise, Practice, Ultimate Team, Settings."); }
-
-// Quick Play Start
-function startQuickPlay(){
-  // Random away team
-  let homeTeam=homeSelect.value;
-  let awayOptions=teams.filter(t=>t!==homeTeam);
-  let awayTeam=awayOptions[Math.floor(Math.random()*awayOptions.length)];
-  awaySelect.innerHTML='';
-  let option=document.createElement('option'); option.innerText=awayTeam; option.value=awayTeam; awaySelect.appendChild(option);
-  speak(`Starting Quick Play. Home: ${homeTeam}. Away: ${awayTeam}. First and 10 at the 25-yard line.`);
-  commentaryDiv.innerHTML=`Quick Play: ${homeTeam} vs ${awayTeam}. First and 10 at the 25-yard line.`;
-  document.getElementById('playbookMenu').style.display='flex';
-  currentPlayIndex=0; showCurrentPlay();
-}
-
-// Playbook
-function showCurrentPlay(){ document.getElementById('playName').innerText=plays[currentPlayIndex]; speak(plays[currentPlayIndex]); }
-let touchStartX=null;
-document.addEventListener('touchstart',e=>{touchStartX=e.touches[0].clientX;});
-document.addEventListener('touchend',e=>{
-  if(touchStartX===null) return;
-  let delta=touchStartX-e.changedTouches[0].clientX;
-  if(delta>30) currentPlayIndex=(currentPlayIndex+1)%plays.length;
-  else if(delta<-30) currentPlayIndex=(currentPlayIndex-1+plays.length)%plays.length;
-  showCurrentPlay(); touchStartX=null;
-});
-
-function choosePlay(){
-  const selectedPlay=plays[currentPlayIndex];
-  commentaryDiv.innerHTML+=`<br>Selected: ${selectedPlay}`;
-  if(!document.getElementById('executePlayBtn')){
-    const btn=document.createElement('button');
-    btn.id='executePlayBtn';
-    btn.innerText='Tap to Execute Play';
-    btn.onclick=()=>executePlay(selectedPlay);
-    document.getElementById('playbookMenu').appendChild(btn);
-  }
-}
-
-// Execute Play
-function executePlay(play){
-  // Outcome randomization
-  let outcome="";
-  if(play.includes("Run")) outcome=Math.random()>0.5?"Gain 5 yards!":"Loss 2 yards!";
-  else outcome=Math.random()>0.5?"Complete! Gain 10 yards!":"Incomplete pass!";
-  speak(outcome);
-  commentaryDiv.innerHTML+=`<br>${play}: ${outcome}`;
-  document.getElementById('executePlayBtn').remove();
-}
-
-function endDrive(){ speak("Drive ended. Returning to Quick Play menu."); document.getElementById('playbookMenu').style.display='none';}
-
-// Franchise Menu
-function loadFranchiseMenu(){
-  const container=document.getElementById('franchiseOptions');
-  container.innerHTML='';
-  let startBtn=document.createElement('button'); startBtn.innerText='Start New Franchise'; startBtn.onclick=startNewFranchise;
-  container.appendChild(startBtn);
-  // For now, assume no continue option
-  speak("Franchise mode. Start New Franchise.");
-}
-
-function startNewFranchise(){
-  // Team selection
-  commentaryDiv.innerHTML='Franchise mode started.';
-  speak("Select your team for the franchise.");
-  // You could add roster type and starting point combo boxes here
-}
-</script>
-
+        backToMenuButton.addEventListener('click', () => {
+            // Reset state
+            homeTeamSelect.value = "";
+            awayTeamSelect.value = "";
+            selectionMessage.textContent = "";
+            confirmButton.style.display = 'none';
+            switchScreen(rosterDisplayScreen, mainMenuScreen);
+        });
+    </script>
 </body>
 </html>
+
