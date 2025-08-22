@@ -1,357 +1,523 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Madden 2024 Roster Viewer</title>
-    <!-- Tailwind CSS for modern styling and responsiveness -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #0d1117; /* Dark background */
-            color: #c9d1d9; /* Light gray text */
-            transition: background-color 0.3s ease;
-        }
-
-        .screen {
-            display: none;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            min-height: 100vh;
-            padding: 2rem;
-            text-align: center;
-        }
-
-        .screen.active {
-            display: flex;
-        }
-        
-        /* Custom styles for the player roster grid */
-        .roster-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-            gap: 1rem;
-            width: 100%;
-            max-width: 1200px;
-        }
-        
-        .player-card {
-            background-color: #161b22;
-            border: 1px solid #30363d;
-            border-radius: 0.5rem;
-            padding: 1rem;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            text-align: center;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
-        }
-
-        .player-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 6px 10px rgba(0, 0, 0, 0.2);
-        }
-
-        .player-name {
-            font-weight: 600;
-            color: #58a6ff;
-            margin-top: 0.5rem;
-        }
-        
-        /* Message box styling */
-        .message-box {
-            position: fixed;
-            top: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            background-color: #2196F3;
-            color: white;
-            padding: 15px;
-            border-radius: 8px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-            z-index: 1000;
-            display: none; /* Hidden by default */
-            animation: fadeInOut 4s ease-in-out forwards;
-        }
-        
-        @keyframes fadeInOut {
-            0% { opacity: 0; }
-            10% { opacity: 1; }
-            90% { opacity: 1; }
-            100% { opacity: 0; }
-        }
-    </style>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Accessible Madden — Text Adventure Prototype</title>
+<style>
+  :focus { outline: 3px solid #ffcc00; outline-offset: 2px; }
+  body { font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial; background:#0b1220; color:#e6eef6; margin:0; padding:18px; }
+  main { max-width:900px; margin:0 auto; }
+  header h1 { margin:0 0 8px 0; font-size:1.5rem; }
+  .row { display:flex; gap:12px; flex-wrap:wrap; align-items:center; }
+  .panel { background:#111827; padding:12px; border-radius:8px; box-shadow: 0 4px 10px rgba(0,0,0,0.6); }
+  button { background:#1f6feb; color:white; border:0; padding:10px 14px; border-radius:6px; cursor:pointer; }
+  button.secondary { background:#374151; }
+  button.ghost { background:transparent; border:1px solid #334155; color:#cbd5e1; }
+  select { padding:8px; border-radius:6px; background:#0b1228; color:#e6eef6; border:1px solid #334155; }
+  .play-list { display:flex; gap:8px; flex-wrap:wrap; margin-top:8px; }
+  .play-item { background:#081126; padding:10px 12px; border-radius:6px; border:1px solid #1f2937; }
+  .status { margin-top:12px; }
+  .live { padding:12px; background:#041022; border-radius:8px; margin-top:12px; min-height:64px; }
+  .visually-hidden { position:absolute !important; clip:rect(1px,1px,1px,1px); clip-path:inset(50%); height:1px; width:1px; overflow:hidden; white-space:nowrap; }
+  footer { margin-top:18px; font-size:0.9rem; color:#94a3b8; }
+  .stat-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin-top:8px; }
+  .card { background:#0b1228; padding:10px; border-radius:6px; border:1px solid #1f2937;}
+</style>
 </head>
-<body class="bg-gray-900 text-gray-100 min-h-screen flex items-center justify-center p-4">
+<body>
+<main>
+  <header>
+    <h1>Accessible Madden — Text Adventure Prototype</h1>
+    <p id="brief" class="panel">Screen-reader optimized. Keyboard: use <kbd>1</kbd>-<kbd>6</kbd> to highlight plays, <kbd>Enter</kbd> to execute, <kbd>R</kbd> repeat last commentary, <kbd>S</kbd> show stats, <kbd>H</kbd> help.</p>
+  </header>
 
-    <!-- Message Box for copy confirmation -->
-    <div id="message-box" class="message-box"></div>
+  <!-- Live region for screen readers -->
+  <div id="sr-live" class="visually-hidden" role="status" aria-live="assertive"></div>
 
-    <!-- Main Menu Screen -->
-    <div id="main-menu" class="screen active p-8">
-        <h1 class="text-4xl md:text-5xl font-extrabold mb-8 text-white">Madden 2024</h1>
-        <button id="view-rosters-btn" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-lg shadow-lg transform transition duration-200 hover:scale-105 mb-4">
-            View Rosters
-        </button>
-        <button id="start-season-btn" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-lg shadow-lg transform transition duration-200 hover:scale-105">
-            Start a Season
-        </button>
+  <!-- Game controls -->
+  <section class="panel" aria-labelledby="game-controls-label">
+    <h2 id="game-controls-label">Game Controls</h2>
+
+    <div class="row" style="margin-top:8px;">
+      <div>
+        <label for="modeSelect">Mode</label><br/>
+        <select id="modeSelect" aria-label="Game mode">
+          <option value="quick">Quick Play</option>
+          <option value="franchise">Franchise</option>
+        </select>
+      </div>
+
+      <div>
+        <label for="difficulty">Difficulty</label><br/>
+        <select id="difficulty" aria-label="Difficulty level">
+          <option>Rookie</option>
+          <option>Pro</option>
+          <option>All-Pro</option>
+          <option>All-Madden</option>
+        </select>
+      </div>
+
+      <div>
+        <label for="quarterLength">Quarter Length (min)</label><br/>
+        <select id="quarterLength" aria-label="Quarter length">
+          <option>2</option>
+          <option selected>5</option>
+          <option>10</option>
+          <option>15</option>
+        </select>
+      </div>
+
+      <div>
+        <button id="newGameBtn">New Game (Start)</button>
+      </div>
     </div>
 
-    <!-- Team Selection Screen -->
-    <div id="roster-selection" class="screen">
-        <h2 class="text-3xl md:text-4xl font-bold mb-6 text-white">Select a Team</h2>
-        <div class="w-full max-w-sm mb-6">
-            <select id="team-select" class="w-full bg-gray-800 text-white p-3 rounded-lg border border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                <option value="" disabled selected>Choose a Team</option>
-            </select>
-        </div>
-        <button id="show-roster-btn" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg shadow-lg transform transition duration-200 hover:scale-105 mb-4">
-            Show Roster
-        </button>
-        <button id="back-to-main-menu-btn" class="text-sm text-gray-400 hover:text-white transition-colors duration-200">
-            Back to Main Menu
-        </button>
+    <div class="status" aria-hidden="false" id="statusSummary" style="margin-top:12px;">
+      <div class="stat-grid">
+        <div class="card"><strong id="teamHome">Home: 49ers</strong></div>
+        <div class="card"><strong id="teamAway">Away: —</strong></div>
+        <div class="card">Quarter: <span id="quarter">0</span></div>
+        <div class="card">Time Left: <span id="timeleft">00:00</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Play area -->
+  <section class="panel" aria-labelledby="playbook-label" id="playArea" style="margin-top:12px; display:none;">
+    <h2 id="playbook-label">Playbook & Drive</h2>
+
+    <div>
+      <p id="driveInfo">No game in progress.</p>
+      <div class="play-list" role="list" aria-label="Playbook">
+        <!-- play items inserted here -->
+      </div>
+      <div style="margin-top:10px;">
+        <button id="selectBtn" class="secondary">Select Play</button>
+        <button id="executeBtn">Execute Play</button>
+        <button id="endDriveBtn" class="ghost">End Drive</button>
+        <button id="statsBtn" class="ghost">Show Stats</button>
+      </div>
     </div>
 
-    <!-- Roster Display Screen -->
-    <div id="roster-display" class="screen p-4">
-        <h2 id="roster-team-name" class="text-3xl md:text-4xl font-bold mb-6 text-white"></h2>
-        <div id="player-container" class="roster-grid mb-6">
-            <!-- Player cards will be inserted here by JavaScript -->
-        </div>
-        <button id="back-to-teams-btn" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg shadow-lg transform transition duration-200 hover:scale-105">
-            Back to Teams
-        </button>
+    <div class="live panel" id="commentaryLive" aria-live="polite" role="log">Commentary will appear here.</div>
+  </section>
+
+  <!-- Halftime & Postgame panels -->
+  <section id="halftimePanel" class="panel" style="display:none; margin-top:12px;">
+    <h2>Halftime Show</h2>
+    <div id="halftimeContent">Halftime summary will appear here.</div>
+    <div style="margin-top:8px;">
+      <button id="endHalftimeBtn">End Halftime</button>
     </div>
+  </section>
 
-    <script>
-        // Use a self-invoking anonymous function to avoid polluting the global scope
-        (function() {
-            // Hard-coded data for all 32 NFL teams for the 2024 season.
-            // This ensures the rosters are static as per the user's request.
-            const teamsData = {
-                "Arizona Cardinals": [
-                    "Kyler Murray", "Clayton Tune", "Desmond Ridder", "James Conner", "Trey Benson", "Michael Carter", "Emari Demercado", "Greg Dortch", "Marvin Harrison Jr.", "Zay Jones", "Chris Moore", "Andre Baccellia", "Trey McBride", "E.J. Jenkins", "Tip Reiman", "Paris Johnson Jr.", "Will Hernandez", "Jon Gaines II", "P.J. Foster", "K.J. Henry", "Maxx Williams", "Budda Baker", "Jalen Thompson", "K'Von Wallace", "Antonio Hamilton", "Starling Thomas V", "Gannon Swinson", "Marquise Brown", "Dante Stills", "Elijah Wilkinson", "Jonathan Ledbetter", "L.J. Collier", "Victor Dimukeje", "Myjai Sanders", "Zaven Collins", "Kyzir White", "Krys Barnes", "Mack Wilson", "Cam Thomas", "Darius Rush", "Marco Wilson", "Jermaine Johnson", "Kei'Trel Clark", "Sean Chandler", "Dennis Gardeck", "Josh Woods", "Leki Fotu", "L.J. Collier", "Tanner Vallejo", "Matt Prater", "Drew Dalman", "Nate Herbig", "Myles Murphy"
-                ],
-                "Atlanta Falcons": [
-                    "Kirk Cousins", "Michael Penix Jr.", "Taylor Heinicke", "Bijan Robinson", "Tyler Allgeier", "Avery Williams", "Tyler Allgeier", "Drake London", "Darnell Mooney", "Rondale Moore", "KhaDarel Hodge", "Van Jefferson", "Scott Miller", "Kyle Pitts", "Charlie Woerner", "Keith Smith", "Jalen Mayfield", "Chris Lindstrom", "Kaleb McGary", "Drew Dalman", "Jake Matthews", "Zach Harrison", "David Onyemata", "Grady Jarrett", "Arnold Ebiketie", "Lorenzo Carter", "Bud Dupree", "Calais Campbell", "Marlon Davidson", "Adetomiwa Adebawore", "Kaden Elliss", "Troy Andersen", "Nate Landman", "DeAngelo Malone", "Jessie Bates III", "A.J. Terrell", "Clark Phillips III", "Dee Alford", "Jeff Okudah", "Kevin King", "Jaylinn Hawkins", "Richie Grant", "DeMarcco Hellams", "Josh Harris", "Bradley Pinion", "Younghoe Koo", "Keith Smith", "Jalen Mayfield", "Chris Lindstrom", "Kaleb McGary", "Drew Dalman", "Jake Matthews", "Zach Harrison", "David Onyemata"
-                ],
-                "Baltimore Ravens": [
-                    "Lamar Jackson", "Malik Cunningham", "Josh Johnson", "Derrick Henry", "Justice Hill", "Keaton Mitchell", "Patrick Ricard", "Zay Flowers", "Rashod Bateman", "Nelson Agholor", "Devontez Walker", "Isaiah Likely", "Mark Andrews", "Charlie Kolar", "Ronnie Stanley", "Tyler Linderbaum", "Kevin Zeitler", "Ben Cleveland", "Odafe Oweh", "Justin Madubuike", "Michael Pierce", "Kyle Van Noy", "Jadeveon Clowney", "David Ojabo", "Malik Harrison", "Roquan Smith", "Patrick Queen", "Kyle Hamilton", "Marcus Williams", "Marlon Humphrey", "Brandon Stephens", "Kyle Hamilton", "Marcus Williams", "Ar'Darius Washington", "Trayvon Mullen", "Damarion 'Pepe' Williams", "Jayln Armour-Davis", "Ar'Darius Washington", "Tavon Young", "Kaelan Doris", "Geno Stone", "Josh Johnson", "Sam Mustipher", "Tyler Linderbaum", "Kyle Fuller", "Rashod Bateman", "Justin Tucker", "Jordan Stout", "Nick Moore", "Kyle Hamilton", "Marcus Williams", "Geno Stone", "Marlon Humphrey", "Brandon Stephens", "Arthur Maulet"
-                ],
-                "Buffalo Bills": [
-                    "Josh Allen", "Mitch Trubisky", "Dalton Kincaid", "James Cook", "Latavius Murray", "Ty Johnson", "Stefon Diggs", "Gabe Davis", "Khalil Shakir", "Dawson Knox", "Trent Sherfield", "Reggie Gilliam", "Dion Dawkins", "Ryan Bates", "Mitch Morse", "O'Cyrus Torrence", "Spencer Brown", "Greg Van Roten", "Connor McGovern", "DaQuan Jones", "Ed Oliver", "Greg Rousseau", "Von Miller", "AJ Epenesa", "Leonard Floyd", "Taron Johnson", "Tre'Davious White", "Micah Hyde", "Jordan Poyer", "Christian Benford", "Rasul Douglas", "Kaiir Elam", "Terrel Bernard", "Matt Milano", "Baylon Spector", "Tyrel Dodson", "Sam Martin", "Tyler Bass", "Reid Ferguson", "Josh Allen", "Dion Dawkins", "Gabe Davis", "Stefon Diggs", "DaQuan Jones", "Taron Johnson", "Tre'Davious White", "Micah Hyde", "Jordan Poyer", "Christian Benford", "Rasul Douglas", "Kaiir Elam"
-                ],
-                "Carolina Panthers": [
-                    "Bryce Young", "Andy Dalton", "Miles Sanders", "Chuba Hubbard", "Raheem Blackshear", "Adam Thielen", "D.J. Chark", "Jonathan Mingo", "Terrace Marshall Jr.", "Hayden Hurst", "Ian Thomas", "Brady Christensen", "Ikem Ekwonu", "Taylor Moton", "Austin Corbett", "Bradley Bozeman", "Brian Burns", "Derrick Brown", "Yetur Gross-Matos", "Shy Tuttle", "Marlon Tuipulotu", "Shaq Thompson", "Frankie Luvu", "Donte Jackson", "Jaycee Horn", "Vonn Bell", "Jeremy Chinn", "C.J. Henderson", "Myles Hartsfield", "Sam Franklin Jr.", "DeShawn Shead", "J.J. Jansen", "Johnny Hekker", "Eddy Pineiro", "Derrick Brown", "Yetur Gross-Matos", "Shaq Thompson", "Frankie Luvu", "Donte Jackson", "Jaycee Horn", "Vonn Bell", "Jeremy Chinn", "C.J. Henderson", "Myles Hartsfield", "Sam Franklin Jr.", "DeShawn Shead", "J.J. Jansen", "Johnny Hekker"
-                ],
-                "Chicago Bears": [
-                    "Caleb Williams", "Justin Fields", "Tyson Bagent", "D'Andre Swift", "Khalil Herbert", "Roschon Johnson", "D.J. Moore", "Keenan Allen", "Rome Odunze", "Tyler Scott", "Velus Jones Jr.", "Cole Kmet", "Gerald Everett", "Ryan Bates", "Nate Davis", "Darnell Wright", "Teven Jenkins", "Lucas Patrick", "Jaylon Johnson", "Kyler Gordon", "Jaquan Brisker", "Eddie Jackson", "Tyrique Stevenson", "Tremaine Edmunds", "T.J. Edwards", "Montez Sweat", "Gervon Dexter Sr.", "Andrew Billings", "DeMarcus Walker", "Yannick Ngakoue", "Dominique Robinson", "Zacch Pickens", "Justin Jones", "Tyrel Dodson", "Jack Sanborn", "Noah Sewell", "D'Andre Swift", "Khalil Herbert", "Roschon Johnson", "D.J. Moore", "Keenan Allen", "Rome Odunze", "Cole Kmet", "Gerald Everett", "Ryan Bates", "Nate Davis", "Darnell Wright", "Teven Jenkins", "Lucas Patrick", "Cairo Santos", "Trenton Gill", "Patrick Scales"
-                ],
-                "Cincinnati Bengals": [
-                    "Joe Burrow", "Jake Browning", "Tee Higgins", "Ja'Marr Chase", "Tyler Boyd", "Charlie Jones", "Trenton Irwin", "Joe Mixon", "Chase Brown", "Zack Moss", "Trayveon Williams", "Tanner Hudson", "Drew Sample", "Orlando Brown Jr.", "Cordell Volson", "Ted Karras", "Alex Cappa", "Jonah Williams", "Orlando Brown Jr.", "D.J. Reader", "B.J. Hill", "Trey Hendrickson", "Sam Hubbard", "Myles Murphy", "Zac Carter", "Logan Wilson", "Germaine Pratt", "Joe Bachie", "Trey Flowers", "Mike Hilton", "Cameron Taylor-Britt", "Chidobe Awuzie", "DJ Ivey", "Dax Hill", "Nick Scott", "Jordan Battle", "Evan McPherson", "Kevin Huber", "Clark Harris", "Trayveon Williams", "Tanner Hudson", "Orlando Brown Jr.", "Cordell Volson", "Ted Karras", "Alex Cappa", "Jonah Williams", "Orlando Brown Jr.", "B.J. Hill", "Trey Hendrickson", "Sam Hubbard", "Myles Murphy", "Zac Carter"
-                ],
-                "Cleveland Browns": [
-                    "Deshaun Watson", "Jameis Winston", "Dorian Thompson-Robinson", "Nick Chubb", "Jerome Ford", "D'Onta Foreman", "Pierre Strong Jr.", "Amari Cooper", "Jerry Jeudy", "Elijah Moore", "Cedric Tillman", "David Bell", "David Njoku", "Jordan Akins", "Dawand Jones", "Wyatt Teller", "Ethan Pocic", "Joel Bitonio", "Jack Conklin", "Myles Garrett", "Za'Darius Smith", "Dalvin Tomlinson", "Maurice Hurst II", "Ogbonnia Okoronkwo", "Alex Wright", "Shelby Harris", "Jordan Elliott", "Mohamoud Diabate", "Jeremiah Owusu-Koramoah", "Jordan Hicks", "Tony Fields II", "Denzel Ward", "Greg Newsome II", "Martin Emerson Jr.", "Rodney McLeod", "Juan Thornhill", "Grant Delpit", "Cameron Mitchell", "D'Anthony Bell", "Ronnie Hickman", "Dustin Hopkins", "Corey Bojorquez", "Charley Hughlett", "Nick Chubb", "Amari Cooper", "Jerry Jeudy", "Elijah Moore", "David Njoku", "Dawand Jones", "Myles Garrett", "Za'Darius Smith", "Dalvin Tomlinson", "Denzel Ward", "Greg Newsome II", "Juan Thornhill", "Grant Delpit"
-                ],
-                "Dallas Cowboys": [
-                    "Dak Prescott", "Cooper Rush", "Trey Lance", "Ezekiel Elliott", "Rico Dowdle", "Deuce Vaughn", "Hunter Luepke", "CeeDee Lamb", "Brandin Cooks", "Jalen Tolbert", "Jalen Brooks", "KaVontae Turpin", "Jake Ferguson", "Luke Schoonmaker", "John Stephens", "Zack Martin", "Tyler Smith", "Terence Steele", "Tyler Guyton", "Cooper Beebe", "Micah Parsons", "DeMarcus Lawrence", "Marshawn Kneeland", "Osa Odighizuwa", "Mazi Smith", "Dorance Armstrong", "Dante Fowler Jr.", "Eric Kendricks", "DeMarvion Overshown", "Damone Clark", "Marist Liufau", "Daron Bland", "Trevon Diggs", "Stephon Gilmore", "Israel Mukuamu", "Jayron Kearse", "Malik Hooker", "Donovan Wilson", "Brandon Aubrey", "Bryan Anger", "Trent Sieg", "Dak Prescott", "Ezekiel Elliott", "CeeDee Lamb", "Brandin Cooks", "Jake Ferguson", "Zack Martin", "Micah Parsons", "DeMarcus Lawrence", "Trevon Diggs", "Daron Bland", "Stephon Gilmore", "Brandon Aubrey"
-                ],
-                "Denver Broncos": [
-                    "Russell Wilson", "Jarrett Stidham", "Ben DiNucci", "Javonte Williams", "Samaje Perine", "Jaleel McLaughlin", "Courtland Sutton", "Jerry Jeudy", "Tim Patrick", "Marvin Mims Jr.", "Greg Dulcich", "Adam Trautman", "Garett Bolles", "Quinn Meinerz", "Lloyd Cushenberry III", "Alex Forsyth", "Mike McGlinchey", "Randy Gregory", "Baron Browning", "Jonathon Cooper", "Zach Allen", "Mike Purcell", "D.J. Jones", "Josey Jewell", "Alex Singleton", "Pat Surtain II", "Justin Simmons", "Kareem Jackson", "Ja'Quan McMillian", "Riley Moss", "Damarri Mathis", "Essang Bassey", "Brandon Johnson", "Javonte Williams", "Samaje Perine", "Jaleel McLaughlin", "Courtland Sutton", "Jerry Jeudy", "Greg Dulcich", "Adam Trautman", "Garett Bolles", "Quinn Meinerz", "Justin Simmons", "Kareem Jackson", "Pat Surtain II", "Ja'Quan McMillian", "Riley Moss", "Damarri Mathis", "Essang Bassey"
-                ],
-                "Detroit Lions": [
-                    "Jared Goff", "Hendon Hooker", "David Blough", "Jahmyr Gibbs", "David Montgomery", "Craig Reynolds", "Amon-Ra St. Brown", "Jameson Williams", "Josh Reynolds", "Kalif Raymond", "Sam LaPorta", "Brock Wright", "Penei Sewell", "Frank Ragnow", "Jonah Jackson", "Taylor Decker", "Graham Glasgow", "Aidan Hutchinson", "Alim McNeill", "John Cominsky", "Levi Onwuzurike", "Romeo Okwara", "Charles Harris", "Jack Campbell", "Derrick Barnes", "Alex Anzalone", "Chauncey Gardner-Johnson", "Kerby Joseph", "Brian Branch", "Cam Sutton", "Kindle Vildor", "Emmanuel Moseley", "Ifaedi Odenigbo", "Will Harris", "Derrick Barnes", "Aidan Hutchinson", "Alim McNeill", "John Cominsky", "Levi Onwuzurike", "Romeo Okwara", "Charles Harris", "Jack Campbell", "Derrick Barnes", "Alex Anzalone", "Chauncey Gardner-Johnson", "Kerby Joseph", "Brian Branch", "Cam Sutton", "Kindle Vildor"
-                ],
-                "Green Bay Packers": [
-                    "Jordan Love", "Sean Clifford", "Bo Melton", "Josh Jacobs", "AJ Dillon", "Emanuel Wilson", "Christian Watson", "Romeo Doubs", "Jayden Reed", "Dontayvion Wicks", "Luke Musgrave", "Tucker Kraft", "Preston Smith", "Rashan Gary", "Kenny Clark", "Devonte Wyatt", "Karl Brooks", "Lukas Van Ness", "Kingsley Enagbare", "Isaiah McDuffie", "Quay Walker", "De'Vondre Campbell", "Jaire Alexander", "Eric Stokes", "Keisean Nixon", "Carrington Valentine", "Darnell Savage", "Xavier McKinney", "Rudy Ford", "Adrian Amos", "Daniel Whelan", "Anders Carlson", "Matt Orzech", "Elgton Jenkins", "Josh Myers", "Zach Tom", "Jon Runyan Jr.", "Rasheed Walker", "Christian Watson", "Romeo Doubs", "Jayden Reed", "Luke Musgrave", "Tucker Kraft", "Preston Smith", "Rashan Gary", "Kenny Clark", "Jaire Alexander", "Eric Stokes", "Darnell Savage", "Xavier McKinney"
-                ],
-                "Houston Texans": [
-                    "C.J. Stroud", "Davis Mills", "Dameon Pierce", "Devin Singletary", "Tank Dell", "Nico Collins", "Noah Brown", "Dalton Schultz", "Brevin Jordan", "Laremy Tunsil", "Tytus Howard", "Shaq Mason", "Juice Scruggs", "Will Anderson Jr.", "Jermaine Johnson", "Jalen Pitre", "Derek Stingley Jr.", "Jimmie Ward", "Jalen Pitre", "Derek Stingley Jr.", "Jimmie Ward", "Christian Kirksey", "Blake Cashman", "Neville Hewitt", "Jonathan Greenard", "Sheldon Rankins", "Maliek Collins", "Javon Hargrave", "Jerry Hughes", "Roy Lopez", "Christian Harris", "Jimmie Ward", "Jalen Pitre", "Derek Stingley Jr.", "T.J. Edwards", "Blake Cashman", "Jonathan Greenard", "Sheldon Rankins", "Maliek Collins", "Ka'imi Fairbairn", "Cameron Johnston", "Jon Weeks", "C.J. Stroud", "Dameon Pierce", "Devin Singletary", "Tank Dell", "Nico Collins", "Dalton Schultz", "Will Anderson Jr.", "Jermaine Johnson", "Derek Stingley Jr.", "Jimmie Ward", "Christian Kirksey"
-                ],
-                "Indianapolis Colts": [
-                    "Anthony Richardson", "Joe Flacco", "Gardner Minshew", "Jonathan Taylor", "Zack Moss", "Trey Sermon", "Josh Downs", "Michael Pittman Jr.", "Alec Pierce", "Jelani Woods", "Mo Alie-Cox", "Kylen Granson", "Braden Smith", "Quenton Nelson", "Ryan Kelly", "Will Fries", "Kwity Paye", "Samson Ebukam", "DeForest Buckner", "Grover Stewart", "Dayo Odeyingbo", "Tyquan Lewis", "Zaire Franklin", "Shaquille Leonard", "E.J. Speed", "Segun Olubi", "Kenny Moore II", "Julian Blackmon", "Rodney Thomas II", "Dallis Flowers", "Nick Cross", "Jaylon Jones", "Tony Brown", "Darrell Baker Jr.", "Chris Lammons", "Tavon Young", "Rigoberto Sanchez", "Matt Gay", "Luke Rhodes", "Anthony Richardson", "Jonathan Taylor", "Michael Pittman Jr.", "Alec Pierce", "Jelani Woods", "Quenton Nelson", "Kwity Paye", "Samson Ebukam", "DeForest Buckner", "Grover Stewart", "Zaire Franklin", "Shaquille Leonard", "Kenny Moore II", "Julian Blackmon", "Rodney Thomas II", "Dallis Flowers"
-                ],
-                "Jacksonville Jaguars": [
-                    "Trevor Lawrence", "Mac Jones", "C.J. Beathard", "Travis Etienne Jr.", "Tank Bigsby", "Travis Etienne Jr.", "Christian Kirk", "Zay Jones", "Jamal Agnew", "Evan Engram", "D'Ernest Johnson", "Brenton Strange", "Foyesade Oluokun", "Travon Walker", "Josh Allen", "K'Lavon Chaisson", "DaVon Hamilton", "Roy Robertson-Harris", "Foley Fatukasi", "Walker Little", "Cam Robinson", "Brandon Scherff", "Lyle Taylor", "Trevor Lawrence", "Travis Etienne Jr.", "Christian Kirk", "Zay Jones", "Evan Engram", "D'Ernest Johnson", "Travis Etienne Jr.", "Christian Kirk", "Zay Jones", "Evan Engram", "Foyesade Oluokun", "Travon Walker", "Josh Allen", "Walker Little", "Cam Robinson", "Brandon Scherff", "Lyle Taylor", "Ryan Nielsen", "Devin Lloyd", "Caleb Johnson", "Andre Cisco", "Darnell Savage", "Tyson Campbell", "Rayshawn Jenkins", "Montaric Brown", "Ross Matiscik", "Riley Patterson", "Logan Cooke", "Jamal Agnew", "Travon Walker", "Josh Allen"
-                ],
-                "Kansas City Chiefs": [
-                    "Patrick Mahomes", "Blaine Gabbert", "Carson Wentz", "Isiah Pacheco", "Clyde Edwards-Helaire", "Jerrick McKinnon", "Rashee Rice", "Marquise 'Hollywood' Brown", "Kadarius Toney", "Skyy Moore", "Justin Watson", "Travis Kelce", "Noah Gray", "Joe Thuney", "Creed Humphrey", "Trey Smith", "Jawaan Taylor", "Donovan Smith", "Chris Jones", "George Karlaftis", "Mike Danna", "Charles Omenihu", "Felix Anudike-Uzomah", "Nick Bolton", "Willie Gay Jr.", "Drue Tranquill", "Leo Chenal", "Trent McDuffie", "L'Jarius Sneed", "Jaylen Watson", "Joshua Williams", "Justin Reid", "Bryan Cook", "Chamarri Conner", "Harrison Butker", "Tommy Townsend", "James Winchester", "Patrick Mahomes", "Isiah Pacheco", "Rashee Rice", "Marquise 'Hollywood' Brown", "Travis Kelce", "Joe Thuney", "Chris Jones", "George Karlaftis", "Nick Bolton", "Willie Gay Jr.", "Trent McDuffie", "L'Jarius Sneed", "Justin Reid", "Bryan Cook"
-                ],
-                "Las Vegas Raiders": [
-                    "Gardner Minshew II", "Aidan O'Connell", "Ameer Abdullah", "Dylan Laube", "Alexander Mattison", "Zamir White", "Davante Adams", "Ramel Keyton", "Tyreik McAllister", "Jakobi Meyers", "Tre Tucker", "DJ Turner", "Brock Bowers", "Harrison Bryant", "Michael Mayer", "DJ Glaze", "Andre James", "Jordan Meredith", "Kolton Miller", "Thayer Munford Jr.", "Dylan Parham", "Andrus Peat", "Jackson Powers-Johnson", "Cody Whitehair", "Adam Butler", "Maxx Crosby", "John Jenkins", "Malcolm Koonce", "Janarius Robinson", "Nesta Jade Silvera", "Christian Wilkins", "Tyree Wilson", "Byron Young", "Amari Burney", "Divine Deablo", "Tommy Eichenberg", "Amari Gainer", "Luke Masterson", "Kana'i Mauga", "Robert Spillane", "Jakorian Bennett", "M.J. Devonshire", "Brandon Facyson", "Nate Hobbs", "Jack Jones", "Decamerion Richardson", "Marcus Epps", "Tre'von Moehrig", "Isaiah Pola-Mao", "Chris Smith II", "Jacob Bobenmoyer", "Daniel Carlson", "AJ Cole"
-                ],
-                "Los Angeles Chargers": [
-                    "Justin Herbert", "Easton Stick", "Justin Herbert", "Gus Edwards", "J.K. Dobbins", "Isaiah Spiller", "Josh Palmer", "Quentin Johnston", "Derius Davis", "Ladd McConkey", "Stone Smartt", "Hayden Hurst", "Joe Alt", "Zion Johnson", "Corey Linsley", "Jamaree Salyer", "Trey Pipkins III", "Tuli Tuipulotu", "Joey Bosa", "Morgan Fox", "Khalil Mack", "Kenneth Murray Jr.", "Eric Kendricks", "Derwin James Jr.", "Asante Samuel Jr.", "J.C. Jackson", "Alohi Gilman", "Dean Marlowe", "Sebastian Joseph-Day", "Morgan Fox", "Kendall Williams", "Zack Baun", "Tyrel Dodson", "Christian McCaffrey", "Derwin James Jr.", "J.C. Jackson", "Alohi Gilman", "Dean Marlowe", "Sebastian Joseph-Day", "Cameron Dicker", "JK Scott", "Josh Harris", "Joe Alt", "Zion Johnson", "Corey Linsley", "Jamaree Salyer", "Trey Pipkins III", "Justin Herbert"
-                ],
-                "Los Angeles Rams": [
-                    "Matthew Stafford", "Jimmy Garoppolo", "Carson Wentz", "Kyren Williams", "Ronnie Rivers", "Cam Akers", "Cooper Kupp", "Puka Nacua", "Tututu Atwell", "Van Jefferson", "Tyler Higbee", "Davis Allen", "Joe Noteboom", "Rob Havenstein", "Coleman Shelton", "Alaric Jackson", "Steve Avila", "Aaron Donald", "Kobie Turner", "Byron Young", "Ernest Jones", "Christian Rozeboom", "Jordan Fuller", "Russ Yeast", "Ahkello Witherspoon", "Cobie Durant", "Derion Kendrick", "Matthew Stafford", "Cooper Kupp", "Puka Nacua", "Tyler Higbee", "Joe Noteboom", "Aaron Donald", "Kobie Turner", "Ernest Jones", "Christian Rozeboom", "Jordan Fuller", "Russ Yeast", "Ahkello Witherspoon", "Cobie Durant", "Derion Kendrick", "Brett Maher", "Ethan Evans", "Alex Cappa", "Coleman Shelton", "Alaric Jackson", "Steve Avila", "Tutu Atwell", "Van Jefferson"
-                ],
-                "Miami Dolphins": [
-                    "Tua Tagovailoa", "Mike White", "Skylar Thompson", "Raheem Mostert", "De'Von Achane", "Jeff Wilson Jr.", "Tyreek Hill", "Jaylen Waddle", "Cedrick Wilson Jr.", "Durham Smythe", "Tyler Kroft", "Terron Armstead", "Austin Jackson", "Robert Hunt", "Connor Williams", "Liam Eichenberg", "Christian Wilkins", "Zach Sieler", "Bradley Chubb", "Jaelan Phillips", "Emmanuel Ogbah", "Jalen Ramsey", "Xavien Howard", "Kader Kohou", "Jevon Holland", "Brandon Jones", "Jerome Baker", "David Long Jr.", "Duke Riley", "Andrew Van Ginkel", "Jaelan Phillips", "Christian Wilkins", "Zach Sieler", "Jalen Ramsey", "Xavien Howard", "Jevon Holland", "Jason Sanders", "Jake Bailey", "Blake Ferguson", "Tua Tagovailoa", "Raheem Mostert", "Tyreek Hill", "Jaylen Waddle", "Terron Armstead", "Austin Jackson", "Jalen Ramsey", "Bradley Chubb", "Christian Wilkins"
-                ],
-                "Minnesota Vikings": [
-                    "Sam Darnold", "J.J. McCarthy", "Justin Jefferson", "Jordan Addison", "T.J. Hockenson", "Aaron Jones", "Alexander Mattison", "Jalen Nailor", "K.J. Osborn", "Johnny Mundt", "Brian O'Neill", "Christian Darrisaw", "Garrett Bradbury", "Ed Ingram", "Harrison Phillips", "Jonathan Bullard", "Dean Lowry", "Marcus Davenport", "Pat Jones II", "Danielle Hunter", "Ivan Pace Jr.", "Jordan Hicks", "Harrison Smith", "Camryn Bynum", "Byron Murphy Jr.", "Akayleb Evans", "Mekhi Blackmon", "Josh Metellus", "Joejuan Williams", "Greg Joseph", "Ryan Wright", "Andrew DePaola", "Sam Darnold", "J.J. McCarthy", "Justin Jefferson", "Jordan Addison", "T.J. Hockenson", "Aaron Jones", "Brian O'Neill", "Harrison Phillips", "Danielle Hunter", "Harrison Smith", "Camryn Bynum", "Byron Murphy Jr.", "Ivan Pace Jr."
-                ],
-                "New England Patriots": [
-                    "Jacoby Brissett", "Drake Maye", "Joe Milton III", "Rhamondre Stevenson", "Antonio Gibson", "JaMycal Hasty", "Demario Douglas", "Ja'Lynn Polk", "Javon Baker", "KJ Osborn", "Tyquan Thornton", "Jalen Reagor", "Kayshon Boutte", "Hunter Henry", "Pharaoh Brown", "Cole Strange", "David Andrews", "Trent Brown", "Mike Onwenu", "Sidy Sow", "Christian Barmore", "Deatrich Wise Jr.", "Keion White", "Matthew Judon", "Josh Uche", "Jahlani Tavai", "Marte Mapu", "Mack Wilson", "Jonathan Jones", "Christian Gonzalez", "Kyle Dugger", "Jabrill Peppers", "Myles Bryant", "Shaun Wade", "Marcus Jones", "Chad Ryland", "Bryce Baringer", "Joe Cardona", "Rhamondre Stevenson", "Antonio Gibson", "Demario Douglas", "Ja'Lynn Polk", "Hunter Henry", "Pharaoh Brown", "David Andrews", "Christian Barmore", "Matthew Judon", "Kyle Dugger", "Jabrill Peppers", "Jonathan Jones"
-                ],
-                "New Orleans Saints": [
-                    "Derek Carr", "Jake Haener", "Chris Olave", "Rashid Shaheed", "A.T. Perry", "Juwan Johnson", "Foster Moreau", "Taysom Hill", "Alvin Kamara", "Jamaal Williams", "A.J. Dillon", "Trevor Penning", "Cesar Ruiz", "Erik McCoy", "Andrus Peat", "Ryan Ramczyk", "Cameron Jordan", "Carl Granderson", "Payton Turner", "Bryan Bresee", "Nathan Shepherd", "Demario Davis", "Pete Werner", "Zach Baun", "Tyrann Mathieu", "Marcus Maye", "Marshon Lattimore", "Alontae Taylor", "Paulson Adebo", "Lonnie Johnson Jr.", "Blake Gillikin", "Wil Lutz", "Zach Wood", "Derek Carr", "Chris Olave", "Alvin Kamara", "Jamaal Williams", "Juwan Johnson", "Trevor Penning", "Erik McCoy", "Cameron Jordan", "Carl Granderson", "Bryan Bresee", "Demario Davis", "Tyrann Mathieu", "Marshon Lattimore"
-                ],
-                "New York Giants": [
-                    "Daniel Jones", "Drew Lock", "Devin Singletary", "Eric Gray", "Darius Slayton", "Wan'Dale Robinson", "Malik Nabers", "Jalin Hyatt", "Darren Waller", "Daniel Bellinger", "Evan Neal", "Andrew Thomas", "Jon Runyan Jr.", "John Michael Schmitz", "Bobby Okereke", "Micah McFadden", "Kayvon Thibodeaux", "Dexter Lawrence II", "Azeez Ojulari", "Donovan Wilson", "Darnay Holmes", "Deonte Banks", "Adoree' Jackson", "Jason Pinnock", "Dane Belton", "Cor'Dale Flott", "Tomon Fox", "Bryce Ford-Wheaton", "Graham Gano", "Jamie Gillan", "Eric Gray", "Art Green", "Chris Hubbard", "Jalin Hyatt", "Adoree' Jackson", "Dyontae Johnson", "Casey Kreiter", "Jake Kubas", "Drew Lock", "Chris Manhertz", "Micah McFadden", "Dante Miller", "Darius Muasau", "Malik Nabers", "Evan Neal", "Rakeem Nunez-Roches", "Dru Phillips", "Jason Pinnock", "Jordon Riley", "Wan'Dale Robinson", "Austin Schlottmann", "Isaiah Simmons", "Devin Singletary", "Darius Slayton", "Ihmir Smith-Marsette", "Aaron Stinnie", "Greg Stroman", "Ty Summers", "Kayvon Thibodeaux", "Tyrone Tracy", "Greg Van Roten"
-                ],
-                "New York Jets": [
-                    "Aaron Rodgers", "Tyrod Taylor", "Breece Hall", "Israel Abanikanda", "Breece Hall", "Garrett Wilson", "Allen Lazard", "Mike Williams", "Tyler Conklin", "C.J. Uzomah", "Duane Brown", "Laken Tomlinson", "Connor McGovern", "Alijah Vera-Tucker", "Mekhi Becton", "Quinnen Williams", "John Franklin-Myers", "Jermaine Johnson II", "Will McDonald IV", "Carl Lawson", "Haason Reddick", "C.J. Mosley", "Quincy Williams", "Sauce Gardner", "D.J. Reed Jr.", "Chuck Clark", "Tony Adams", "Michael Carter II", "Ashtyn Davis", "Zonovan Knight", "Aaron Rodgers", "Breece Hall", "Garrett Wilson", "Allen Lazard", "Tyler Conklin", "Quinnen Williams", "John Franklin-Myers", "Jermaine Johnson II", "Haason Reddick", "C.J. Mosley", "Quincy Williams", "Sauce Gardner", "D.J. Reed Jr.", "Chuck Clark", "Tony Adams"
-                ],
-                "Philadelphia Eagles": [
-                    "Jalen Hurts", "Kenny Pickett", "Tanner McKee", "Saquon Barkley", "Kenneth Gainwell", "Boston Scott", "A.J. Brown", "DeVonta Smith", "Quez Watkins", "Dallas Goedert", "Jack Stoll", "Lane Johnson", "Jordan Mailata", "Landon Dickerson", "Jason Kelce", "Cam Jurgens", "Haason Reddick", "Josh Sweat", "Jalen Carter", "Jordan Davis", "Fletcher Cox", "Brandon Graham", "Nakobe Dean", "Oren Burks", "Darius Slay", "James Bradberry", "Avonte Maddox", "Reed Blankenship", "C.J. Gardner-Johnson", "Zach Cunningham", "Jalen Carter", "Jordan Davis", "Fletcher Cox", "Brandon Graham", "Nakobe Dean", "Oren Burks", "Darius Slay", "James Bradberry", "Avonte Maddox", "Reed Blankenship", "Jake Elliott", "Braden Mann", "Rick Lovato", "Jalen Hurts", "Saquon Barkley", "A.J. Brown", "DeVonta Smith", "Dallas Goedert", "Lane Johnson", "Jordan Mailata", "Jalen Carter", "Haason Reddick", "Darius Slay", "James Bradberry"
-                ],
-                "Pittsburgh Steelers": [
-                    "Russell Wilson", "Justin Fields", "Najee Harris", "Jaylen Warren", "Diontae Johnson", "George Pickens", "Allen Robinson II", "Pat Freiermuth", "Darnell Washington", "Mason Cole", "James Daniels", "Chukwuma Okorafor", "Dan Moore Jr.", "Broderick Jones", "Alex Highsmith", "T.J. Watt", "Cam Heyward", "Larry Ogunjobi", "Keeanu Benton", "Myles Jack", "Cole Holcomb", "Elandon Roberts", "Minkah Fitzpatrick", "Patrick Queen", "Joey Porter Jr.", "Levi Wallace", "Damontae Kazee", "Terrell Edmunds", "Chris Boswell", "Pressley Harvin III", "Christian Kuntz", "Najee Harris", "Jaylen Warren", "Diontae Johnson", "George Pickens", "Pat Freiermuth", "T.J. Watt", "Alex Highsmith", "Cam Heyward", "Minkah Fitzpatrick", "Patrick Queen", "Joey Porter Jr."
-                ],
-                "San Francisco 49ers": [
-                    "Brock Purdy", "Joshua Dobbs", "Brandon Allen", "Christian McCaffrey", "Patrick Taylor Jr.", "Jordan Mason", "Isaac Guerendo", "Kyle Juszczyk", "Deebo Samuel Sr.", "Ronnie Bell", "Brandon Aiyuk", "Jauan Jennings", "Chris Conley", "Ricky Pearsall", "Jacob Cowing", "George Kittle", "Jake Tonges", "Aaron Banks", "Jake Brendel", "Spencer Burford", "Colton McKivitz", "Jaylon Moore", "Jon Feliciano", "Dominick Puni", "Nick Zakelj", "Nick Bosa", "Javon Hargrave", "Drake Jackson", "Randy Gregory", "Arik Armstead", "Javon Kinlaw", "Fred Warner", "Dre Greenlaw", "Azeez Al-Shaair", "Javon Hargrave", "Drake Jackson", "Randy Gregory", "Javon Kinlaw", "Fred Warner", "Dre Greenlaw", "Azeez Al-Shaair", "Charvarius Ward", "Deommodore Lenoir", "Talanoa Hufanga", "Tashaun Gipson Sr.", "Mitch Wishnowsky", "Jake Moody", "Taybor Pepper", "Christian McCaffrey", "Deebo Samuel Sr.", "Brandon Aiyuk", "George Kittle", "Nick Bosa", "Fred Warner", "Talanoa Hufanga", "Charvarius Ward"
-                ],
-                "Seattle Seahawks": [
-                    "Geno Smith", "Sam Howell", "D.K. Metcalf", "Tyler Lockett", "Jaxon Smith-Njigba", "Noah Fant", "Kenneth Walker III", "Zach Charbonnet", "Colby Parkinson", "Charles Cross", "Abe Lucas", "Damien Lewis", "Gabe Jackson", "Stone Forsythe", "Leonard Williams", "Jarran Reed", "Dre'Mont Jones", "Boye Mafe", "Darrell Taylor", "Uchenna Nwosu", "Bobby Wagner", "Jordyn Brooks", "Devon Witherspoon", "Quandre Diggs", "Julian Love", "Jamal Adams", "Riq Woolen", "Devon Witherspoon", "Bobby Wagner", "Jordyn Brooks", "Devon Witherspoon", "Quandre Diggs", "Julian Love", "Jamal Adams", "Riq Woolen", "Michael Dickson", "Jason Myers", "Chris Stoll", "Geno Smith", "Kenneth Walker III", "D.K. Metcalf", "Tyler Lockett", "Jaxon Smith-Njigba", "Charles Cross", "Abe Lucas", "Leonard Williams", "Dre'Mont Jones", "Bobby Wagner", "Devon Witherspoon", "Quandre Diggs", "Julian Love"
-                ],
-                "Tampa Bay Buccaneers": [
-                    "Baker Mayfield", "Kyle Trask", "Mike Evans", "Chris Godwin", "Rachaad White", "Chase Edmonds", "Ke'Shawn Vaughn", "Cade Otton", "Ko Kieft", "Tristan Wirfs", "Cody Mauch", "Luke Goedeke", "Robert Hainsey", "Vita Vea", "Calijah Kancey", "Logan Hall", "Joe Tryon-Shoyinka", "Shaquil Barrett", "Devin White", "Lavonte David", "Antoine Winfield Jr.", "Jamel Dean", "Carlton Davis III", "Zyon McCollum", "Ryan Neal", "Dee Delaney", "Chase Lucas", "Matt Gay", "Jake Camarda", "Zach Wood", "Baker Mayfield", "Mike Evans", "Chris Godwin", "Rachaad White", "Cade Otton", "Tristan Wirfs", "Vita Vea", "Calijah Kancey", "Logan Hall", "Shaquil Barrett", "Lavonte David", "Antoine Winfield Jr.", "Jamel Dean", "Carlton Davis III"
-                ],
-                "Tennessee Titans": [
-                    "Will Levis", "Mason Rudolph", "DeAndre Hopkins", "Calvin Ridley", "Chigoziem Okonkwo", "Treylon Burks", "Derrick Henry", "Tyjae Spears", "Peter Skoronski", "Andre Dillard", "Daniel Brunskill", "Nicholas Petit-Frere", "Trevon Walker", "Denico Autry", "Jeffery Simmons", "Harold Landry III", "Arden Key", "Azeez Al-Shaair", "Jack Gibbens", "Roger McCreary", "Kristian Fulton", "Sean Murphy-Bunting", "Amani Hooker", "Kevin Byard", "Elijah Molden", "Ryan Stonehouse", "Nick Folk", "Morgan Cox", "Will Levis", "Derrick Henry", "Tyjae Spears", "DeAndre Hopkins", "Calvin Ridley", "Chigoziem Okonkwo", "Andre Dillard", "Jeffery Simmons", "Harold Landry III", "Roger McCreary", "Kristian Fulton", "Amani Hooker", "Kevin Byard"
-                ],
-                "Washington Commanders": [
-                    "Jayden Daniels", "Marcus Mariota", "Austin Ekeler", "Brian Robinson Jr.", "Terry McLaurin", "Jahan Dotson", "Dyami Brown", "Logan Thomas", "Cole Turner", "Charles Leno Jr.", "Andrew Wylie", "Sam Cosmi", "Jonathan Allen", "Daron Payne", "Montez Sweat", "Chase Young", "Jamin Davis", "Cody Barton", "David Mayo", "Kamren Curl", "Darrick Forrest", "Kendall Fuller", "Benjamin St-Juste", "Danny Johnson", "Quan Martin", "Tress Way", "Joey Slye", "Camaron Cheeseman", "Jayden Daniels", "Austin Ekeler", "Brian Robinson Jr.", "Terry McLaurin", "Jahan Dotson", "Logan Thomas", "Charles Leno Jr.", "Andrew Wylie", "Jonathan Allen", "Daron Payne", "Jamin Davis", "Kamren Curl", "Darrick Forrest", "Kendall Fuller", "Benjamin St-Juste", "Danny Johnson", "Quan Martin", "Tress Way", "Joey Slye", "Camaron Cheeseman"
-                ]
-            };
+  <section id="postgamePanel" class="panel" style="display:none; margin-top:12px;">
+    <h2>Postgame Show</h2>
+    <div id="postgameContent">Postgame summary will appear here.</div>
+    <div style="margin-top:8px;">
+      <button id="newGameAfterBtn">Start New Game</button>
+    </div>
+  </section>
 
-            // Get references to all screens and buttons
-            const screens = {
-                main: document.getElementById('main-menu'),
-                rosterSelection: document.getElementById('roster-selection'),
-                rosterDisplay: document.getElementById('roster-display')
-            };
+  <footer>
+    <p>Accessible prototype — everything stays in this chat / this file until you share it.</p>
+  </footer>
+</main>
 
-            const buttons = {
-                viewRosters: document.getElementById('view-rosters-btn'),
-                startSeason: document.getElementById('start-season-btn'),
-                showRoster: document.getElementById('show-roster-btn'),
-                backToMain: document.getElementById('back-to-main-menu-btn'),
-                backToTeams: document.getElementById('back-to-teams-btn')
-            };
+<script>
+/* ============================
+   Accessible Madden — Prototype
+   ============================
+   - Quick-play text adventure with 4 quarters, halftime, postgame show
+   - Screen reader friendly via aria-live regions and visible focus
+   - Keyboard shortcuts: 1-6 to choose plays, Enter to execute, R repeat, S stats, H help
+*/
 
-            const selectElements = {
-                teamSelect: document.getElementById('team-select')
-            };
+/* --- Config / state --- */
+const HOME_TEAM = "San Francisco 49ers";
+const ALL_TEAMS = [
+  "San Francisco 49ers","Arizona Cardinals","Atlanta Falcons","Baltimore Ravens",
+  "Buffalo Bills","Carolina Panthers","Chicago Bears","Cincinnati Bengals",
+  "Cleveland Browns","Dallas Cowboys","Denver Broncos","Detroit Lions",
+  "Green Bay Packers","Houston Texans","Indianapolis Colts","Jacksonville Jaguars",
+  "Kansas City Chiefs","Las Vegas Raiders","Los Angeles Chargers","Los Angeles Rams",
+  "Miami Dolphins","Minnesota Vikings","New England Patriots","New Orleans Saints",
+  "New York Giants","New York Jets","Philadelphia Eagles","Pittsburgh Steelers",
+  "Seattle Seahawks","Tampa Bay Buccaneers","Tennessee Titans","Washington Commanders"
+];
 
-            const displayElements = {
-                rosterTeamName: document.getElementById('roster-team-name'),
-                playerContainer: document.getElementById('player-container')
-            };
-            
-            // Get message box element
-            const messageBox = document.getElementById('message-box');
+const PLAYBOOK = [
+  { id:1, name:"Inside Zone", type:"run", desc:"Hand off inside gap." },
+  { id:2, name:"Outside Toss", type:"run", desc:"Pitch outside to the running back." },
+  { id:3, name:"Draw", type:"run", desc:"Delayed handoff after pass look." },
+  { id:4, name:"Quick Slant", type:"pass", desc:"Short slant route across the middle." },
+  { id:5, name:"Deep Post", type:"pass", desc:"Quarterback looks deep to the post." },
+  { id:6, name:"Play Action", type:"pass", desc:"Fake run then pass downfield." }
+];
 
-            // --- Screen Navigation Logic ---
-            function showScreen(screenId) {
-                // Hide all screens
-                Object.values(screens).forEach(screen => screen.classList.remove('active'));
-                // Show the requested screen
-                screens[screenId].classList.add('active');
-            }
+let state = {
+  home: HOME_TEAM,
+  away: null,
+  quarter: 0,
+  quarterLengthMin: 5,
+  timeLeftSec: 0,   // seconds remaining in current quarter
+  ballYardline: 25, // 1..99 where 100=opponent endzone? We'll treat 0-100 with 25 start
+  down: 1,
+  togo: 10,
+  possession: 'home', // 'home' or 'away'
+  score: { home:0, away:0 },
+  driveSeq: [], // logs plays this drive
+  lastComment: '',
+  gameRunning: false,
+  halftimeShown: false,
+  gameOver: false,
+  selectedPlayIdx: 0
+};
 
-            // Populate the team dropdown on app load
-            function populateTeamSelect() {
-                const teamNames = Object.keys(teamsData).sort();
-                teamNames.forEach(team => {
-                    const option = document.createElement('option');
-                    option.value = team;
-                    option.textContent = team;
-                    selectElements.teamSelect.appendChild(option);
-                });
-            }
+/* --- DOM references --- */
+const srLive = document.getElementById('sr-live');
+const playArea = document.getElementById('playArea');
+const driveInfo = document.getElementById('driveInfo');
+const commentaryLive = document.getElementById('commentaryLive');
+const playListDiv = document.querySelector('.play-list');
 
-            // Function to display the roster for the selected team
-            function displayRoster() {
-                const selectedTeam = selectElements.teamSelect.value;
-                if (!selectedTeam) {
-                    showMessage("Please select a team.");
-                    return;
-                }
+const quarterEl = document.getElementById('quarter');
+const timeLeftEl = document.getElementById('timeleft');
+const teamHomeEl = document.getElementById('teamHome');
+const teamAwayEl = document.getElementById('teamAway');
 
-                const players = teamsData[selectedTeam];
-                
-                // Update the team name on the roster screen
-                displayElements.rosterTeamName.textContent = selectedTeam;
-                
-                // Clear any existing player cards
-                displayElements.playerContainer.innerHTML = '';
-                
-                // Create a player card for each player and append to the container
-                players.forEach(player => {
-                    const card = document.createElement('div');
-                    card.className = 'player-card';
-                    card.innerHTML = `
-                        <div class="w-16 h-16 bg-gray-700 rounded-full flex items-center justify-center mb-2">
-                            <span class="text-2xl font-bold text-blue-400">#</span>
-                        </div>
-                        <span class="player-name">${player}</span>
-                    `;
-                    displayElements.playerContainer.appendChild(card);
-                });
+const newGameBtn = document.getElementById('newGameBtn');
+const selectBtn = document.getElementById('selectBtn');
+const executeBtn = document.getElementById('executeBtn');
+const endDriveBtn = document.getElementById('endDriveBtn');
+const statsBtn = document.getElementById('statsBtn');
+const statsPanelBtn = document.getElementById('statsBtn');
 
-                // Show the roster display screen
-                showScreen('rosterDisplay');
-            }
+const halftimePanel = document.getElementById('halftimePanel');
+const halftimeContent = document.getElementById('halftimeContent');
+const endHalftimeBtn = document.getElementById('endHalftimeBtn');
 
-            // Function to show a temporary message box
-            function showMessage(message) {
-                messageBox.textContent = message;
-                messageBox.style.display = 'block';
-                setTimeout(() => {
-                    messageBox.style.display = 'none';
-                }, 3000);
-            }
+const postgamePanel = document.getElementById('postgamePanel');
+const postgameContent = document.getElementById('postgameContent');
+const newGameAfterBtn = document.getElementById('newGameAfterBtn');
 
-            // --- Event Listeners ---
-            buttons.viewRosters.addEventListener('click', () => {
-                showScreen('rosterSelection');
-            });
+/* --- helpers: announcements (ARIA + SpeechSynthesis) --- */
+function announce(text, polite=false){
+  // ARIA live region (always available for screen readers)
+  srLive.textContent = text;
+  // Also add to commentary area for visual users
+  commentaryLive.innerHTML = `<strong>${new Date().toLocaleTimeString()}</strong> — ${escapeHtml(text)}`;
+  state.lastComment = text;
+  // Optional: speech synthesis for additional audio (user/browser dependent)
+  try {
+    if(window.speechSynthesis && !polite){
+      const msg = new SpeechSynthesisUtterance(text);
+      // keep short, avoid long chattiness
+      window.speechSynthesis.cancel();
+      window.speechSynthesis.speak(msg);
+    }
+  } catch(e){ /* ignore speech failures */ }
+}
+function escapeHtml(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;'); }
 
-            buttons.startSeason.addEventListener('click', () => {
-                showMessage("Starting a season is not yet implemented.");
-            });
+/* --- UI build: playbook items --- */
+function buildPlaybook(){
+  playListDiv.innerHTML = '';
+  PLAYBOOK.forEach((p, idx) => {
+    const btn = document.createElement('button');
+    btn.className = 'play-item';
+    btn.setAttribute('role','listitem');
+    btn.setAttribute('data-idx', idx);
+    btn.tabIndex = 0;
+    btn.innerHTML = `${p.id}. ${p.name} <div style="font-size:0.9rem;color:#94a3b8">${p.desc}</div>`;
+    btn.addEventListener('click', () => {
+      setSelectedPlay(idx);
+    });
+    playListDiv.appendChild(btn);
+  });
+  setSelectedPlay(0);
+}
 
-            buttons.showRoster.addEventListener('click', () => {
-                displayRoster();
-            });
+/* highlight + announce play */
+function setSelectedPlay(idx){
+  const items = playListDiv.querySelectorAll('.play-item');
+  items.forEach((it,i)=> {
+    it.style.boxShadow = i===idx ? '0 0 0 3px rgba(99,102,241,0.25)' : 'none';
+    it.style.border = i===idx ? '1px solid #6366f1' : '1px solid #1f2937';
+  });
+  state.selectedPlayIdx = idx;
+  const p = PLAYBOOK[idx];
+  announce(`Highlighted: ${p.name}. ${p.desc}`);
+  // focus the selected element for keyboard users
+  items[idx].focus();
+}
 
-            buttons.backToMain.addEventListener('click', () => {
-                showScreen('main');
-            });
+/* --- Game flow helpers --- */
+function resetGameDefaults(){
+  state.quarterLengthMin = parseInt(document.getElementById('quarterLength').value,10) || 5;
+  state.quarter = 1;
+  state.timeLeftSec = state.quarterLengthMin * 60;
+  state.ballYardline = 25;
+  state.down = 1;
+  state.togo = 10;
+  state.possession = 'home';
+  state.score = { home:0, away:0 };
+  state.driveSeq = [];
+  state.lastComment = '';
+  state.gameRunning = true;
+  state.halftimeShown = false;
+  state.gameOver = false;
+  state.selectedPlayIdx = 0;
+  // choose away team randomly
+  const others = ALL_TEAMS.filter(t => t !== state.home);
+  state.away = others[Math.floor(Math.random()*others.length)];
+  teamHomeEl.textContent = `Home: ${state.home} (${state.score.home})`;
+  teamAwayEl.textContent = `Away: ${state.away} (${state.score.away})`;
+  quarterEl.textContent = state.quarter;
+  updateTimeUI();
+  buildPlaybook();
+  playArea.style.display = 'block';
+  halftimePanel.style.display = 'none';
+  postgamePanel.style.display = 'none';
+  announce(`Kickoff! ${state.home} vs ${state.away}. ${state.home} will receive the opening kickoff. First and ten at the 25.`);
+}
 
-            buttons.backToTeams.addEventListener('click', () => {
-                showScreen('rosterSelection');
-            });
+/* update time UI formatted */
+function updateTimeUI(){
+  const mm = Math.floor(state.timeLeftSec/60).toString().padStart(2,'0');
+  const ss = (state.timeLeftSec%60).toString().padStart(2,'0');
+  timeLeftEl.textContent = `${mm}:${ss}`;
+  quarterEl.textContent = state.quarter;
+  teamHomeEl.textContent = `Home: ${state.home} (${state.score.home})`;
+  teamAwayEl.textContent = `Away: ${state.away} (${state.score.away})`;
+  driveInfo.textContent = `${state.possession === 'home' ? state.home : state.away} ball — Down ${state.down} and ${state.togo}, ball at the ${state.ballYardline} yard line.`;
+}
 
-            // --- Initial Setup ---
-            window.addEventListener('DOMContentLoaded', (event) => {
-                populateTeamSelect();
-                showScreen('main'); // Ensure main menu is the first screen shown
-            });
+/* short helper to advance clock by approximate amount (drives shrink time) */
+function advanceClockBySeconds(sec){
+  state.timeLeftSec = Math.max(0, state.timeLeftSec - sec);
+  updateTimeUI();
+  if(state.timeLeftSec <= 0){
+    endQuarter();
+  }
+}
 
-        })();
-    </script>
+/* Quarter and halftime handling */
+function endQuarter(){
+  if(state.quarter === 2 && !state.halftimeShown){
+    // show halftime
+    state.halftimeShown = true;
+    showHalftime();
+    return;
+  }
+  if(state.quarter >= 4){
+    finishGame();
+    return;
+  }
+  // advance quarter
+  state.quarter += 1;
+  state.timeLeftSec = state.quarterLengthMin * 60;
+  announce(`Quarter ${state.quarter} begins. ${state.possession === 'home' ? state.home : state.away} has the ball.`);
+  updateTimeUI();
+}
 
+/* halftime display */
+function showHalftime(){
+  playArea.style.display = 'none';
+  halftimePanel.style.display = 'block';
+  const summary = `${state.home} ${state.score.home}, ${state.away} ${state.score.away}. Halftime stats placeholder.`;
+  halftimeContent.textContent = summary;
+  announce(`Halftime. ${summary}`);
+}
+
+/* end halftime */
+endHalftimeBtn.addEventListener('click', () => {
+  halftimePanel.style.display = 'none';
+  // start 3rd quarter
+  state.quarter = 3;
+  state.timeLeftSec = state.quarterLengthMin*60;
+  playArea.style.display = 'block';
+  announce(`Second half begins. Quarter ${state.quarter}. ${state.possession === 'home' ? state.home : state.away} will receive.`);
+  updateTimeUI();
+});
+
+/* finish game */
+function finishGame(){
+  state.gameRunning = false;
+  state.gameOver = true;
+  playArea.style.display = 'none';
+  postgamePanel.style.display = 'block';
+  const summary = `Final score: ${state.home} ${state.score.home}, ${state.away} ${state.score.away}.`;
+  postgameContent.textContent = summary + " Postgame highlights: placeholder highlights.";
+  announce(`Game over. ${summary} Postgame show now available.`);
+}
+
+/* new game after postgame */
+newGameAfterBtn.addEventListener('click', () => {
+  postgamePanel.style.display = 'none';
+  document.getElementById('mainMenu').style.display = 'block';
+  announce('Returned to main menu.');
+});
+
+/* --- Play execution simulation --- */
+function simulatePlay(playObj){
+  // basic deterministic-ish randomness influenced by difficulty
+  const diff = document.getElementById('difficulty').value;
+  const difficultyModifier = diff === 'Rookie' ? 0.15 : diff === 'Pro' ? 0 : diff === 'All-Pro' ? -0.05 : -0.12;
+  const rand = Math.random() + difficultyModifier; // higher is better for offense (if home has ball)
+  let yards = 0, text='';
+  if(playObj.type === 'run'){
+    // runs: mostly short gains
+    yards = Math.floor( (rand > 0.6 ? 6 : (rand > 0.3 ? 3 : -1)) + (Math.random()*3) );
+    if(yards < 0) text = `Tackle for loss of ${Math.abs(yards)} yards.`;
+    else text = `Run for ${yards} yards.`;
+  } else {
+    // pass
+    if(rand > 0.55){
+      yards = Math.floor(5 + Math.random()*15);
+      text = `Complete for ${yards} yards.`;
+    } else if(rand > 0.3){
+      yards = 0;
+      text = `Incomplete pass.`;
+    } else {
+      // turnover chance
+      const pick = Math.random() < 0.08;
+      if(pick){
+        text = `Interception! Turnover.`;
+        yards = 0;
+        // flip possession
+        togglePossession(true);
+      } else {
+        text = `Sack or pressure; no gain.`;
+        yards = -2;
+      }
+    }
+  }
+
+  // Apply yards if not turnover that flipped
+  if(!text.toLowerCase().includes('interception')){
+    // advance ball
+    state.ballYardline = Math.min(100, state.ballYardline + yards); // moving towards opponent end zone
+  }
+
+  // update down / togo
+  if(yards >= state.togo){
+    // first down
+    state.down = 1;
+    state.togo = 10;
+  } else {
+    state.down = Math.min(4, state.down + 1);
+    state.togo = Math.max(1, state.togo - Math.max(0,yards));
+  }
+
+  // Check touchdown
+  if(state.ballYardline >= 100){
+    // touchdown for possession team
+    const scorer = state.possession;
+    state.score[scorer === 'home' ? 'home' : 'away'] += 7;
+    announce(`${playObj.name}. ${text} Touchdown ${scorer === 'home' ? state.home : state.away}! Score update: ${state.home} ${state.score.home}, ${state.away} ${state.score.away}.`);
+    // reset after kickoff — start opponent possession at 25
+    state.ballYardline = 25;
+    togglePossession(true); // possession flips on kickoff
+    // small clock advance
+    advanceClockBySeconds(45 + Math.floor(Math.random()*20));
+    return;
+  }
+
+  // If turnover earlier toggled possession, we already toggled; else continue
+  if(!text.toLowerCase().includes('interception')){
+    announce(`${playObj.name}. ${text} Down ${state.down} and ${state.togo} at the ${state.ballYardline}.`);
+  } else {
+    // if interception, we already announced togglePossession
+    announce(text + ` ${state.possession === 'home' ? state.home : state.away} takes over at the ${state.ballYardline}.`);
+  }
+
+  // if 4th down and failed, simulate punt (simple)
+  if(state.down > 4){
+    // automatic punt -> opponent gets ball at 25 (simplified)
+    announce(`Turnover on downs. ${state.possession === 'home' ? state.away : state.home} takes over at the 25.`);
+    togglePossession(true);
+  }
+
+  // Short clock advance per play
+  advanceClockBySeconds(20 + Math.floor(Math.random()*25));
+}
+
+/* toggle possession: if kickoff or turnover, pass true to reset ball to 25 */
+function togglePossession(resetTo25=false){
+  state.possession = (state.possession === 'home') ? 'away' : 'home';
+  if(resetTo25) state.ballYardline = 25;
+  // reset down/togo
+  state.down = 1;
+  state.togo = 10;
+  announce(`${state.possession === 'home' ? state.home : state.away} now has possession. First and ten at the ${state.ballYardline}.`);
+  updateTimeUI();
+}
+
+/* --- UI action bindings --- */
+newGameBtn.addEventListener('click', () => {
+  // hide UI parts and start new game
+  document.getElementById('mainMenu').style.display='none';
+  resetGameDefaults();
+});
+
+selectBtn.addEventListener('click', () => {
+  setSelectedPlay(state.selectedPlayIdx);
+  announce(`Selected ${PLAYBOOK[state.selectedPlayIdx].name}. Press Execute Play to run it.`);
+});
+
+executeBtn.addEventListener('click', () => {
+  // Ensure a direct gesture executes the play
+  const p = PLAYBOOK[state.selectedPlayIdx];
+  announce(`Executing ${p.name}.`);
+  simulatePlay(p);
+});
+
+endDriveBtn.addEventListener('click', () => {
+  announce('Drive ended. Returning to main menu.');
+  playArea.style.display = 'none';
+  document.getElementById('mainMenu').style.display = 'block';
+});
+
+statsBtn.addEventListener('click', () => {
+  const s = `Score: ${state.home} ${state.score.home}, ${state.away} ${state.score.away}. Quarter ${state.quarter}. Time ${timeLeftEl.textContent}.`;
+  announce(s);
+});
+
+/* help / keyboard interactions */
+document.addEventListener('keydown', (ev) => {
+  if(!state.gameRunning) return;
+  const k = ev.key;
+  if(k >= '1' && k <= '6'){
+    const idx = parseInt(k,10)-1;
+    if(idx >=0 && idx < PLAYBOOK.length){
+      setSelectedPlay(idx);
+    }
+  } else if(k === 'Enter'){
+    // execute
+    executeBtn.focus();
+    executeBtn.click();
+  } else if(k.toLowerCase() === 'r'){
+    // repeat last commentary
+    announce(state.lastComment || 'No last commentary.');
+  } else if(k.toLowerCase() === 's'){
+    statsBtn.click();
+  } else if(k.toLowerCase() === 'h'){
+    announce("Commands: 1-6 choose plays, Enter execute, R repeat last commentary, S show stats, H help.");
+  }
+});
+
+/* utility: initialize UI */
+(function init(){
+  // populate UI team
+  document.getElementById('teamHome').textContent = `Home: ${state.home} (0)`;
+  // New game remains visible
+  document.getElementById('mainMenu').style.display = 'block';
+  // build playbook (hidden until game start)
+  buildPlaybook();
+  announce("Prototype ready. Choose New Game to start.");
+})();
+</script>
 </body>
 </html>
-
