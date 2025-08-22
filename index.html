@@ -18,7 +18,7 @@ nav button.activeTab{background:#63b3ed; font-weight:bold;}
 .card{background:#2d3748;border-radius:10px;padding:8px;text-align:center}
 button{padding:6px 10px;border:none;border-radius:6px;background:#3182ce;color:white;cursor:pointer;margin:2px}
 button:disabled{opacity:0.5;cursor:not-allowed}
-input{padding:6px;border-radius:6px;border:none;margin:2px;width:100%;}
+input,textarea{padding:6px;border-radius:6px;border:none;margin:2px;width:100%;}
 </style>
 </head>
 <body>
@@ -33,6 +33,13 @@ input{padding:6px;border-radius:6px;border:none;margin:2px;width:100%;}
 <section id="home" class="tab active">
 <h2>Your Pokédex</h2>
 <div id="pokedex" class="grid"></div>
+<h3>Import / Transfer Pokédex</h3>
+<textarea id="importData" placeholder="Paste exported Pokédex JSON here" rows="4"></textarea>
+<button id="importBtn">Import Pokédex</button>
+<div id="importResult"></div>
+<h3>Export Pokédex</h3>
+<button id="exportBtn">Export Pokédex</button>
+<textarea id="exportData" readonly rows="2"></textarea>
 </section><section id="explore" class="tab">
 <h2>Explore</h2>
 <button id="exploreBtn">Explore Area</button>
@@ -164,7 +171,41 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // Button event listeners
+  // Export Pokédex
+  document.getElementById('exportBtn').addEventListener('click', () => {
+    const json = JSON.stringify(pokedex);
+    document.getElementById('exportData').value = json;
+    speakText('Pokédex export ready');
+  });
+
+  // Import Pokédex
+  document.getElementById('importBtn').addEventListener('click', () => {
+    const data = document.getElementById('importData').value.trim();
+    if(!data){
+      document.getElementById('importResult').textContent = 'Please paste valid data.';
+      speakText('Please paste valid data.');
+      return;
+    }
+    try {
+      const imported = JSON.parse(data);
+      if(Array.isArray(imported)){
+        imported.forEach(p => { if(!pokedex.includes(p)) pokedex.push(p); });
+        saveGame();
+        renderPokedex();
+        document.getElementById('importResult').textContent = 'Pokédex imported successfully!';
+        speakText('Pokédex imported successfully!');
+        renderTradePlayers();
+        renderTrade();
+      } else {
+        throw new Error('Invalid data format');
+      }
+    } catch(e){
+      document.getElementById('importResult').textContent = 'Invalid JSON data.';
+      speakText('Invalid JSON data.');
+    }
+  });
+
+  // Other button event listeners
   document.getElementById('exploreBtn').addEventListener('click', explorePokemon);
   document.getElementById('healBtn').addEventListener('click', healPokemon);
   document.getElementById('redeemBtn').addEventListener('click', redeemTrade);
@@ -182,7 +223,21 @@ document.addEventListener('DOMContentLoaded', () => {
       document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
       const section = document.getElementById(tab);
       if(section) section.classList.add('active');
-
-      // Update aria-selected
       document.querySelectorAll('nav button[data-tab]').forEach(b => {
-        b.classList
+        b.classList.remove('activeTab');
+        b.setAttribute('aria-selected', 'false');
+      });
+      btn.classList.add('activeTab');
+      btn.setAttribute('aria-selected', 'true');
+      liveRegion.textContent = `${btn.textContent} tab selected`;
+      speakText(`${btn.textContent} tab selected`);
+    });
+  });
+
+  // Initial render
+  renderPokedex();
+  renderTrade();
+  renderTradePlayers();
+});
+</script></body>
+</html>
