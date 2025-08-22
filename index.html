@@ -13,8 +13,8 @@ body{margin:0;font-family:sans-serif;background:#1a202c;color:#e6eef8}
 .card{background:#2d3748;border-radius:10px;padding:8px;text-align:center}
 button{padding:6px 10px;border:none;border-radius:6px;background:#3182ce;color:white;cursor:pointer}
 button:disabled{opacity:0.5;cursor:not-allowed}
-nav{display:flex;gap:6px;padding:8px;background:#2d3748;justify-content:space-around;position:relative;z-index:10}
-nav button{flex:1;padding:8px;border-radius:6px;background:#3182ce;color:white;border:none;cursor:pointer}
+nav{display:flex;gap:6px;padding:8px;background:#2d3748;justify-content:space-around;position:relative;z-index:1000;pointer-events:auto}
+nav button{flex:1;padding:8px;border-radius:6px;background:#3182ce;color:white;border:none;cursor:pointer;pointer-events:auto}
 nav button:hover{background:#63b3ed}
 nav button.activeTab{background:#63b3ed; font-weight:bold;}
 </style>
@@ -89,7 +89,7 @@ function redeemTrade(){ const code=document.getElementById('redeemCode').value.t
 
 // Dynamic buttons for trade document.body.addEventListener('click', e=>{ if(e.target.classList.contains('tradeBtn')) tradePokemon(e.target.dataset.poke); if(e.target.classList.contains('offerBtn')) generateCode(e.target.dataset.poke); });
 
-// --- Tab switching --- document.querySelectorAll('nav button[data-tab]').forEach(btn => { btn.addEventListener('click', () => { const tab = btn.getAttribute('data-tab'); document.querySelectorAll('.tab').forEach(t => t.classList.remove('active')); document.getElementById(tab).classList.add('active'); document.querySelectorAll('nav button').forEach(b => b.classList.remove('activeTab')); btn.classList.add('activeTab'); }); });
+// --- Tab switching --- document.querySelectorAll('nav button[data-tab]').forEach(btn => { btn.addEventListener('click', () => { const tab = btn.getAttribute('data-tab'); document.querySelectorAll('.tab').forEach(t => t.classList.remove('active')); const section = document.getElementById(tab); if (section) section.classList.add('active'); document.querySelectorAll('nav button').forEach(b => b.classList.remove('activeTab')); btn.classList.add('activeTab'); }); });
 
 renderPokedex(); renderTrade(); renderTradePlayers(); }); </script>
 
