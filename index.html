@@ -658,10 +658,11 @@
     }
 
     // --- Initial Setup and Event Listeners ---
-    window.onload = function () {
+    document.addEventListener('DOMContentLoaded', () => {
+        // Load game data and render initial UI
         loadGame();
         
-        // This is the new, simplified tab switching logic
+        // This is the new, more reliable tab switching logic
         document.querySelectorAll('.tab-footer button').forEach(button => {
             button.addEventListener('click', () => {
                 const tabId = button.getAttribute('data-tab');
@@ -669,7 +670,7 @@
             });
         });
 
-        // Event listeners for game buttons
+        // Event listeners for all game buttons
         document.getElementById("catchHomeBtn").addEventListener('click', catchPokemon);
         document.getElementById("catchExploreBtn").addEventListener('click', catchPokemon);
         document.getElementById("dailyRewardBtn").addEventListener('click', dailyReward);
@@ -677,7 +678,7 @@
         document.getElementById("exportBtn").addEventListener('click', exportPokedex);
         document.getElementById("importBtn").addEventListener('click', importPokedex);
         document.getElementById("transferButton").addEventListener('click', () => showMessage("Transfer Feature", "This feature is currently under development."));
-   ,  };
+   ,  });
 </script>
 
 </body>
