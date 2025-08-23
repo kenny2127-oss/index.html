@@ -226,4 +226,194 @@ window.onload=initGame;
 </script>
 
 </body>
-</html>
+</html> <!-- --- Extended Poké Mart Section with Buy/Sell Tabs --- -->
+<section id="pokemart" class="tab-content">
+    <div class="bg-gray-800 p-6 rounded-xl shadow-lg">
+        <h2 class="text-2xl font-semibold mb-4 text-center">Poké Mart</h2>
+
+        <!-- Poké Mart Tab Buttons -->
+        <div class="flex justify-center gap-4 mb-4">
+            <button onclick="switchMartTab('buy')" id="buyTabBtn" class="px-4 py-2 rounded-lg bg-green-500 text-white font-bold" aria-selected="true">Buy</button>
+            <button onclick="switchMartTab('sell')" id="sellTabBtn" class="px-4 py-2 rounded-lg bg-gray-700 text-white font-bold" aria-selected="false">Sell</button>
+        </div>
+
+        <!-- Buy Tab Content -->
+        <div id="buyTab" class="mart-tab-content">
+            <div id="martBuyItems" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4"></div>
+        </div>
+
+        <!-- Sell Tab Content -->
+        <div id="sellTab" class="mart-tab-content" style="display:none;">
+            <div id="martSellItems" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4"></div>
+        </div>
+
+        <!-- Verify Game Button -->
+        <button onclick="verifyGame()" class="w-full bg-purple-500 text-white font-bold py-3 rounded-lg shadow-md mt-6 hover:bg-purple-600 transition duration-300">
+            Verify Game
+        </button>
+
+        <!-- Sound/Music Buttons -->
+        <div class="flex flex-col gap-2 mt-4">
+            <button onclick="playPokemonSound()" class="bg-yellow-500 text-gray-900 font-bold py-2 rounded-lg">Play Pokémon Sound</button>
+            <button onclick="playPokemonMusic()" class="bg-indigo-500 text-white font-bold py-2 rounded-lg">Play Background Music</button>
+        </div>
+    </div>
+</section>
+
+<script>
+    // --- Poké Mart Extended Tabs ---
+    function switchMartTab(tab) {
+        const buyTab = document.getElementById('buyTab');
+        const sellTab = document.getElementById('sellTab');
+        const buyBtn = document.getElementById('buyTabBtn');
+        const sellBtn = document.getElementById('sellTabBtn');
+
+        if(tab === 'buy') {
+            buyTab.style.display = 'block';
+            sellTab.style.display = 'none';
+            buyBtn.setAttribute('aria-selected', 'true');
+            sellBtn.setAttribute('aria-selected', 'false');
+            buyBtn.classList.add('bg-green-500');
+            buyBtn.classList.remove('bg-gray-700');
+            sellBtn.classList.add('bg-gray-700');
+            sellBtn.classList.remove('bg-green-500');
+            showMessage('Poké Mart', 'Buy tab selected');
+            renderMartBuy();
+        } else {
+            buyTab.style.display = 'none';
+            sellTab.style.display = 'block';
+            buyBtn.setAttribute('aria-selected', 'false');
+            sellBtn.setAttribute('aria-selected', 'true');
+            buyBtn.classList.add('bg-gray-700');
+            buyBtn.classList.remove('bg-green-500');
+            sellBtn.classList.add('bg-green-500');
+            sellBtn.classList.remove('bg-gray-700');
+            showMessage('Poké Mart', 'Sell tab selected');
+            renderMartSell();
+        }
+    }
+
+    function renderMartBuy() {
+        const martBuy = document.getElementById('martBuyItems');
+        martBuy.innerHTML = '';
+        for(const item in ITEM_PRICES){
+            if(playerState.money >= ITEM_PRICES[item]) {
+                const card = document.createElement('div');
+                card.className = 'card bg-gray-700 rounded-lg p-3 text-center shadow-inner text-sm';
+                card.innerHTML = `
+                    <p class="font-bold">${item}</p>
+                    <p class="text-xs text-gray-400">Cost: 💰${ITEM_PRICES[item]}</p>
+                    <button onclick="buyItem('${item}')" class="w-full bg-green-500 text-white py-1 rounded-md text-xs font-bold hover:bg-green-600 transition duration-300">Buy One</button>
+                `;
+                martBuy.appendChild(card);
+            }
+        }
+    }
+
+    function renderMartSell() {
+        const martSell = document.getElementById('martSellItems');
+        martSell.innerHTML = '';
+        for(const item in items){
+            if(items[item] > 0){
+                const card = document.createElement('div');
+                card.className = 'card bg-gray-700 rounded-lg p-3 text-center shadow-inner text-sm';
+                card.innerHTML = `
+                    <p class="font-bold">${item}</p>
+                    <p>x${items[item]}</p>
+                    <p class="text-xs text-gray-400">Value: 💰${ITEM_PRICES[item]}</p>
+                    <button onclick="sellItem('${item}')" class="w-full bg-yellow-500 text-gray-900 py-1 rounded-md text-xs font-bold hover:bg-yellow-600 transition duration-300">Sell One</button>
+                    <button onclick="sellAllItems('${item}')" class="w-full bg-red-500 text-white py-1 rounded-md text-xs font-bold hover:bg-red-600 transition duration-300">Sell All</button>
+                `;
+                martSell.appendChild(card);
+            }
+        }
+    }
+
+    // --- Buy Item Logic ---
+    function buyItem(item) {
+        if(playerState.money >= ITEM_PRICES[item]){
+            playerState.money -= ITEM_PRICES[item];
+            items[item]++;
+            saveGame();
+            renderInventory();
+            renderMartBuy();
+            showMessage('Item Purchased', `You bought 1 ${item} for 💰${ITEM_PRICES[item]}`);
+        } else {
+            showMessage('Cannot Buy', `You cannot afford ${item}`);
+        }
+    }
+
+    // --- Inventory Evolution Info ---
+    function getEvolutionInfo() {
+        const evolutions = {
+            "Stone": ["Eevee", "Vulpix", "Nidorina", "Nidorino"]
+        };
+        let info = [];
+        if(items.Stones > 0){
+            info.push(`Stones can evolve: ${evolutions.Stone.join(', ')}`);
+        }
+        return info.join(' | ');
+    }
+
+    function renderInventoryWithEvolutions() {
+        renderInventory();
+        const invContainer = document.getElementById('inventoryItems');
+        const evoInfo = getEvolutionInfo();
+        if(evoInfo){
+            const evoDiv = document.createElement('div');
+            evoDiv.className = 'text-center text-xs text-yellow-300 mt-2';
+            evoDiv.innerText = evoInfo;
+            invContainer.appendChild(evoDiv);
+        }
+    }
+
+    // --- Verify Game Button Logic ---
+    function verifyGame() {
+        let errors = [];
+        if(!Array.isArray(pokedex)) errors.push("Pokédex is corrupted");
+        if(!items || typeof items !== 'object') errors.push("Items data is corrupted");
+        if(!playerState || typeof playerState.level !== 'number') errors.push("Player state data is corrupted");
+
+        if(errors.length === 0){
+            showMessage('Game Verified', 'No errors found! You are good to play.');
+        } else {
+            showMessage('Game Errors', errors.join('\n'));
+        }
+    }
+
+    // --- Placeholder Sound & Music ---
+    function playPokemonSound() {
+        showMessage('Sound', 'Pokémon sound would play here.');
+    }
+
+    function playPokemonMusic() {
+        showMessage('Music', 'Background music would play here.');
+    }
+
+    // --- Ensure Render Hooks ---
+    function refreshUI(){
+        renderInventoryWithEvolutions();
+        renderMartBuy();
+        renderMartSell();
+    }
+
+    // Call refresh when switching tabs
+    switchTab = (tabIdOriginal => {
+        return function(tabId){
+            const sections = document.querySelectorAll(".tab-content");
+            const buttons = document.querySelectorAll(".tab-footer button");
+            sections.forEach(sec => sec.classList.remove("is-active"));
+            buttons.forEach(btn => btn.classList.remove("is-active"));
+            document.getElementById(tabId).classList.add("is-active");
+            document.querySelector(`[data-tab='${tabId}']`).classList.add("is-active");
+
+            if(tabId === "inventory"){
+                renderInventoryWithEvolutions();
+            } else if(tabId === "pokemart"){
+                renderMartBuy();
+                renderMartSell();
+            }
+        }
+    })(switchTab);
+
+</script>
