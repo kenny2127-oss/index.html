@@ -78,6 +78,14 @@
             max-width: 400px;
             text-align: center;
         }
+        
+        /* Health bar styling */
+        .health-bar {
+            height: 12px;
+            border-radius: 9999px;
+            background-color: #22c55e;
+            transition: width 0.5s ease-in-out;
+        }
     </style>
 </head>
 <body class="bg-gray-900 text-gray-100">
@@ -106,7 +114,7 @@
             <button onclick="catchPokemon()" class="w-full bg-green-500 text-white font-bold py-3 rounded-lg shadow-md hover:bg-green-600 transition duration-300">Catch Pokémon</button>
             <button onclick="dailyReward()" class="w-full bg-yellow-500 text-gray-900 font-bold py-3 rounded-lg shadow-md hover:bg-yellow-600 transition duration-300">Daily Reward</button>
         </div>
-        <button onclick="showMessage('Transfer Feature', 'This feature is currently under development.')" class="w-full bg-blue-500 text-white font-bold py-3 rounded-lg shadow-md mt-4 hover:bg-blue-600 transition duration-300">Transfer Pokédex from another,  app</button>
+        <button,  onclick="showMessage('Transfer Feature', 'This feature is currently under development.')" class="w-full bg-blue-500 text-white font-bold py-3 rounded-lg shadow-md mt-4 hover:bg-blue-600 transition duration-300">Transfer Pokédex from another app</button>
     </section>
 
     <!-- Explore Tab Content -->
@@ -153,7 +161,48 @@
         </div>
     </section>
 
-    <!-- Trade Tab Content -->
+    <!-- Battle Tab Content -->
+    <section id="battle" class="tab-content">
+        <div id="battle-select" class="bg-gray-800 p-6 rounded-xl shadow-lg">
+            <h3 class="text-xl font-semibold text-center mb-4">Select your Pokémon:</h3>
+            <select id="battleSelect" class="w-full p-2 bg-gray-700 rounded-lg mb-4 text-gray-100"></select>
+            <button onclick="beginBattle()" class="w-full bg-red-500 text-white font-bold py-3 rounded-lg shadow-md hover:bg-red-600 transition duration-300">Start Battle</button>
+        </div>
+        <div id="battle-area" class="hidden">
+            <div class="bg-gray-800 p-6 rounded-xl shadow-lg">
+                <div class="flex justify-between items-center mb-4">
+                    <div class="text-center">
+                        <p id="playerPokemonName" class="font-bold text-lg"></p>
+                        <div class="w-24 h-24 bg-gray-700 rounded-full flex items-center justify-center text-5xl">👤</div>
+                        <p class="text-sm">HP: <span id="playerHP"></span>/<span id="playerMaxHP"></span></p>
+                        <div class="bg-gray-700 rounded-full mt-1">
+                            <div id="playerHealthBar" class="health-bar",  style="width: 100%;"></div>
+                        </div>
+                    </div>
+                    <div class="text-center">
+                        <p id="opponentPokemonName" class="font-bold text-lg"></p>
+                        <div class="w-24 h-24 bg-gray-700 rounded-full flex items-center justify-center text-5xl">👾</div>
+                        <p class="text-sm">HP: <span id="opponentHP"></span>/<span id="opponentMaxHP"></span></p>
+                        <div class="bg-gray-700 rounded-full mt-1">
+                            <div id="opponentHealthBar" class="health-bar" style="width: 100%;"></div>
+                        </div>
+                    </div>
+                </div>
+                <div id="battle-buttons" class="flex flex-col gap-2 mt-4">
+                    <button onclick="playerAttack()" class="w-full bg-red-500 text-white font-bold py-3 rounded-lg shadow-md hover:bg-red-600 transition duration-300">Attack!</button>
+                    <button onclick="tryToCatch()" class="w-full bg-yellow-500 text-gray-900 font-bold py-3 rounded-lg shadow-md hover:bg-yellow-600 transition duration-300">Try to Catch Pokémon (<span id="catchChance">5</span>%)</button>
+                    <button onclick="runFromBattle()" class="w-full bg-gray-500 text-white font-bold py-3 rounded-lg shadow-md hover:bg-gray-600 transition duration-300">Run</button>
+                </div>
+                <div id="battle-end-message" class="hidden text-center mt-4">
+                    <p class="font-bold mb-4"></p>
+                    <button onclick="returnToHome()" class="w-full bg-blue-500 text-white font-bold py-3 rounded-lg shadow-md hover:bg-blue-600 transition duration-300">Return to Home</button>
+                </div>
+            </div>
+            <div id="battle-log" class="bg-gray-900 p-4 mt-4 rounded-lg border border-gray-700 max-h-60 overflow-y-auto" aria-live="polite"></div>
+        </div>
+    </section>
+
+    <!-- Poké Mart Tab Content -->
     <section id="trade" class="tab-content">
         <div class="bg-gray-800 p-6 rounded-xl shadow-lg">
             <h2 class="text-2xl font-semibold mb-4 text-center">Trade</h2>
@@ -171,14 +220,15 @@
 <footer class="tab-footer" role="tablist">
     <button onclick="switchTab('home')" role="tab" data-tab="home" class="is-active" aria-selected="true">Home</button>
     <button onclick="switchTab('explore')" role="tab" data-tab="explore" aria-selected="false">Explore</button>
-    <button,  onclick="switchTab('gather')" role="tab" data-tab="gather" aria-selected="false">Gather</button>
+    <button onclick="switchTab('gather')" role="tab" data-tab="gather" aria-selected="false">Gather</button>
     <button onclick="switchTab('inventory')" role="tab" data-tab="inventory" aria-selected="false">Inventory</button>
     <button onclick="switchTab('pokemart')" role="tab" data-tab="pokemart" aria-selected="false">Poké Mart</button>
+    <button onclick="switchTab('battle')" role="tab" data-tab="battle" aria-selected="false">Battle</button>
     <button onclick="switchTab('trade')" role="tab" data-tab="trade" aria-selected="false">Trade</button>
 </footer>
 
 <script>
-    // --- Global Variables and Data ---
+   ,  // --- Global Variables and Data ---
     const pokemonList = [
         "Bulbasaur", "Ivysaur", "Venusaur", "Charmander", "Charmeleon", "Charizard", "Squirtle", "Wartortle", "Blastoise", "Caterpie",
         "Metapod", "Butterfree", "Weedle", "Kakuna", "Beedrill", "Pidgey", "Pidgeotto", "Pidgeot", "Rattata", "Raticate",
@@ -195,10 +245,14 @@
         },
         playerState = {
             level: 1, exp: 0, money: 0
+        },
+        battleState = {
+            player: null, opponent: null, playerHP: 0, opponentHP: 0
         };
 
     const EXP_PER_LEVEL = 100;
     const GATHER_EXP_GAIN = 10;
+    const WIN_EXP_GAIN = 50;
     const ITEM_PRICES = {
         Potion: 50, "Poké Ball": 100, "Rare Candy": 500, Berries: 5, Stones: 20
     };
@@ -243,6 +297,8 @@
             renderInventory();
         } else if (tabId === "pokemart") {
             renderPokemart();
+        } else if (tabId === "battle" && pokedex.length > 0) {
+            renderBattleSelect();
         }
     }
 
@@ -263,7 +319,7 @@
         pokedex = JSON.parse(localStorage.getItem("pokedex")) || [];
         items = JSON.parse(localStorage.getItem("items")) || items;
         playerState = JSON.parse(localStorage.getItem("playerState")) || playerState;
-       ,  renderPokedex();
+        renderPokedex();
         renderGatherUI();
     }
 
@@ -272,7 +328,7 @@
      * Renders the Pokédex on the home screen.
      */
     function renderPokedex() {
-        const container = document.getElementById("pokedex");
+        const container =,  document.getElementById("pokedex");
         container.innerHTML = pokemonList.map(p => `
             <div class="card bg-gray-700 rounded-lg p-2 text-center shadow-inner text-sm">
                 ${pokedex.includes(p) ? p : "???"}
@@ -359,13 +415,13 @@
         playerState.exp += GATHER_EXP_GAIN;
         checkLevelUp();
         saveGame();
-     ,    renderGatherUI();
+        renderGatherUI();
         showMessage("Gathering Complete!", `You found ${amount} ${gatheredResource}!`);
     }
 
     /**
      * Sells a single item from the inventory.
-     * @param {string} item The name of the item to sell.
+     * @param {string} item The,  name of the item to sell.
      */
     function sellItem(item) {
         if (items[item] > 0) {
@@ -431,7 +487,7 @@
         renderPokedex();
         showMessage("Daily Reward Claimed!", `You received a ${rewardedPokemon} and 1 Potion!`);
     }
-    
+
     // --- Trading Logic ---
     /**
      * Generates and copies a trade code based on the player's Pokédex.
@@ -470,10 +526,214 @@
         }
     }
 
+    // --- Battle System Functions ---
+    /**
+     * Get a Pokémon's stats based on a hash of its name.
+     * This provides consistent, pseudo-random stats for each Pokémon.
+     * @param {string} name The name of the Pokémon.
+     * @returns {object} The Pokémon's stats.
+     */
+    function getPokemonStats(name) {
+        const hash =,  name.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+        return {
+            hp: 80 + (hash % 40), attack: 10 + (hash % 10), name
+        };
+    }
+
+    /**
+     * Renders the UI for selecting a Pokémon before a battle.
+     */
+    function renderBattleSelect() {
+        const selectContainer = document.getElementById("battleSelect");
+        const battleArea = document.getElementById("battle-area");
+        const battleSelect = document.getElementById("battle-select");
+        
+        battleArea.classList.add('hidden');
+        battleSelect.classList.remove('hidden');
+
+        selectContainer.innerHTML = '';
+        if (pokedex.length === 0) {
+            showMessage("Battle", "You need at least one Pokémon to battle!");
+            // Hide the button and show a message
+            document.querySelector('#battle-select button').classList.add('hidden');
+            const noPokemonMessage = document.createElement('p');
+            noPokemonMessage.textContent = 'Go catch some Pokémon first!';
+            noPokemonMessage.className = 'text-center text-gray-400 mt-4';
+            selectContainer.parentElement.appendChild(noPokemonMessage);
+            return;
+        } else {
+             document.querySelector('#battle-select button').classList.remove('hidden');
+             const existingMessage = selectContainer.parentElement.querySelector('p.text-gray-400');
+             if (existingMessage) existingMessage.remove();
+        }
+
+        pokedex.forEach(p => {
+            const option = document.createElement('option');
+            option.value = p;
+            option.textContent = p;
+            selectContainer.appendChild(option);
+        });
+    }
+
+    /**
+     * Starts a new battle with a selected Pokémon.
+     */
+    function beginBattle() {
+        const playerPokemonName = document.getElementById('battleSelect').value;
+        const opponentPokemonName = pokemonList[Math.floor(Math.random() * pokemonList.length)];
+
+        battleState.player = getPokemonStats(playerPokemonName);
+        battleState.opponent = getPokemonStats(opponentPokemonName);
+        battleState.playerHP = battleState.player.hp;
+        battleState.opponentHP = battleState.opponent.hp;
+
+        document.getElementById('battle-select').classList.add('hidden');
+        document.getElementById('battle-area').classList.remove('hidden');
+        document.getElementById('battle-end-message').classList.add('hidden');
+        document.getElementById('battle-buttons').classList.remove('hidden');
+
+        document.getElementById("battle-log").innerHTML = `<p class="font-bold">Battle started! You chose ${battleState.player.name}. Opponent is ${battleState.opponent.name}.</p>`;
+        renderBattleUI();
+    }
+
+    /**
+     * Renders all the UI elements for the battle screen.
+     */
+    function renderBattleUI() {
+        const playerHPPercent = (battleState.playerHP / battleState.player.hp) * 100;
+        const opponentHPPercent = (battleState.opponentHP / battleState.opponent.hp) * 100;
+
+        document.getElementById('playerPokemonName').textContent = battleState.player.name;
+        document.getElementById('opponentPokemonName').textContent = battleState.opponent.name;
+        document.getElementById('playerHP').textContent = Math.max(0, battleState.playerHP);
+        document.getElementById('playerMaxHP').textContent = battleState.player.hp;
+        document.getElementById('opponentHP').textContent = Math.max(0, battleState.opponentHP);
+        document.getElementById('opponentMaxHP').textContent = battleState.opponent.hp;
+        document.getElementById('playerHealthBar').style.width = `${playerHPPercent}%`;
+        document.getElementById('opponentHealthBar').style.width = `${opponentHPPercent}%`;
+
+        // Update health bar color
+        document.getElementById('playerHealthBar').style.backgroundColor = playerHPPercent <= 50 ? (playerHPPercent <= 20 ? '#ef4444' : '#f97316') : '#22c55e';
+       ,  document.getElementById('opponentHealthBar').style.backgroundColor = opponentHPPercent <= 50 ? (opponentHPPercent <= 20 ? '#ef4444' : '#f97316') : '#22c55e';
+
+        // Update catch chance
+        document.getElementById('catchChance').textContent = calculateCatchChance();
+
+        checkBattleEnd();
+    }
+    
+    /**
+     * Player's attack turn.
+     */
+    function playerAttack() {
+        const damage = Math.floor(Math.random() * (battleState.player.attack / 2)) + (battleState.player.attack / 2);
+        battleState.opponentHP = Math.max(0, battleState.opponentHP - damage);
+        addBattleLog(`${battleState.player.name} hits ${battleState.opponent.name} for ${damage} damage!`);
+        renderBattleUI();
+        if (battleState.opponentHP > 0) {
+            setTimeout(opponentAttack, 1500);
+        }
+    }
+
+    /**
+     * Opponent's attack turn.
+     */
+    function opponentAttack() {
+        const damage = Math.floor(Math.random() * (battleState.opponent.attack / 2)) + (battleState.opponent.attack / 2);
+        battleState.playerHP = Math.max(0, battleState.playerHP - damage);
+        addBattleLog(`${battleState.opponent.name} hits ${battleState.player.name} for ${damage} damage!`);
+        renderBattleUI();
+    }
+    
+    /**
+     * Calculates the dynamic catch chance.
+     * @returns {number} The catch chance percentage (0-100).
+     */
+    function calculateCatchChance() {
+        if (battleState.opponentHP <= 0) return 100;
+        const baseChance = 5;
+        const healthPercentage = battleState.opponentHP / battleState.opponent.hp;
+        const catchRate = baseChance + (1 - healthPercentage) * 95;
+        return Math.floor(catchRate);
+    }
+    
+    /**
+     * Attempts to catch the opponent Pokémon.
+     */
+    function tryToCatch() {
+        const catchChance = calculateCatchChance();
+        addBattleLog(`You throw a Poké Ball at ${battleState.opponent.name}...`);
+        
+        if (Math.random() * 100 < catchChance) {
+            addBattleLog(`Gotcha! You caught ${battleState.opponent.name}!`);
+            if (!pokedex.includes(battleState.opponent.name)) {
+                pokedex.push(battleState.opponent.name);
+            }
+            showMessage("Success!", `You caught ${battleState.opponent.name}!`);
+            checkBattleEnd(true);
+            saveGame();
+            renderPokedex();
+        } else {
+            addBattleLog("Aww, it escaped!");
+            showMessage("Failed", `${battleState.opponent.name} broke free!`);
+            setTimeout(opponentAttack, 1500);
+        }
+    }
+
+    /**
+     * Adds a message to the battle log.
+     * @param {string} message The message to add.
+     */
+    function addBattleLog(message) {
+        const log = document.getElementById("battle-log");
+        const p = document.createElement("p");
+        p.textContent = message;
+        log.appendChild(p);
+        log.scrollTop = log.scrollHeight; // Scroll to bottom
+    }
+
+    /**
+     * Checks if the battle has ended and updates the UI.
+     * @param {boolean} caught - True if the pokemon was caught.
+     */
+    function checkBattleEnd(caught = false) {
+        if (battleState.playerHP <= 0) {
+            addBattleLog("You lost the battle!");
+        } else if (battleState.opponentHP <= 0 || caught) {
+            const expGained = WIN_EXP_GAIN;
+            playerState.exp += expGained;
+            checkLevelUp();
+            addBattleLog(`You defeated ${battleState.opponent.name} and gained ${expGained} experience!`);
+            saveGame();
+        }
+        
+        if (battleState.playerHP <= 0 || battleState.opponentHP <= 0 || caught) {
+            document.getElementById("battle-buttons").classList.add('hidden');
+            const endMessageEl = document.getElementById("battle-end-message");
+            endMessageEl.classList.remove('hidden');
+            endMessageEl.querySelector('p').textContent = battleState.playerHP <= 0 ? 'You lost!' : 'You won!';
+        }
+    }
+    
+    /**
+     * Runs from the,  battle.
+     */
+    function runFromBattle() {
+        addBattleLog("You successfully escaped the battle!");
+        returnToHome();
+    }
+    
+    /**
+     * Returns to the home screen after a battle.
+     */
+    function returnToHome() {
+        switchTab('home');
+    }
+
     // --- Initial Setup and Game Start ---
     /**
      * The main function to initialize the game.
-     * This is called automatically after the HTML body,  has loaded.
+     * This is called automatically after the HTML body has loaded.
      */
     function initGame() {
         loadGame();
