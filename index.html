@@ -218,19 +218,22 @@
         document.getElementById("messageModal").style.display = "none";
     }
 
-    // Tab switching and UI rendering
+    // New, simplified tab switching
     function switchTab(tabId) {
-        document.querySelectorAll("section").forEach(sec => sec.classList.remove("active"));
-        document.getElementById(tabId).classList.add("active");
-        document.querySelectorAll(".tab-button").forEach(btn => {
+        const sections = document.querySelectorAll("section");
+        const tabButtons = document.querySelectorAll(".tab-button");
+
+        sections.forEach(sec => sec.classList.remove("active"));
+        tabButtons.forEach(btn => {
             btn.setAttribute("aria-selected", "false");
             btn.classList.remove("is-selected");
         });
+
+        document.getElementById(tabId).classList.add("active");
         const selectedButton = document.querySelector(`[data-tab='${tabId}']`);
-        if (selectedButton) {
-            selectedButton.setAttribute("aria-selected", "true");
-            selectedButton.classList.add("is-selected");
-        }
+        selectedButton.setAttribute("aria-selected", "true");
+        selectedButton.classList.add("is-selected");
+
         announce(tabId.charAt(0).toUpperCase() + tabId.slice(1) + " tab selected");
         
         // Render content for new tabs
@@ -244,7 +247,7 @@
             }
         }
     }
-
+    
     // Game state and data
     let pokemonList = [
         "Bulbasaur", "Ivysaur", "Venusaur", "Charmander", "Charmeleon", "Charizard", "Squirtle", "Wartortle", "Blastoise", "Caterpie",
@@ -269,9 +272,9 @@
             player: null,
             opponent: null,
             playerHP: 0,
-            opponentHP: 0,
+            opponentHP:,  0,
             turn: "player"
- ,        },
+        },
         playerState = {
             level: 1,
             exp: 0,
@@ -378,7 +381,7 @@
                     <p>x${items[item]}</p>
                     <p class="text-xs text-gray-400">Value: 💰${ITEM_PRICES[item]}</p>
                     <div class="flex flex-col gap-2 mt-2">
-                        <button,  onclick="sellItem('${item}')" class="w-full bg-yellow-500 text-gray-900 font-bold py-1 rounded-md text-xs hover:bg-yellow-600 transition duration-300">Sell One</button>
+                   ,      <button onclick="sellItem('${item}')" class="w-full bg-yellow-500 text-gray-900 font-bold py-1 rounded-md text-xs hover:bg-yellow-600 transition duration-300">Sell One</button>
                         <button onclick="sellAllItems('${item}')" class="w-full bg-red-500 text-white font-bold py-1 rounded-md text-xs hover:bg-red-600 transition duration-300">Sell All</button>
                     </div>
                 `;
@@ -475,7 +478,7 @@
             achievements.Novice = true;
             newAchievements.push("Novice Collector");
         }
-        if (count,  >= 10 && !achievements.Collector) {
+      ,   if (count >= 10 && !achievements.Collector) {
             achievements.Collector = true;
             newAchievements.push("Collector");
         }
@@ -577,7 +580,7 @@
     function renderBattleSelection() {
         let battleArea = document.getElementById("battleArea");
         battleArea.innerHTML = `
-            <h3 class="text-xl,  font-semibold text-center mb-4">Select your Pokémon:</h3>
+            <h3,  class="text-xl font-semibold text-center mb-4">Select your Pokémon:</h3>
             <select id="battleSelect" class="w-full p-2 bg-gray-700 rounded-lg mb-4 text-gray-100"></select>
             <button id="startBattleBtn" class="w-full bg-red-500 text-white font-bold py-3 rounded-lg shadow-md hover:bg-red-600 transition duration-300">Start Battle</button>
         `;
@@ -760,7 +763,7 @@
         loadGame();
         switchTab("home");
 
-        // Use event delegation for the tab buttons
+        // Event listener for tab buttons using event delegation
         document.getElementById('main-footer').addEventListener('click', (event) => {
             const button = event.target.closest('.tab-button');
             if (button) {
