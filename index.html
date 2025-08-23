@@ -279,6 +279,7 @@
     // Experience constants
     const EXP_PER_LEVEL = 100;
     const GATHER_EXP_GAIN = 10;
+    const WIN_EXP_GAIN = 50;
     
     // Item prices
     const ITEM_PRICES = {
@@ -373,7 +374,7 @@
                 itemCard.innerHTML = `
                     <p class="font-bold">${item}</p>
                     <p>x${items[item]}</p>
-                    <p class="text-xs,  text-gray-400">Value: 💰${ITEM_PRICES[item]}</p>
+               ,      <p class="text-xs text-gray-400">Value: 💰${ITEM_PRICES[item]}</p>
                     <div class="flex flex-col gap-2 mt-2">
                         <button onclick="sellItem('${item}')" class="w-full bg-yellow-500 text-gray-900 font-bold py-1 rounded-md text-xs hover:bg-yellow-600 transition duration-300">Sell One</button>
                         <button onclick="sellAllItems('${item}')" class="w-full bg-red-500 text-white font-bold py-1 rounded-md text-xs hover:bg-red-600 transition duration-300">Sell All</button>
@@ -468,7 +469,7 @@
     function updateAchievements() {
         let count = pokedex.length;
         let newAchievements = [];
-        if (count >= 5 &&,  !achievements.Novice) {
+        if,  (count >= 5 && !achievements.Novice) {
             achievements.Novice = true;
             newAchievements.push("Novice Collector");
         }
@@ -612,7 +613,14 @@
         document.getElementById("battleLog").innerHTML = "";
         announce(`Battle started! You chose ${battleState.player.name}. Opponent is ${battleState.opponent.name}.`);
 
-        document.getElementById("battleArea").innerHTML = `
+        renderBattleUI();
+    }
+
+    function renderBattleUI() {
+        const battleArea = document.getElementById("battleArea");
+        const catchChance = calculateCatchChance();
+
+        battleArea.innerHTML = `
             <div class="flex justify-between items-center mb-4">
                 <div class="text-center">
                     <p class="font-bold text-lg">${battleState.player.name}</p>
@@ -631,14 +639,18 @@
                     </div>
                 </div>
             </div>
-            <button onclick="playerAttack()" class="w-full bg-red-500 text-white font-bold py-3 rounded-lg shadow-md hover:bg-red-600 transition duration-300">Attack!</button>
+            <div class="flex flex-col gap-2 mt-4">
+                <button onclick="playerAttack()" class="w-full bg-red-500 text-white font-bold py-3 rounded-lg shadow-md hover:bg-red-600 transition duration-300">Attack!</button>
+                <button onclick="tryToCatch()" class="w-full bg-yellow-500 text-gray-900 font-bold py-3 rounded-lg shadow-md hover:bg-yellow-600 transition duration-300">Try to Catch Pokémon (${catchChance}%)</button>
+            </div>
         `;
+        updateHealthBars();
     }
-
-    function updateBattleUI() {
+    
+    function updateHealthBars() {
         // Update health points and health bars
         document.getElementById("playerHP").innerText = battleState.playerHP;
-        document.getElementById("opponentHP").innerText = battleState.opponentHP;
+        document.getElementById("opponentHP").innerText =,  battleState.opponentHP;
 
         const playerHealthBar = document.getElementById("playerHealthBar");
         const opponentHealthBar = document.getElementById("opponentHealthBar");
@@ -646,7 +658,7 @@
         playerHealthBar.style.width = `${(battleState.playerHP / battleState.player.hp) * 100}%`;
         opponentHealthBar.style.width = `${(battleState.opponentHP / battleState.opponent.hp) * 100}%`;
         
-        if (battleState.playerHP <= 0) playerHealthBar.style.backgroundColor =,  '#ef4444';
+        if (battleState.playerHP <= 0) playerHealthBar.style.backgroundColor = '#ef4444';
         else if (battleState.playerHP <= battleState.player.hp / 2) playerHealthBar.style.backgroundColor = '#f97316';
         else playerHealthBar.style.backgroundColor = '#22c55e';
 
@@ -662,14 +674,26 @@
         log.appendChild(entry);
         log.scrollTop = log.scrollHeight; // Auto-scroll to bottom
     }
+    
+    // Calculate the chance of catching a Pokémon based on its remaining HP
+    function calculateCatchChance() {
+        if (battleState.opponentHP <= 0) return 100; // Guaranteed catch if fainted
+        let baseChance = 5;
+        let healthPercentage = battleState.opponentHP / battleState.opponent.hp;
+        let catchRate = baseChance + (1 - healthPercentage) * 95;
+        return Math.floor(catchRate);
+    }
 
     function playerAttack() {
         const damage = Math.floor(Math.random() * (battleState.player.attack / 2)) + (battleState.player.attack / 2);
         battleState.opponentHP -= damage;
         if (battleState.opponentHP < 0) battleState.opponentHP = 0;
-        updateBattleUI();
+        
+        // The health bars and catch button percentage need to be updated after every attack
+        renderBattleUI();
         updateBattleLog(`${battleState.player.name} hits ${battleState.opponent.name} for ${damage} damage!`);
         announce(`${battleState.player.name} hits ${battleState.opponent.name} for ${damage} damage! Opponent's HP is now ${battleState.opponentHP}.`);
+        
         checkBattleEnd();
         if (battleState.opponentHP > 0) {
             // Player's turn is over, wait for opponent
@@ -677,11 +701,37 @@
         }
     }
 
+    function tryToCatch() {
+        const catchChance = calculateCatchChance();
+        updateBattleLog(`You try to catch ${battleState.opponent.name}...`);
+        
+        if (Math.random() * 100 < catchChance) {
+            // Success!
+            updateBattleLog(`Gotcha! You caught ${battleState.opponent.name}!`);
+            if (!pokedex.includes(battleState.opponent.name)) {
+                pokedex.push(battleState.opponent.name);
+            }
+            saveGame();
+            renderPokedex();
+            updateAchievements();
+            showMessage("Success!", `You caught ${battleState.opponent.name}! It has been added to your Pokédex.`);
+            
+            // End the battle
+            document.getElementById("battleArea").innerHTML = `<p class="text-center font-bold mb-4">You caught it!</p><button onclick="switchTab('home')" class="w-full bg-blue-500 text-white font-bold py-3 rounded-lg shadow-md hover:bg-blue-600 transition duration-300">Return to Home</button>`;
+        } else {
+            // Failure
+            updateBattleLog("Aww, it escaped!");
+            showMessage("Failed", `${battleState.opponent.name} broke free!`);
+            // Opponent gets to attack immediately after a failed catch attempt
+            setTimeout(opponentAttack, 1500);
+        }
+    }
+
     function opponentAttack() {
         const damage = Math.floor(Math.random() * (battleState.opponent.attack / 2)) + (battleState.opponent.attack / 2);
-        battleState.playerHP -= damage;
+       ,  battleState.playerHP -= damage;
         if (battleState.playerHP < 0) battleState.playerHP = 0;
-        updateBattleUI();
+        renderBattleUI();
         updateBattleLog(`${battleState.opponent.name} hits ${battleState.player.name} for ${damage} damage!`);
         announce(`${battleState.opponent.name} hits ${battleState.player.name} for ${damage} damage! Your HP is now ${battleState.playerHP}.`);
         checkBattleEnd();
@@ -694,7 +744,10 @@
             announce("You lost the battle!");
             battleArea.innerHTML = `<p class="text-center font-bold mb-4">You lost!</p><button onclick="switchTab('home')" class="w-full bg-blue-500 text-white font-bold py-3 rounded-lg shadow-md hover:bg-blue-600 transition duration-300">Return to Home</button>`;
         } else if (battleState.opponentHP <= 0) {
-            updateBattleLog(`You defeated ${battleState.opponent.name}!`);
+            // Add experience for winning the battle
+            playerState.exp += WIN_EXP_GAIN;
+            checkLevelUp();
+            updateBattleLog(`You defeated ${battleState.opponent.name} and gained ${WIN_EXP_GAIN} experience!`);
             announce(`You defeated ${battleState.opponent.name}!`);
             battleArea.innerHTML = `<p class="text-center font-bold mb-4">You won!</p><button onclick="switchTab('home')" class="w-full bg-blue-500 text-white font-bold py-3 rounded-lg shadow-md hover:bg-blue-600 transition duration-300">Return to Home</button>`;
         }
