@@ -1,83 +1,151 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Pokémon Adventure</title>
-  <link rel="manifest" href="manifest.json">
-  <meta name="theme-color" content="#3b4cca">
-  <link rel="apple-touch-icon" href="icons/icon-192.png">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <style>
-    body { font-family: sans-serif; margin: 0; }
-    nav { display: flex; background: #3b4cca; padding: 10px; }
-    nav button { flex: 1; background: white; border: none; padding: 10px; }
-    nav button[aria-selected="true"] { background: #ffcb05; font-weight: bold; }
-    section { display: none; padding: 20px; }
-    section.active { display: block; }
-    #installBtn { margin: 10px; padding: 10px; background: #ffcb05; border: none; border-radius: 8px; }
-  </style>
-  <script>
-    let deferredPrompt;
-    if ("serviceWorker" in navigator) {
-      navigator.serviceWorker.register("service-worker.js");
-    }
-    window.addEventListener("beforeinstallprompt", (e) => {
-      e.preventDefault();
-      deferredPrompt = e;
-      document.getElementById("installBtn").style.display = "block";
-    });
-    function installApp() {
-      if (deferredPrompt) {
-        deferredPrompt.prompt();
-        deferredPrompt.userChoice.finally(() => deferredPrompt = null);
-      }
-    }
-    function switchTab(tabId) {
-      document.querySelectorAll("section").forEach(sec => sec.classList.remove("active"));
-      document.getElementById(tabId).classList.add("active");
-      document.querySelectorAll(".tab-button").forEach(btn => btn.setAttribute("aria-selected","false"));
-      document.querySelector(`[data-tab='${tabId}']`).setAttribute("aria-selected","true");
-      document.getElementById("tabTitle").innerText = tabId.charAt(0).toUpperCase() + tabId.slice(1) + " tab selected";
-    }
-    window.onload = () => switchTab("home");
-  </script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pokémon Adventure</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#3b4cca">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<style>
+body{font-family:sans-serif;margin:0;background:#1a202c;color:#e6eef8;}
+nav{display:flex;background:#3b4cca;padding:10px;}
+nav button{flex:1;background:white;border:none;padding:10px;cursor:pointer;}
+nav button[aria-selected="true"]{background:#ffcb05;font-weight:bold;}
+section{display:none;padding:20px;}
+section.active{display:block;}
+#installBtn,#dailyRewardBtn,#miniGameBtn,#exportBtn,#importBtn{margin:10px;padding:10px;border:none;border-radius:8px;background:#ffcb05;cursor:pointer;}
+#liveRegion{position:absolute;left:-9999px;}
+#pokedex,.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(80px,1fr));gap:10px;margin-top:10px;}
+.card{background:#2d3748;border-radius:10px;padding:8px;text-align:center;}
+button:disabled{opacity:0.5;cursor:not-allowed;}
+textarea,input{width:100%;margin:4px 0;padding:6px;border-radius:6px;border:none;}
+</style>
+<script>
+let deferredPrompt;
+if("serviceWorker"in navigator){navigator.serviceWorker.register("service-worker.js");}
+window.addEventListener("beforeinstallprompt",(e)=>{e.preventDefault();deferredPrompt=e;document.getElementById("installBtn").disabled=false;});
+function installApp(){if(deferredPrompt){deferredPrompt.prompt();deferredPrompt.userChoice.finally(()=>deferredPrompt=null);}else{alert("Use 'Add to Home Screen' in your browser menu.");}}
+function switchTab(tabId){
+document.querySelectorAll("section").forEach(sec=>sec.classList.remove("active"));
+document.getElementById(tabId).classList.add("active");
+document.querySelectorAll(".tab-button").forEach(btn=>btn.setAttribute("aria-selected","false"));
+document.querySelector(`[data-tab='${tabId}']`).setAttribute("aria-selected","true");
+document.getElementById("liveRegion").innerText=tabId.charAt(0).toUpperCase()+tabId.slice(1)+" tab selected";
+}
+window.onload=()=>{switchTab("home");loadGame();renderTabs();};
+
+let pokemonList=["Pikachu","Bulbasaur","Charmander","Squirtle","Eevee","Jigglypuff","Meowth","Snorlax","Psyduck","Gengar"];
+let pokedex=[],items={Potion:0,"Poké Ball":0,"Rare Candy":0},achievements={};
+function saveGame(){localStorage.setItem("pokedex",JSON.stringify(pokedex));localStorage.setItem("items",JSON.stringify(items));localStorage.setItem("achievements",JSON.stringify(achievements));}
+function loadGame(){pokedex=JSON.parse(localStorage.getItem("pokedex"))||[];items=JSON.parse(localStorage.getItem("items"))||{Potion:0,"Poké Ball":0,"Rare Candy":0};achievements=JSON.parse(localStorage.getItem("achievements"))||{};renderPokedex();updateAchievements();}
+
+function speak(text){if("speechSynthesis"in window){let u=new SpeechSynthesisUtterance(text);speechSynthesis.speak(u);}}
+
+function renderPokedex(){
+let container=document.getElementById("pokedex");container.innerHTML="";
+pokemonList.forEach(p=>{
+let div=document.createElement("div");div.className="card";div.textContent=pokedex.includes(p)?p:"???";container.appendChild(div);
+});
+}
+
+function catchPokemon(){
+let found=pokemonList[Math.floor(Math.random()*pokemonList.length)];
+if(!pokedex.includes(found)) pokedex.push(found);
+saveGame();renderPokedex();
+speak("You found "+found);
+announce("You found "+found);
+updateAchievements();
+}
+
+function announce(text){document.getElementById("liveRegion").innerText=text;}
+
+function updateAchievements(){
+let count=pokedex.length;
+let newAchieve=[];
+if(count>=5&&!achievements.Novice){achievements.Novice=true;newAchieve.push("Novice Collector");}
+if(count>=10&&!achievements.Collector){achievements.Collector=true;newAchieve.push("Collector");}
+if(count>=20&&!achievements.Expert){achievements.Expert=true;newAchieve.push("Expert Collector");}
+saveGame();
+if(newAchieve.length>0){newAchieve.forEach(a=>speak("Achievement unlocked: "+a));announce("Achievements unlocked: "+newAchieve.join(", "));}
+}
+
+function dailyReward(){
+let lastClaim=localStorage.getItem("lastDaily");
+let today=new Date().toDateString();
+if(lastClaim===today){alert("Daily reward already claimed!");return;}
+let reward=pokemonList[Math.floor(Math.random()*pokemonList.length)];
+if(!pokedex.includes(reward)) pokedex.push(reward);
+items.Potion+=1;
+localStorage.setItem("lastDaily",today);
+saveGame();renderPokedex();
+speak("Daily reward: "+reward+" and 1 Potion!");announce("Daily reward: "+reward+" and 1 Potion!");
+updateAchievements();
+}
+
+function exportPokedex(){
+document.getElementById("exportData").value=JSON.stringify(pokedex);
+announce("Pokédex exported.");
+}
+
+function importPokedex(){
+let data=document.getElementById("importData").value;
+try{let imported=JSON.parse(data);let added=0;imported.forEach(p=>{if(!pokedex.includes(p)){pokedex.push(p);added++;}});saveGame();renderPokedex();announce("Pokédex updated. "+added+" new Pokémon added.");speak(added+" new Pokémon added.");updateAchievements();}catch(e){alert("Invalid data!");}
+}
+
+function renderTabs(){
+document.getElementById("catchBtn").onclick=catchPokemon;
+document.getElementById("dailyRewardBtn").onclick=dailyReward;
+document.getElementById("exportBtn").onclick=exportPokedex;
+document.getElementById("importBtn").onclick=importPokedex;
+}
+
+</script>
 </head>
 <body>
-  <header>
-    <h1 id="tabTitle">Home tab selected</h1>
-    <nav>
-      <button class="tab-button" data-tab="home" aria-selected="true" onclick="switchTab('home')">Home</button>
-      <button class="tab-button" data-tab="explore" aria-selected="false" onclick="switchTab('explore')">Explore</button>
-      <button class="tab-button" data-tab="battle" aria-selected="false" onclick="switchTab('battle')">Battle</button>
-      <button class="tab-button" data-tab="trade" aria-selected="false" onclick="switchTab('trade')">Trade</button>
-    </nav>
-    <button id="installBtn" style="display:none;" onclick="installApp()">📲 Install App</button>
-  </header>
+<header>
+<h1>Pokémon Adventure</h1>
+<nav role="tablist">
+<button role="tab" class="tab-button" data-tab="home" aria-selected="true" onclick="switchTab('home')">Home</button>
+<button role="tab" class="tab-button" data-tab="explore" aria-selected="false" onclick="switchTab('explore')">Explore</button>
+<button role="tab" class="tab-button" data-tab="battle" aria-selected="false" onclick="switchTab('battle')">Battle</button>
+<button role="tab" class="tab-button" data-tab="trade" aria-selected="false" onclick="switchTab('trade')">Trade</button>
+</nav>
+<button id="installBtn" disabled onclick="installApp()">📲 Install App</button>
+<div id="liveRegion" aria-live="polite"></div>
+</header>
 
-  <main>
-    <section id="home" class="active">
-      <h2>Pokédex</h2>
-      <div id="pokedex"></div>
-      <button id="transferButton">Transfer Pokédex from another app</button>
-    </section>
+<main>
+<section id="home" class="active">
+<h2>Pokédex</h2>
+<div id="pokedex"></div>
+<button id="transferButton">Transfer Pokédex from another app</button>
+<h3>Export Pokédex</h3>
+<textarea id="exportData" rows="2" readonly></textarea>
+<button id="exportBtn">Export Pokédex</button>
+<h3>Import Pokédex</h3>
+<textarea id="importData" rows="2" placeholder="Paste code here"></textarea>
+<button id="importBtn">Import Pokédex</button>
+<button id="dailyRewardBtn">Claim Daily Reward</button>
+</section>
 
-    <section id="explore">
-      <h2>Explore</h2>
-      <button id="catchBtn">Catch Pokémon</button>
-    </section>
+<section id="explore">
+<h2>Explore</h2>
+<button id="catchBtn">Catch Pokémon</button>
+</section>
 
-    <section id="battle">
-      <h2>Battle</h2>
-      <p>Battle mode coming soon!</p>
-    </section>
+<section id="battle">
+<h2>Battle</h2>
+<p>Battle mode coming soon!</p>
+</section>
 
-    <section id="trade">
-      <h2>Trade with other players</h2>
-      <button id="offerPokemonBtn">Offer Pokémon</button>
-      <div id="tradeResult"></div>
-    </section>
-  </main>
+<section id="trade">
+<h2>Trade with other players</h2>
+<button id="offerPokemonBtn">Offer Pokémon</button>
+<div id="tradeResult"></div>
+</section>
+</main>
 </body>
 </html>
