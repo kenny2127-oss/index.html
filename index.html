@@ -64,7 +64,7 @@ function switchTab(tabId){
 
 window.onload = ()=>{switchTab("home");loadGame();renderTabs();};
 
-// Pokémon list (first 340 Pokémon)
+// Pokémon list (340 Pokémon for now)
 let pokemonList=[
 "Bulbasaur","Ivysaur","Venusaur","Charmander","Charmeleon","Charizard","Squirtle","Wartortle","Blastoise","Caterpie",
 "Metapod","Butterfree","Weedle","Kakuna","Beedrill","Pidgey","Pidgeotto","Pidgeot","Rattata","Raticate",
@@ -72,8 +72,8 @@ let pokemonList=[
 "Nidoqueen","Nidoran♂","Nidorino","Nidoking","Clefairy","Clefable","Vulpix","Ninetales","Jigglypuff","Wigglytuff",
 "Zubat","Golbat","Oddish","Gloom","Vileplume","Paras","Parasect","Venonat","Venomoth","Diglett",
 "Dugtrio","Meowth","Persian","Psyduck","Golduck","Mankey","Primeape","Growlithe","Arcanine","Poliwag",
-"Poliwhirl","Poliwrath","Abra","Kadabra","Alakazam","Machop","Machoke","Machamp","Bellsprout","Weepinbell",
-// ... continue up to 340 Pokémon
+"Poliwhirl","Poliwrath","Abra","Kadabra","Alakazam","Machop","Machoke","Machamp","Bellsprout","Weepinbell"
+// continue up to 340 Pokémon
 ];
 
 let pokedex=[],items={Potion:0,"Poké Ball":0,"Rare Candy":0},achievements={};
@@ -106,10 +106,14 @@ function renderTabs(){
     document.getElementById("importBtn").onclick=importPokedex;
 }
 
-// //////////////////// BATTLE SYSTEM ////////////////////
+// Battle system
 let battleState={player:null,opponent:null,playerHP:0,opponentHP:0,turn:"player"};
 
 function startBattle(){if(pokedex.length===0){alert("You have no Pokémon to battle with!");return;}renderBattleSelection();}
 function renderBattleSelection(){let battleArea=document.getElementById("battleArea");battleArea.innerHTML="<h3>Select your Pokémon:</h3>";let select=document.createElement("select");select.id="battleSelect";pokedex.forEach(p=>{let opt=document.createElement("option");opt.value=p;opt.textContent=p;select.appendChild(opt);});battleArea.appendChild(select);let btn=document.createElement("button");btn.textContent="Start Battle";btn.onclick=beginBattle;battleArea.appendChild(btn);document.getElementById("battleLog").innerHTML="";announce("Select your Pokémon to begin battle.");}
 
-function beginBattle(){let playerPoke=document.getElementById("battleSelect").value;battleState.player=playerPoke;battleState.opponent=pokemonList[Math.floor(Math.random()*pokemonList.length)];battleState.playerHP=100;battleState.opponentHP=100;battleState.turn="player";document.getElementById("battleLog").innerHTML="";announce("Battle started! You
+function beginBattle(){let playerPoke=document.getElementById("battleSelect").value;battleState.player=playerPoke;battleState.opponent=pokemonList[Math.floor(Math.random()*pokemonList.length)];battleState.playerHP=100;battleState.opponentHP=100;battleState.turn="player";document.getElementById("battleLog").innerHTML="";announce("Battle started! You chose "+battleState.player+". Opponent is "+battleState.opponent+".");document.getElementById("battleArea").innerHTML="<button onclick='playerAttack()'>Attack</button>";}
+
+function playerAttack(){let dmg=Math.floor(Math.random()*16)+10;battleState.opponentHP-=dmg;if(battleState.opponentHP<0) battleState.opponentHP=0;updateBattleLog(`${battleState.player} hits ${battleState.opponent} for ${dmg} damage. Opponent HP: ${battleState.opponentHP}`);announce(`${battleState.player} hits ${battleState.opponent} for ${dmg} damage.`);checkBattleEnd();if(battleState.opponentHP>0){setTimeout(opponentAttack,1000);}}
+
+function opponentAttack(){let dmg=Math.floor(Math
