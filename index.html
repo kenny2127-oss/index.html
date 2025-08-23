@@ -190,13 +190,13 @@
 </main>
 
 <footer role="tablist">
-    <button role="tab" class="tab-button" data-tab="home" aria-selected="true" onclick="switchTab('home')">Home</button>
-    <button role="tab" class="tab-button" data-tab="explore" aria-selected="false" onclick="switchTab('explore')">Explore</button>
-    <button role="tab" class="tab-button" data-tab="gather" aria-selected="false" onclick="switchTab('gather')">Gather</button>
-    <button role="tab" class="tab-button" data-tab="inventory" aria-selected="false" onclick="switchTab('inventory')">Inventory</button>
-    <button role="tab" class="tab-button" data-tab="pokemart" aria-selected="false" onclick="switchTab('pokemart')">Poké Mart</button>
-    <button role="tab" class="tab-button" data-tab="battle" aria-selected="false" onclick="switchTab('battle')">Battle</button>
-    <button role="tab" class="tab-button" data-tab="trade" aria-selected="false" onclick="switchTab('trade')">Trade</button>
+    <button role="tab" class="tab-button" data-tab="home" aria-selected="true">Home</button>
+    <button role="tab" class="tab-button" data-tab="explore" aria-selected="false">Explore</button>
+    <button role="tab" class="tab-button" data-tab="gather" aria-selected="false">Gather</button>
+    <button role="tab" class="tab-button" data-tab="inventory" aria-selected="false">Inventory</button>
+    <button role="tab" class="tab-button" data-tab="pokemart" aria-selected="false">Poké Mart</button>
+    <button role="tab" class="tab-button" data-tab="battle" aria-selected="false">Battle</button>
+    <button role="tab" class="tab-button" data-tab="trade" aria-selected="false">Trade</button>
 </footer>
 
 <script>
@@ -227,8 +227,10 @@
             btn.classList.remove("is-selected");
         });
         const selectedButton = document.querySelector(`[data-tab='${tabId}']`);
-        selectedButton.setAttribute("aria-selected", "true");
-        selectedButton.classList.add("is-selected"); // Add new class for visual state
+        if (selectedButton) {
+            selectedButton.setAttribute("aria-selected", "true");
+            selectedButton.classList.add("is-selected");
+        }
         announce(tabId.charAt(0).toUpperCase() + tabId.slice(1) + " tab selected");
         
         // Render content for new tabs
@@ -262,7 +264,7 @@
             "Berries": 0,
             "Stones": 0
         },
-   ,      achievements = {},
+        achievements = {},
         battleState = {
             player: null,
             opponent: null,
@@ -270,7 +272,7 @@
             opponentHP: 0,
             turn: "player"
         },
-        playerState = {
+       ,  playerState = {
             level: 1,
             exp: 0,
             money: 0
@@ -374,9 +376,9 @@
                 itemCard.innerHTML = `
                     <p class="font-bold">${item}</p>
                     <p>x${items[item]}</p>
-               ,      <p class="text-xs text-gray-400">Value: 💰${ITEM_PRICES[item]}</p>
+                    <p class="text-xs text-gray-400">Value: 💰${ITEM_PRICES[item]}</p>
                     <div class="flex flex-col gap-2 mt-2">
-                        <button onclick="sellItem('${item}')" class="w-full bg-yellow-500 text-gray-900 font-bold py-1 rounded-md text-xs hover:bg-yellow-600 transition duration-300">Sell One</button>
+                        <button onclick="sellItem('${item}')",  class="w-full bg-yellow-500 text-gray-900 font-bold py-1 rounded-md text-xs hover:bg-yellow-600 transition duration-300">Sell One</button>
                         <button onclick="sellAllItems('${item}')" class="w-full bg-red-500 text-white font-bold py-1 rounded-md text-xs hover:bg-red-600 transition duration-300">Sell All</button>
                     </div>
                 `;
@@ -469,11 +471,11 @@
     function updateAchievements() {
         let count = pokedex.length;
         let newAchievements = [];
-        if,  (count >= 5 && !achievements.Novice) {
+        if (count >= 5 && !achievements.Novice) {
             achievements.Novice = true;
             newAchievements.push("Novice Collector");
         }
-        if (count >= 10 && !achievements.Collector) {
+        if (count >= 10 &&,  !achievements.Collector) {
             achievements.Collector = true;
             newAchievements.push("Collector");
         }
@@ -572,10 +574,10 @@
         renderBattleSelection();
     }
 
-    function,  renderBattleSelection() {
+    function renderBattleSelection() {
         let battleArea = document.getElementById("battleArea");
         battleArea.innerHTML = `
-            <h3 class="text-xl font-semibold text-center mb-4">Select your Pokémon:</h3>
+            <h3 class="text-xl font-semibold,  text-center mb-4">Select your Pokémon:</h3>
             <select id="battleSelect" class="w-full p-2 bg-gray-700 rounded-lg mb-4 text-gray-100"></select>
             <button id="startBattleBtn" class="w-full bg-red-500 text-white font-bold py-3 rounded-lg shadow-md hover:bg-red-600 transition duration-300">Start Battle</button>
         `;
@@ -650,10 +652,10 @@
     function updateHealthBars() {
         // Update health points and health bars
         document.getElementById("playerHP").innerText = battleState.playerHP;
-        document.getElementById("opponentHP").innerText =,  battleState.opponentHP;
+        document.getElementById("opponentHP").innerText = battleState.opponentHP;
 
         const playerHealthBar = document.getElementById("playerHealthBar");
-        const opponentHealthBar = document.getElementById("opponentHealthBar");
+        const opponentHealthBar =,  document.getElementById("opponentHealthBar");
 
         playerHealthBar.style.width = `${(battleState.playerHP / battleState.player.hp) * 100}%`;
         opponentHealthBar.style.width = `${(battleState.opponentHP / battleState.opponent.hp) * 100}%`;
@@ -729,10 +731,10 @@
 
     function opponentAttack() {
         const damage = Math.floor(Math.random() * (battleState.opponent.attack / 2)) + (battleState.opponent.attack / 2);
-       ,  battleState.playerHP -= damage;
+        battleState.playerHP -= damage;
         if (battleState.playerHP < 0) battleState.playerHP = 0;
         renderBattleUI();
-        updateBattleLog(`${battleState.opponent.name} hits ${battleState.player.name} for ${damage} damage!`);
+       ,  updateBattleLog(`${battleState.opponent.name} hits ${battleState.player.name} for ${damage} damage!`);
         announce(`${battleState.opponent.name} hits ${battleState.player.name} for ${damage} damage! Your HP is now ${battleState.playerHP}.`);
         checkBattleEnd();
     }
@@ -755,15 +757,26 @@
 
     // Initial setup on page load
     window.onload = () => {
-        switchTab("home");
         loadGame();
-        // Event listeners for buttons
-        document.getElementById("catchHomeBtn").onclick = catchPokemon;
-        document.getElementById("catchExploreBtn").onclick = catchPokemon;
-        document.getElementById("dailyRewardBtn").onclick = dailyReward;
-        document.getElementById("exportBtn").onclick = exportPokedex;
-        document.getElementById("importBtn").onclick = importPokedex;
-        document.getElementById("gatherBtn").onclick = gatherResources;
+        switchTab("home");
+
+        // Attach event listeners for tabs
+        const tabButtons = document.querySelectorAll('.tab-button');
+        tabButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                const tabId = button.getAttribute('data-tab');
+                switchTab(tabId);
+            });
+        });
+
+        // Event listeners for other buttons
+        document.getElementById("catchHomeBtn").addEventListener('click', catchPokemon);
+        document.getElementById("catchExploreBtn").addEventListener('click', catchPokemon);
+        document.getElementById("dailyRewardBtn").addEventListener('click', dailyReward);
+        document.getElementById("exportBtn").addEventListener('click', exportPokedex);
+        document.getElementById("importBtn").addEventListener('click', importPokedex);
+        document.getElementById("gatherBtn").addEventListener('click', gatherResources);
+        document.getElementById("transferButton").addEventListener('click', transferPokedex);
    ,  };
 </script>
 
