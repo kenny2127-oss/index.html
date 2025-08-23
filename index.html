@@ -114,7 +114,6 @@
 
 <header class="p-4 text-center">
     <h1 class="text-4xl font-bold text-yellow-400">Pokémon Adventure</h1>
-    <button id="installBtn" onclick="installApp()" disabled class="bg-blue-500 text-white font-bold py-2 px-4 rounded-full mt-4 shadow-lg hover:bg-blue-600 transition duration-300 disabled:opacity-50">📲 Install App</button>
     <div id="liveRegion" aria-live="polite" class="sr-only"></div>
 </header>
 
@@ -207,21 +206,7 @@
         // Note: service-worker.js file is required for this to work
         navigator.serviceWorker.register("service-worker.js");
     }
-    window.addEventListener("beforeinstallprompt", (e) => {
-        e.preventDefault();
-        deferredPrompt = e;
-        document.getElementById("installBtn").disabled = false;
-    });
-
-    function installApp() {
-        if (deferredPrompt) {
-            deferredPrompt.prompt();
-            deferredPrompt.userChoice.finally(() => deferredPrompt = null);
-        } else {
-            showMessage("Install App", "iOS: Tap the Share button → 'Add to Home Screen'.\nAndroid: Open this page via HTTPS; install should appear.");
-        }
-    }
-
+    
     // Modal message box functions
     function showMessage(title, text) {
         document.getElementById("messageTitle").innerText = title;
@@ -420,6 +405,7 @@
         checkLevelUp();
 
         saveGame();
+        renderInventory(); // This is the fix! Now inventory updates immediately.
         renderGatherUI();
         showMessage("Gathering Complete!", `You found ${amount} ${gatheredResource}!`);
         announce(`You found ${amount} ${gatheredResource}!`);
