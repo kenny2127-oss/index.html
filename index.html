@@ -10,10 +10,11 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <style>
-body{font-family:sans-serif;margin:0;background:#1a202c;color:#e6eef8;}
-nav{display:flex;background:#3b4cca;padding:10px;}
-nav button{flex:1;background:white;border:none;padding:10px;cursor:pointer;}
-nav button[aria-selected="true"]{background:#ffcb05;font-weight:bold;}
+body{font-family:sans-serif;margin:0;background:#1a202c;color:#e6eef8;padding-bottom:60px;}
+header{padding:10px;text-align:center;}
+footer{position:fixed;bottom:0;left:0;width:100%;display:flex;background:#3b4cca;z-index:1000;}
+footer button{flex:1;background:white;border:none;padding:12px 0;cursor:pointer;}
+footer button[aria-selected="true"]{background:#ffcb05;font-weight:bold;}
 section{display:none;padding:20px;}
 section.active{display:block;}
 #installBtn,#dailyRewardBtn,#catchBtn,#exportBtn,#importBtn,#startBattleBtn,#transferButton{margin:10px;padding:10px;border:none;border-radius:8px;background:#ffcb05;cursor:pointer;}
@@ -196,16 +197,10 @@ log.innerHTML+=text+"<br>";
 log.scrollTop=log.scrollHeight;
 }
 </script>
-</head>
+
 <body>
 <header>
 <h1>Pokémon Adventure</h1>
-<nav role="tablist">
-<button role="tab" class="tab-button" data-tab="home" aria-selected="true" onclick="switchTab('home')">Home</button>
-<button role="tab" class="tab-button" data-tab="explore" aria-selected="false" onclick="switchTab('explore')">Explore</button>
-<button role="tab" class="tab-button" data-tab="battle" aria-selected="false" onclick="switchTab('battle')">Battle</button>
-<button role="tab" class="tab-button" data-tab="trade" aria-selected="false" onclick="switchTab('trade')">Trade</button>
-</nav>
 <button id="installBtn" onclick="installApp()">📲 Install App</button>
 <div id="liveRegion" aria-live="polite"></div>
 </header>
@@ -229,4 +224,24 @@ log.scrollTop=log.scrollHeight;
 <h2>Battle</h2>
 <div id="battleArea"></div>
 <div id="battleLog" aria-live="polite"></div>
-<button
+</section>
+
+<section id="trade">
+<h2>Trade</h2>
+<p>Offer a Pokémon to generate a short code:</p>
+<textarea id="exportData" readonly></textarea>
+<button id="exportBtn">Generate Trade Code</button>
+<p>Enter a code to receive a Pokémon:</p>
+<textarea id="importData"></textarea>
+<button id="importBtn">Redeem Code</button>
+</section>
+</main>
+
+<footer role="tablist">
+  <button role="tab" class="tab-button" data-tab="home" aria-selected="true" onclick="switchTab('home')">Home</button>
+  <button role="tab" class="tab-button" data-tab="explore" aria-selected="false" onclick="switchTab('explore')">Explore</button>
+  <button role="tab" class="tab-button" data-tab="battle" aria-selected="false" onclick="switchTab('battle')">Battle</button>
+  <button role="tab" class="tab-button" data-tab="trade" aria-selected="false" onclick="switchTab('trade')">Trade</button>
+</footer>
+</body>
+</html>
