@@ -132,7 +132,7 @@
     const resultArea = document.getElementById('result-area');
     const pokedexUl = document.getElementById('pokedex-ul');
     const pokedexMessage = document.getElementById('pokedex-message');
-    const pokemonDisplay =,  document.getElementById('pokemon-display');
+    const pokemonDisplay = document.getElementById('pokemon-display'); <!-- FIXED -->
     const currentHpEl = document.getElementById('current-hp');
     const maxHpEl = document.getElementById('max-hp');
     const healthBar = document.getElementById('health-bar');
@@ -241,12 +241,12 @@
     }
     
     function resetGame() {
-        resultArea.style.display =,  'none';
+        resultArea.style.display = 'none'; <!-- FIXED -->
         homeArea.style.display = 'block';
     }
 
     // --- Initial Setup ---
-    window.onload =,  loadGame;
+    window.onload = loadGame; <!-- FIXED -->
 </script>
 
 </body>
