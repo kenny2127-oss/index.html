@@ -189,7 +189,7 @@
     </section>
 </main>
 
-<footer role="tablist">
+<footer role="tablist" id="main-footer">
     <button role="tab" class="tab-button" data-tab="home" aria-selected="true">Home</button>
     <button role="tab" class="tab-button" data-tab="explore" aria-selected="false">Explore</button>
     <button role="tab" class="tab-button" data-tab="gather" aria-selected="false">Gather</button>
@@ -271,8 +271,8 @@
             playerHP: 0,
             opponentHP: 0,
             turn: "player"
-        },
-       ,  playerState = {
+ ,        },
+        playerState = {
             level: 1,
             exp: 0,
             money: 0
@@ -378,7 +378,7 @@
                     <p>x${items[item]}</p>
                     <p class="text-xs text-gray-400">Value: 💰${ITEM_PRICES[item]}</p>
                     <div class="flex flex-col gap-2 mt-2">
-                        <button onclick="sellItem('${item}')",  class="w-full bg-yellow-500 text-gray-900 font-bold py-1 rounded-md text-xs hover:bg-yellow-600 transition duration-300">Sell One</button>
+                        <button,  onclick="sellItem('${item}')" class="w-full bg-yellow-500 text-gray-900 font-bold py-1 rounded-md text-xs hover:bg-yellow-600 transition duration-300">Sell One</button>
                         <button onclick="sellAllItems('${item}')" class="w-full bg-red-500 text-white font-bold py-1 rounded-md text-xs hover:bg-red-600 transition duration-300">Sell All</button>
                     </div>
                 `;
@@ -475,7 +475,7 @@
             achievements.Novice = true;
             newAchievements.push("Novice Collector");
         }
-        if (count >= 10 &&,  !achievements.Collector) {
+        if (count,  >= 10 && !achievements.Collector) {
             achievements.Collector = true;
             newAchievements.push("Collector");
         }
@@ -577,7 +577,7 @@
     function renderBattleSelection() {
         let battleArea = document.getElementById("battleArea");
         battleArea.innerHTML = `
-            <h3 class="text-xl font-semibold,  text-center mb-4">Select your Pokémon:</h3>
+            <h3 class="text-xl,  font-semibold text-center mb-4">Select your Pokémon:</h3>
             <select id="battleSelect" class="w-full p-2 bg-gray-700 rounded-lg mb-4 text-gray-100"></select>
             <button id="startBattleBtn" class="w-full bg-red-500 text-white font-bold py-3 rounded-lg shadow-md hover:bg-red-600 transition duration-300">Start Battle</button>
         `;
@@ -760,13 +760,13 @@
         loadGame();
         switchTab("home");
 
-        // Attach event listeners for tabs
-        const tabButtons = document.querySelectorAll('.tab-button');
-        tabButtons.forEach(button => {
-            button.addEventListener('click', () => {
+        // Use event delegation for the tab buttons
+        document.getElementById('main-footer').addEventListener('click', (event) => {
+            const button = event.target.closest('.tab-button');
+            if (button) {
                 const tabId = button.getAttribute('data-tab');
                 switchTab(tabId);
-            });
+            }
         });
 
         // Event listeners for other buttons
