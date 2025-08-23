@@ -7,16 +7,30 @@
     <!-- Tailwind CSS for modern styling -->
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        /* Custom styles for elements not easily styled by Tailwind */
+        /* General body and font styling */
         body {
             font-family: 'Inter', sans-serif;
-            background: #1a202c; /* Tailwind: bg-gray-900 */
-            color: #e6eef8; /* Tailwind: text-gray-100 */
+            background: #1a202c; /* bg-gray-900 */
+            color: #e6eef8; /* text-gray-100 */
             -webkit-tap-highlight-color: transparent;
         }
 
-        /* Footer buttons for tab navigation */
-        footer {
+        /* Base styles for tab content sections */
+        .tab-content {
+            display: none;
+            padding-bottom: 5rem;
+            transition: opacity 0.3s ease-in-out;
+            opacity: 0;
+        }
+
+        /* Active tab content will be visible and opaque */
+        .tab-content.is-active {
+            display: block;
+            opacity: 1;
+        }
+
+        /* Fixed footer for tab navigation */
+        .tab-footer {
             position: fixed;
             bottom: 0;
             left: 0;
@@ -26,7 +40,7 @@
             z-index: 1000;
         }
 
-        footer button {
+        .tab-footer button {
             flex: 1;
             background-color: transparent;
             border: none;
@@ -34,25 +48,16 @@
             cursor: pointer;
             color: white;
             transition: background-color 0.3s;
-        }
-        
-        /* New style for selected tab button to improve visual state on iOS */
-        footer button.is-selected {
-            background: #ffcb05; /* Pokémon Yellow */
             font-weight: bold;
+        }
+
+        /* Styling for the currently selected tab button */
+        .tab-footer button.is-active {
+            background: #ffcb05; /* Pokémon Yellow */
             color: #1a202c;
         }
 
-        section {
-            display: none;
-            padding-bottom: 5rem;
-        }
-
-        section.active {
-            display: block;
-        }
-
-        /* Modal styling */
+        /* Modal styling for messages */
         .modal {
             display: none;
             position: fixed;
@@ -77,25 +82,14 @@
             text-align: center;
         }
 
-        /* Health bar styling */
+        /* Health and experience bar styling */
         .health-bar {
             height: 1rem;
-            background-color: #ef4444; /* Tailwind: bg-red-500 */
+            border-radius: 9999px;
             transition: width 0.5s ease-in-out;
-            border-radius: 9999px; /* Tailwind: rounded-full */
         }
-
-        /* Progress bar styling for experience */
-        .progress-bar-container {
-            width: 100%;
-            background-color: #4a5568; /* Tailwind: bg-gray-600 */
-            border-radius: 9999px; /* Tailwind: rounded-full */
-            height: 1.5rem;
-            overflow: hidden;
-        }
-
         .progress-bar {
-            background-color: #48bb78; /* Tailwind: bg-green-500 */
+            background-color: #48bb78; /* bg-green-500 */
             height: 100%;
             transition: width 0.3s ease-in-out;
         }
@@ -103,7 +97,7 @@
 </head>
 <body class="bg-gray-900 text-gray-100">
 
-<!-- Custom Message Modal -->
+<!-- Custom Message Modal for all in-app notifications -->
 <div id="messageModal" class="modal">
     <div class="modal-content">
         <h3 id="messageTitle" class="text-xl font-bold mb-4"></h3>
@@ -114,23 +108,26 @@
 
 <header class="p-4 text-center">
     <h1 class="text-4xl font-bold text-yellow-400">Pokémon Adventure</h1>
+    <!-- Live region for accessibility announcements -->
     <div id="liveRegion" aria-live="polite" class="sr-only"></div>
 </header>
 
 <main class="container mx-auto p-4">
-    <section id="home" class="active">
+    <!-- Home Tab Content -->
+    <section id="home" class="tab-content is-active">
         <div class="bg-gray-800 p-6 rounded-xl shadow-lg">
             <h2 class="text-2xl font-semibold mb-4 text-center">Pokédex</h2>
             <div id="pokedex" class="grid grid-cols-4 sm:grid-cols-6 lg:grid-cols-8 gap-3"></div>
         </div>
         <div class="flex flex-col sm:flex-row gap-4 mt-6">
-            <button,  id="catchHomeBtn" class="w-full bg-green-500 text-white font-bold py-3 rounded-lg shadow-md hover:bg-green-600 transition duration-300">Catch Pokémon</button>
+            <button id="catchHomeBtn" class="w-full bg-green-500 text-white font-bold py-3 rounded-lg shadow-md,  hover:bg-green-600 transition duration-300">Catch Pokémon</button>
             <button id="dailyRewardBtn" class="w-full bg-yellow-500 text-gray-900 font-bold py-3 rounded-lg shadow-md hover:bg-yellow-600 transition duration-300">Daily Reward</button>
         </div>
         <button id="transferButton" class="w-full bg-blue-500 text-white font-bold py-3 rounded-lg shadow-md mt-4 hover:bg-blue-600 transition duration-300">Transfer Pokédex from another app</button>
     </section>
 
-    <section id="explore">
+    <!-- Explore Tab Content -->
+    <section id="explore" class="tab-content">
         <div class="bg-gray-800 p-6 rounded-xl shadow-lg text-center">
             <h2 class="text-2xl font-semibold mb-2">Explore</h2>
             <p class="text-gray-400 mb-4">Click below to find a new Pokémon!</p>
@@ -138,7 +135,8 @@
         </div>
     </section>
 
-    <section id="gather">
+    <!-- Gather Tab Content -->
+    <section id="gather" class="tab-content">
         <div class="bg-gray-800 p-6 rounded-xl shadow-lg">
             <h2 class="text-2xl font-semibold mb-4 text-center">Gather Resources</h2>
             <p class="text-gray-400 mb-2">Click to gather resources and gain experience.</p>
@@ -146,14 +144,15 @@
                 <span>Level: <span id="playerLevel">1</span></span>
                 <span>Exp: <span id="playerExp">0</span>/<span id="expToNextLevel">100</span></span>
             </div>
-            <div class="progress-bar-container">
+            <div class="w-full bg-gray-600 rounded-full h-4 overflow-hidden">
                 <div id="expBar" class="progress-bar" style="width: 0%;"></div>
             </div>
             <button id="gatherBtn" class="w-full bg-indigo-500 text-white font-bold py-3 rounded-lg shadow-md mt-4 hover:bg-indigo-600 transition duration-300">Gather</button>
         </div>
     </section>
 
-    <section id="inventory">
+    <!-- Inventory Tab Content -->
+    <section id="inventory" class="tab-content">
         <div class="bg-gray-800 p-6 rounded-xl shadow-lg">
             <h2 class="text-2xl font-semibold mb-4 text-center">Inventory</h2>
             <p class="text-gray-400 mb-2 text-center">What's in your bag?</p>
@@ -162,7 +161,8 @@
         </div>
     </section>
 
-    <section id="pokemart">
+    <!-- Poké Mart Tab Content -->
+    <section id="pokemart" class="tab-content">
         <div class="bg-gray-800 p-6 rounded-xl shadow-lg">
             <h2 class="text-2xl font-semibold mb-4 text-center">Poké Mart</h2>
             <p class="text-gray-400 mb-4 text-center">Sell your items here!</p>
@@ -170,86 +170,41 @@
         </div>
     </section>
 
-    <section id="battle">
+    <!-- Battle Tab Content -->
+    <section id="battle" class="tab-content">
         <h2 class="text-2xl font-semibold mb-4 text-center">Battle</h2>
         <div id="battleArea" class="bg-gray-800 p-6 rounded-xl shadow-lg"></div>
         <div id="battleLog" class="bg-gray-900 p-4 mt-4 rounded-lg border border-gray-700 max-h-60 overflow-y-auto" aria-live="polite"></div>
     </section>
 
-    <section id="trade">
+    <!-- Trade Tab Content -->
+    <section id="trade" class="tab-content">
         <div class="bg-gray-800 p-6 rounded-xl shadow-lg">
             <h2 class="text-2xl font-semibold mb-4 text-center">Trade</h2>
             <label for="exportData" class="block mb-2 text-sm text-gray-400">Offer a Pokémon to generate a short code:</label>
             <textarea id="exportData" readonly class="w-full p-2 bg-gray-700 rounded-lg text-gray-100 border border-gray-600"></textarea>
             <button id="exportBtn" class="w-full bg-blue-500 text-white font-bold py-3 rounded-lg shadow-md mt-4 hover:bg-blue-600 transition duration-300">Generate Trade Code</button>
-            <label for="importData" class="block mt-6 mb-2 text-sm text-gray-400">Enter a code to receive a Pokémon:</label>
+            <label,  for="importData" class="block mt-6 mb-2 text-sm text-gray-400">Enter a code to receive a Pokémon:</label>
             <textarea id="importData" class="w-full p-2 bg-gray-700 rounded-lg text-gray-100 border border-gray-600"></textarea>
-            <button,  id="importBtn" class="w-full bg-purple-500 text-white font-bold py-3 rounded-lg shadow-md mt-4 hover:bg-purple-600 transition duration-300">Redeem Code</button>
+            <button id="importBtn" class="w-full bg-purple-500 text-white font-bold py-3 rounded-lg shadow-md mt-4 hover:bg-purple-600 transition duration-300">Redeem Code</button>
         </div>
     </section>
 </main>
 
-<footer role="tablist" id="main-footer">
-    <button role="tab" class="tab-button" data-tab="home" aria-selected="true">Home</button>
-    <button role="tab" class="tab-button" data-tab="explore" aria-selected="false">Explore</button>
-    <button role="tab" class="tab-button" data-tab="gather" aria-selected="false">Gather</button>
-    <button role="tab" class="tab-button" data-tab="inventory" aria-selected="false">Inventory</button>
-    <button role="tab" class="tab-button" data-tab="pokemart" aria-selected="false">Poké Mart</button>
-    <button role="tab" class="tab-button" data-tab="battle" aria-selected="false">Battle</button>
-    <button role="tab" class="tab-button" data-tab="trade" aria-selected="false">Trade</button>
+<!-- Tab Navigation Footer -->
+<footer class="tab-footer" role="tablist">
+    <button role="tab" data-tab="home" class="is-active" aria-selected="true">Home</button>
+    <button role="tab" data-tab="explore" aria-selected="false">Explore</button>
+    <button role="tab" data-tab="gather" aria-selected="false">Gather</button>
+    <button role="tab" data-tab="inventory" aria-selected="false">Inventory</button>
+    <button role="tab" data-tab="pokemart" aria-selected="false">Poké Mart</button>
+    <button role="tab" data-tab="battle" aria-selected="false">Battle</button>
+    <button role="tab" data-tab="trade" aria-selected="false">Trade</button>
 </footer>
 
 <script>
-    // PWA functionality
-    let deferredPrompt;
-    if ("serviceWorker" in navigator) {
-        // Note: service-worker.js file is required for this to work
-        navigator.serviceWorker.register("service-worker.js");
-    }
-    
-    // Modal message box functions
-    function showMessage(title, text) {
-        document.getElementById("messageTitle").innerText = title;
-        document.getElementById("messageText").innerText = text;
-        document.getElementById("messageModal").style.display = "block";
-    }
-
-    function hideMessage() {
-        document.getElementById("messageModal").style.display = "none";
-    }
-
-    // New, simplified tab switching
-    function switchTab(tabId) {
-        const sections = document.querySelectorAll("section");
-        const tabButtons = document.querySelectorAll(".tab-button");
-
-        sections.forEach(sec => sec.classList.remove("active"));
-        tabButtons.forEach(btn => {
-            btn.setAttribute("aria-selected", "false");
-            btn.classList.remove("is-selected");
-        });
-
-        document.getElementById(tabId).classList.add("active");
-        const selectedButton = document.querySelector(`[data-tab='${tabId}']`);
-        selectedButton.setAttribute("aria-selected", "true");
-        selectedButton.classList.add("is-selected");
-
-        announce(tabId.charAt(0).toUpperCase() + tabId.slice(1) + " tab selected");
-        
-        // Render content for new tabs
-        if (tabId === "inventory") {
-            renderInventory();
-        } else if (tabId === "pokemart") {
-            renderPokemart();
-        } else if (tabId === "battle") {
-            if (!battleState.player || battleState.playerHP <= 0 || battleState.opponentHP <= 0) {
-                startBattle();
-            }
-        }
-    }
-    
-    // Game state and data
-    let pokemonList = [
+    // --- Global Variables and Data ---
+    const pokemonList = [
         "Bulbasaur", "Ivysaur", "Venusaur", "Charmander", "Charmeleon", "Charizard", "Squirtle", "Wartortle", "Blastoise", "Caterpie",
         "Metapod", "Butterfree", "Weedle", "Kakuna", "Beedrill", "Pidgey", "Pidgeotto", "Pidgeot", "Rattata", "Raticate",
         "Spearow", "Fearow", "Ekans", "Arbok", "Pikachu", "Raichu", "Sandshrew", "Sandslash", "Nidoran♀", "Nidorina",
@@ -261,41 +216,66 @@
 
     let pokedex = [],
         items = {
-            Potion: 0,
-            "Poké Ball": 0,
-            "Rare Candy": 0,
-            "Berries": 0,
-            "Stones": 0
+            Potion: 0, "Poké Ball": 0, "Rare Candy": 0, "Berries": 0, "Stones": 0
         },
         achievements = {},
-        battleState = {
-            player: null,
-            opponent: null,
-            playerHP: 0,
-            opponentHP:,  0,
-            turn: "player"
-        },
         playerState = {
-            level: 1,
-            exp: 0,
-            money: 0
+            level: 1, exp: 0, money: 0
+        },
+        battleState = {
+            player: null, opponent: null, playerHP: 0, opponentHP: 0
         };
-    
-    // Experience constants
+
     const EXP_PER_LEVEL = 100;
     const GATHER_EXP_GAIN = 10;
     const WIN_EXP_GAIN = 50;
-    
-    // Item prices
     const ITEM_PRICES = {
-        Potion: 50,
-        "Poké Ball": 100,
-        "Rare Candy": 500,
-        Berries: 5,
-        Stones: 20
+        Potion: 50, "Poké Ball": 100, "Rare Candy": 500, Berries: 5, Stones: 20
     };
 
-    // Helper functions for a11y and data persistence
+    // --- Core UI & Game Logic ---
+
+    // Message Modal Functions
+    function showMessage(title, text) {
+        document.getElementById("messageTitle").innerText = title;
+        document.getElementById("messageText").innerText = text;
+        document.getElementById("messageModal").style.display = "block";
+    }
+
+    function hideMessage() {
+        document.getElementById("messageModal").style.display = "none";
+    }
+
+    // A simple, accessible way to announce things to screen readers
+    function announce(text) {
+        document.getElementById("liveRegion").innerText = text;
+    }
+
+    // --- Tab Switching Logic (The most important part of the fix) ---
+    function switchTab(tabId) {
+        // Deactivate all content sections and buttons
+        const sections = document.querySelectorAll(".tab-content");
+        const buttons = document.querySelectorAll(".tab-footer button");
+        sections.forEach(sec => sec.classList.remove("is-active"));
+        buttons.forEach(btn => btn.classList.remove("is-active"));
+
+        // Activate the selected section and button
+        document.getElementById(tabId).classList.add("is-active");
+        document.querySelector(`[data-tab='${tabId}']`).classList.add("is-active");
+
+        announce(`${tabId.charAt(0).toUpperCase() + tabId.slice(1)} tab selected`);
+        
+        // Re-render content specific to the tab being,  switched to
+        if (tabId === "inventory") {
+            renderInventory();
+        } else if (tabId === "pokemart") {
+            renderPokemart();
+        } else if (tabId === "battle" && (!battleState.player || battleState.playerHP <= 0 || battleState.opponentHP <= 0)) {
+            startBattle();
+        }
+    }
+
+    // --- Data Persistence and Loading ---
     function saveGame() {
         localStorage.setItem("pokedex", JSON.stringify(pokedex));
         localStorage.setItem("items", JSON.stringify(items));
@@ -305,46 +285,22 @@
 
     function loadGame() {
         pokedex = JSON.parse(localStorage.getItem("pokedex")) || [];
-        items = JSON.parse(localStorage.getItem("items")) || {
-            Potion: 0,
-            "Poké Ball": 0,
-            "Rare Candy": 0,
-            "Berries": 0,
-            "Stones": 0
-        };
-        achievements = JSON.parse(localStorage.getItem("achievements")) || {};
-        playerState = JSON.parse(localStorage.getItem("playerState")) || {
-            level: 1,
-            exp: 0,
-            money: 0
-        };
+        items = JSON.parse(localStorage.getItem("items")) || items; // Use default if no data
+        achievements = JSON.parse(localStorage.getItem("achievements")) || achievements;
+        playerState = JSON.parse(localStorage.getItem("playerState")) || playerState;
         renderPokedex();
-        updateAchievements();
         renderGatherUI();
-        renderInventory();
+        updateAchievements();
     }
 
-    function speak(text) {
-        if ("speechSynthesis" in window) {
-            let u = new SpeechSynthesisUtterance(text);
-            speechSynthesis.speak(u);
-        }
-    }
-
-    function announce(text) {
-        document.getElementById("liveRegion").innerText = text;
-    }
-
-    // UI rendering functions
+    // --- Rendering Functions ---
     function renderPokedex() {
-        let container = document.getElementById("pokedex");
-        container.innerHTML = "";
-        pokemonList.forEach(p => {
-            let card = document.createElement("div");
-            card.className = "card bg-gray-700 rounded-lg p-2 text-center shadow-inner text-sm";
-            card.textContent = pokedex.includes(p) ? p : "???";
-            container.appendChild(card);
-        });
+        const container = document.getElementById("pokedex");
+        container.innerHTML = pokemonList.map(p => `
+            <div class="card bg-gray-700 rounded-lg p-2 text-center shadow-inner text-sm">
+                ${pokedex.includes(p) ? p : "???"}
+            </div>
+        `).join('');
     }
 
     function renderGatherUI() {
@@ -381,7 +337,7 @@
                     <p>x${items[item]}</p>
                     <p class="text-xs text-gray-400">Value: 💰${ITEM_PRICES[item]}</p>
                     <div class="flex flex-col gap-2 mt-2">
-                   ,      <button onclick="sellItem('${item}')" class="w-full bg-yellow-500 text-gray-900 font-bold py-1 rounded-md text-xs hover:bg-yellow-600 transition duration-300">Sell One</button>
+                        <button onclick="sellItem('${item}')" class="w-full bg-yellow-500 text-gray-900 font-bold py-1 rounded-md text-xs hover:bg-yellow-600 transition duration-300">Sell One</button>
                         <button onclick="sellAllItems('${item}')" class="w-full bg-red-500 text-white font-bold py-1 rounded-md text-xs hover:bg-red-600 transition duration-300">Sell All</button>
                     </div>
                 `;
@@ -389,24 +345,31 @@
             }
         }
     }
-    
-    // --- Game logic functions ---
-    
+
+    function updateBattleLog(message) {
+        const log = document.getElementById("battleLog");
+        const entry = document.createElement("p");
+        entry.textContent =,  message;
+        log.appendChild(entry);
+        log.scrollTop = log.scrollHeight;
+    }
+
+    // --- Game Logic ---
     function catchPokemon() {
         let foundPokemon = pokemonList[Math.floor(Math.random() * pokemonList.length)];
         if (!pokedex.includes(foundPokemon)) {
             pokedex.push(foundPokemon);
+            showMessage("New Catch!", `You found a wild ${foundPokemon}! It has been added to your Pokédex.`);
+            announce(`You found ${foundPokemon}!`);
+        } else {
+            showMessage("Already Caught!", `You already have ${foundPokemon} in your Pokédex.`);
         }
         saveGame();
         renderPokedex();
-        speak(`You found ${foundPokemon}!`);
-        announce(`You found ${foundPokemon}!`);
-        showMessage("New Catch!", `You found a wild ${foundPokemon}! It has been added to your Pokédex.`);
         updateAchievements();
     }
 
     function gatherResources() {
-        // --- Added a 50% chance to encounter a Pokémon ---
         if (Math.random() < 0.5) {
             let foundPokemon = pokemonList[Math.floor(Math.random() * pokemonList.length)];
             if (!pokedex.includes(foundPokemon)) {
@@ -414,17 +377,13 @@
                 showMessage("Pokémon Encounter!", `While gathering, you found a wild ${foundPokemon}! It has been added to your Pokédex.`);
             }
         }
-
         const resources = ["Berries", "Stones"];
         const gatheredResource = resources[Math.floor(Math.random() * resources.length)];
         const amount = Math.floor(Math.random() * 3) + 1;
         items[gatheredResource] += amount;
-        
         playerState.exp += GATHER_EXP_GAIN;
         checkLevelUp();
-
         saveGame();
-        renderInventory(); // Now inventory updates immediately.
         renderGatherUI();
         showMessage("Gathering Complete!", `You found ${amount} ${gatheredResource}!`);
         announce(`You found ${amount} ${gatheredResource}!`);
@@ -443,8 +402,7 @@
             showMessage("Can't Sell", `You don't have any ${item} to sell.`);
         }
     }
-    
-    // --- New function to sell all items of a single type ---
+
     function sellAllItems(item) {
         const count = items[item];
         if (count > 0) {
@@ -455,7 +413,7 @@
             renderInventory();
             renderPokemart();
             showMessage("Items Sold!", `You sold all ${count} ${item} for a total of 💰${totalValue}!`);
-            announce(`You sold all ${count} ${item}. You now have 💰${playerState.money}.`);
+            announce(`You sold all ${count} ${item}.`);
         } else {
             showMessage("Can't Sell", `You don't have any ${item} to sell.`);
         }
@@ -465,7 +423,7 @@
         const expNeeded = EXP_PER_LEVEL * playerState.level;
         if (playerState.exp >= expNeeded) {
             playerState.level++;
-            playerState.exp = 0; // Reset exp on level up
+            playerState.exp = 0;
             showMessage("Level Up!", `Congratulations, you are now level ${playerState.level}!`);
             announce(`Level up! You are now level ${playerState.level}.`);
         }
@@ -478,7 +436,7 @@
             achievements.Novice = true;
             newAchievements.push("Novice Collector");
         }
-      ,   if (count >= 10 && !achievements.Collector) {
+        if (count >= 10 && !achievements.Collector) {
             achievements.Collector = true;
             newAchievements.push("Collector");
         }
@@ -488,14 +446,13 @@
         }
         saveGame();
         if (newAchievements.length > 0) {
-            newAchievements.forEach(a => speak(`Achievement unlocked: ${a}`));
-            announce(`Achievements unlocked: ${newAchievements.join(", ")}`);
+            newAchievements.forEach(a => announce(`Achievement unlocked: ${a}`));
             showMessage("Achievement Unlocked!", `You've earned the ${newAchievements.join(", ")} achievement(s)!`);
         }
     }
 
     function dailyReward() {
-        let last = localStorage.getItem("lastDaily"),
+        let,  last = localStorage.getItem("lastDaily"),
             today = new Date().toDateString();
         if (last === today) {
             showMessage("Daily Reward", "You have already claimed your daily reward today!");
@@ -509,63 +466,15 @@
         localStorage.setItem("lastDaily", today);
         saveGame();
         renderPokedex();
-        speak(`Daily reward: ${rewardedPokemon} and 1 Potion!`);
-        announce(`Daily reward: ${rewardedPokemon} and 1 Potion!`);
         showMessage("Daily Reward Claimed!", `You received a ${rewardedPokemon} and 1 Potion!`);
+        announce(`Daily reward: ${rewardedPokemon} and 1 Potion!`);
         updateAchievements();
     }
 
-    function exportPokedex() {
-        let data = JSON.stringify(pokedex);
-        document.getElementById("exportData").value = data;
-        announce("Pokédex exported.");
-        showMessage("Trade Code Generated", "Copy the code below to share your Pokédex.");
-        // Use a better way to copy to clipboard that works in iframes
-        try {
-            document.getElementById("exportData").select();
-            document.execCommand('copy');
-            showMessage("Success!", "Trade code copied to clipboard!");
-        } catch (err) {
-            console.error('Failed to copy text: ', err);
-            // Fallback for environments where execCommand is restricted
-        }
-    }
-
-    function importPokedex() {
-        let data = document.getElementById("importData").value;
-        try {
-            let importedPokedex = JSON.parse(data);
-            let addedCount = 0;
-            importedPokedex.forEach(p => {
-                if (!pokedex.includes(p)) {
-                    pokedex.push(p);
-                    addedCount++;
-                }
-            });
-            saveGame();
-            renderPokedex();
-            announce("Pokédex updated. " + addedCount + " new Pokémon added.");
-            speak(addedCount + " new Pokémon added.");
-            showMessage("Trade Redeemed!", `You received ${addedCount} new Pokémon!`);
-            updateAchievements();
-        } catch (e) {
-            showMessage("Invalid Code", "The code you entered is not a valid trade code.");
-        }
-    }
-    
-    // Placeholder function for transfer button
-    function transferPokedex() {
-        showMessage("Transfer Feature", "This feature is currently under development.");
-    }
-    document.getElementById("transferButton").onclick = transferPokedex;
-
-    // Battle functions
     function getPokemonStats(name) {
-        // Simple hashing function to create unique but consistent stats
         let hash = name.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
         return {
-            hp: 80 + (hash % 40),
-            attack: 10 + (hash % 10)
+            hp: 80 + (hash % 40), attack: 10 + (hash % 10)
         };
     }
 
@@ -578,46 +487,33 @@
     }
 
     function renderBattleSelection() {
-        let battleArea = document.getElementById("battleArea");
+        const battleArea = document.getElementById("battleArea");
         battleArea.innerHTML = `
-            <h3,  class="text-xl font-semibold text-center mb-4">Select your Pokémon:</h3>
+            <h3 class="text-xl font-semibold text-center mb-4">Select your Pokémon:</h3>
             <select id="battleSelect" class="w-full p-2 bg-gray-700 rounded-lg mb-4 text-gray-100"></select>
             <button id="startBattleBtn" class="w-full bg-red-500 text-white font-bold py-3 rounded-lg shadow-md hover:bg-red-600 transition duration-300">Start Battle</button>
         `;
-
-        let select = document.getElementById("battleSelect");
+        const select = document.getElementById("battleSelect");
         pokedex.forEach(p => {
-            let option = document.createElement("option");
+            const option = document.createElement("option");
             option.value = p;
             option.textContent = p;
             select.appendChild(option);
         });
-
         document.getElementById("startBattleBtn").onclick = beginBattle;
         document.getElementById("battleLog").innerHTML = "";
-        announce("Select your Pokémon to begin battle.");
     }
 
     function beginBattle() {
         const playerPokemonName = document.getElementById("battleSelect").value;
         const opponentPokemonName = pokemonList[Math.floor(Math.random() * pokemonList.length)];
-        
-        battleState.player = {
-            name: playerPokemonName,
-            ...getPokemonStats(playerPokemonName)
-        };
-        battleState.opponent = {
-            name: opponentPokemonName,
-            ...getPokemonStats(opponentPokemonName)
-        };
 
+        battleState.player = { name: playerPokemonName, ...getPokemonStats(playerPokemonName) };
+        battleState.opponent = { name: opponentPokemonName, ...getPokemonStats(opponentPokemonName) };
         battleState.playerHP = battleState.player.hp;
         battleState.opponentHP = battleState.opponent.hp;
-        battleState.turn = "player";
 
-        document.getElementById("battleLog").innerHTML = "";
-        announce(`Battle started! You chose ${battleState.player.name}. Opponent is ${battleState.opponent.name}.`);
-
+        updateBattleLog(`Battle started! You chose ${battleState.player.name}. Opponent is ${battleState.opponent.name}.`);
         renderBattleUI();
     }
 
@@ -632,13 +528,13 @@
                     <div class="w-24 h-24 bg-gray-700 rounded-full flex items-center justify-center text-5xl">👤</div>
                     <p class="text-sm">HP: <span id="playerHP">${battleState.playerHP}</span>/${battleState.player.hp}</p>
                     <div class="bg-gray-700 rounded-full mt-1">
-                        <div id="playerHealthBar" class="health-bar bg-green-500" style="width: 100%;"></div>
+                        <div id="playerHealthBar" class="health-bar" style="width: 100%;"></div>
                     </div>
                 </div>
                 <div class="text-center">
                     <p class="font-bold text-lg">${battleState.opponent.name}</p>
                     <div class="w-24 h-24 bg-gray-700 rounded-full flex items-center justify-center text-5xl">👾</div>
-                    <p class="text-sm">HP: <span id="opponentHP">${battleState.opponentHP}</span>/${battleState.opponent.hp}</p>
+                    <p class="text-sm">HP: <span,  id="opponentHP">${battleState.opponentHP}</span>/${battleState.opponent.hp}</p>
                     <div class="bg-gray-700 rounded-full mt-1">
                         <div id="opponentHealthBar" class="health-bar" style="width: 100%;"></div>
                     </div>
@@ -653,81 +549,27 @@
     }
     
     function updateHealthBars() {
-        // Update health points and health bars
         document.getElementById("playerHP").innerText = battleState.playerHP;
         document.getElementById("opponentHP").innerText = battleState.opponentHP;
 
         const playerHealthBar = document.getElementById("playerHealthBar");
-        const opponentHealthBar =,  document.getElementById("opponentHealthBar");
+        const opponentHealthBar = document.getElementById("opponentHealthBar");
 
         playerHealthBar.style.width = `${(battleState.playerHP / battleState.player.hp) * 100}%`;
-        opponentHealthBar.style.width = `${(battleState.opponentHP / battleState.opponent.hp) * 100}%`;
+        playerHealthBar.style.backgroundColor = battleState.playerHP <= battleState.player.hp / 2 ? (battleState.playerHP <= 0 ? '#ef4444' : '#f97316') : '#22c55e';
         
-        if (battleState.playerHP <= 0) playerHealthBar.style.backgroundColor = '#ef4444';
-        else if (battleState.playerHP <= battleState.player.hp / 2) playerHealthBar.style.backgroundColor = '#f97316';
-        else playerHealthBar.style.backgroundColor = '#22c55e';
-
-        if (battleState.opponentHP <= 0) opponentHealthBar.style.backgroundColor = '#ef4444';
-        else if (battleState.opponentHP <= battleState.opponent.hp / 2) opponentHealthBar.style.backgroundColor = '#f97316';
-        else opponentHealthBar.style.backgroundColor = '#22c55e';
-    }
-
-    function updateBattleLog(message) {
-        let log = document.getElementById("battleLog");
-        let entry = document.createElement("p");
-        entry.textContent = message;
-        log.appendChild(entry);
-        log.scrollTop = log.scrollHeight; // Auto-scroll to bottom
-    }
-    
-    // Calculate the chance of catching a Pokémon based on its remaining HP
-    function calculateCatchChance() {
-        if (battleState.opponentHP <= 0) return 100; // Guaranteed catch if fainted
-        let baseChance = 5;
-        let healthPercentage = battleState.opponentHP / battleState.opponent.hp;
-        let catchRate = baseChance + (1 - healthPercentage) * 95;
-        return Math.floor(catchRate);
+        opponentHealthBar.style.width = `${(battleState.opponentHP / battleState.opponent.hp) * 100}%`;
+        opponentHealthBar.style.backgroundColor = battleState.opponentHP <= battleState.opponent.hp / 2 ? (battleState.opponentHP <= 0 ? '#ef4444' : '#f97316') : '#22c55e';
     }
 
     function playerAttack() {
         const damage = Math.floor(Math.random() * (battleState.player.attack / 2)) + (battleState.player.attack / 2);
         battleState.opponentHP -= damage;
         if (battleState.opponentHP < 0) battleState.opponentHP = 0;
-        
-        // The health bars and catch button percentage need to be updated after every attack
-        renderBattleUI();
+        updateHealthBars();
         updateBattleLog(`${battleState.player.name} hits ${battleState.opponent.name} for ${damage} damage!`);
-        announce(`${battleState.player.name} hits ${battleState.opponent.name} for ${damage} damage! Opponent's HP is now ${battleState.opponentHP}.`);
-        
         checkBattleEnd();
-        if (battleState.opponentHP > 0) {
-            // Player's turn is over, wait for opponent
-            setTimeout(opponentAttack, 1500);
-        }
-    }
-
-    function tryToCatch() {
-        const catchChance = calculateCatchChance();
-        updateBattleLog(`You try to catch ${battleState.opponent.name}...`);
-        
-        if (Math.random() * 100 < catchChance) {
-            // Success!
-            updateBattleLog(`Gotcha! You caught ${battleState.opponent.name}!`);
-            if (!pokedex.includes(battleState.opponent.name)) {
-                pokedex.push(battleState.opponent.name);
-            }
-            saveGame();
-            renderPokedex();
-            updateAchievements();
-            showMessage("Success!", `You caught ${battleState.opponent.name}! It has been added to your Pokédex.`);
-            
-            // End the battle
-            document.getElementById("battleArea").innerHTML = `<p class="text-center font-bold mb-4">You caught it!</p><button onclick="switchTab('home')" class="w-full bg-blue-500 text-white font-bold py-3 rounded-lg shadow-md hover:bg-blue-600 transition duration-300">Return to Home</button>`;
-        } else {
-            // Failure
-            updateBattleLog("Aww, it escaped!");
-            showMessage("Failed", `${battleState.opponent.name} broke free!`);
-            // Opponent gets to attack immediately after a failed catch attempt
+        if (battleState.opponentHP > 0 && battleState.playerHP > 0) {
             setTimeout(opponentAttack, 1500);
         }
     }
@@ -736,50 +578,105 @@
         const damage = Math.floor(Math.random() * (battleState.opponent.attack / 2)) + (battleState.opponent.attack / 2);
         battleState.playerHP -= damage;
         if (battleState.playerHP < 0) battleState.playerHP = 0;
-        renderBattleUI();
-       ,  updateBattleLog(`${battleState.opponent.name} hits ${battleState.player.name} for ${damage} damage!`);
-        announce(`${battleState.opponent.name} hits ${battleState.player.name} for ${damage} damage! Your HP is now ${battleState.playerHP}.`);
+        updateHealthBars();
+        updateBattleLog(`${battleState.opponent.name} hits ${battleState.player.name} for ${damage} damage!`);
         checkBattleEnd();
     }
 
-    function checkBattleEnd() {
-        let battleArea = document.getElementById("battleArea");
-        if (battleState.playerHP <= 0) {
-            updateBattleLog("You lost the battle!");
-            announce("You lost the battle!");
-            battleArea.innerHTML = `<p class="text-center font-bold mb-4">You lost!</p><button onclick="switchTab('home')" class="w-full bg-blue-500 text-white font-bold py-3 rounded-lg shadow-md hover:bg-blue-600 transition duration-300">Return to Home</button>`;
-        } else if (battleState.opponentHP <= 0) {
-            // Add experience for winning the battle
-            playerState.exp += WIN_EXP_GAIN;
-            checkLevelUp();
-            updateBattleLog(`You defeated ${battleState.opponent.name} and gained ${WIN_EXP_GAIN} experience!`);
-            announce(`You defeated ${battleState.opponent.name}!`);
-            battleArea.innerHTML = `<p class="text-center font-bold mb-4">You won!</p><button onclick="switchTab('home')" class="w-full bg-blue-500 text-white font-bold py-3 rounded-lg shadow-md hover:bg-blue-600 transition duration-300">Return to Home</button>`;
+    function calculateCatchChance() {
+        if (battleState.opponentHP <= 0) return 100;
+        const baseChance = 5;
+        const healthPercentage = battleState.opponentHP / battleState.opponent.hp;
+        const catchRate = baseChance + (1 - healthPercentage) * 95;
+        return Math.floor(catchRate);
+    }
+    
+    function tryToCatch() {
+        const catchChance = calculateCatchChance();
+        updateBattleLog(`You try to catch ${battleState.opponent.name}...`);
+        
+        if (Math.random() * 100 < catchChance) {
+            updateBattleLog(`Gotcha! You caught ${battleState.opponent.name}!`);
+            if (!pokedex.includes(battleState.opponent.name)) {
+                pokedex.push(battleState.opponent.name);
+            }
+            saveGame();
+            renderPokedex();
+            updateAchievements();
+            showMessage("Success!", `You caught ${battleState.opponent.name}!`);
+            document.getElementById("battleArea").innerHTML = `<p class="text-center font-bold mb-4">You caught it!</p><button onclick="switchTab('home')" class="w-full bg-blue-500 text-white font-bold py-3 rounded-lg shadow-md hover:bg-blue-600 transition duration-300">Return to Home</button>`;
+        } else {
+            updateBattleLog("Aww, it,  escaped!");
+            showMessage("Failed", `${battleState.opponent.name} broke free!`);
+            setTimeout(opponentAttack, 1500);
         }
     }
 
-    // Initial setup on page load
-    window.onload = () => {
-        loadGame();
-        switchTab("home");
+    function checkBattleEnd() {
+        if (battleState.playerHP <= 0) {
+            updateBattleLog("You lost the battle!");
+            document.getElementById("battleArea").innerHTML = `<p class="text-center font-bold mb-4">You lost!</p><button onclick="switchTab('home')" class="w-full bg-blue-500 text-white font-bold py-3 rounded-lg shadow-md hover:bg-blue-600 transition duration-300">Return to Home</button>`;
+        } else if (battleState.opponentHP <= 0) {
+            playerState.exp += WIN_EXP_GAIN;
+            checkLevelUp();
+            updateBattleLog(`You defeated ${battleState.opponent.name} and gained ${WIN_EXP_GAIN} experience!`);
+            document.getElementById("battleArea").innerHTML = `<p class="text-center font-bold mb-4">You won!</p><button onclick="switchTab('home')" class="w-full bg-blue-500 text-white font-bold py-3 rounded-lg shadow-md hover:bg-blue-600 transition duration-300">Return to Home</button>`;
+        }
+    }
+    
+    // --- Trading Logic ---
+    function exportPokedex() {
+        const data = JSON.stringify(pokedex);
+        const exportDataEl = document.getElementById("exportData");
+        exportDataEl.value = data;
+        exportDataEl.select();
+        try {
+            document.execCommand('copy');
+            showMessage("Success!", "Trade code copied to clipboard!");
+        } catch (err) {
+            showMessage("Failed to Copy", "Could not copy to clipboard. Please copy the text manually.");
+        }
+    }
 
-        // Event listener for tab buttons using event delegation
-        document.getElementById('main-footer').addEventListener('click', (event) => {
-            const button = event.target.closest('.tab-button');
-            if (button) {
+    function importPokedex() {
+        const data = document.getElementById("importData").value;
+        try {
+            const importedPokedex = JSON.parse(data);
+            const addedCount = importedPokedex.filter(p => !pokedex.includes(p)).length;
+            importedPokedex.forEach(p => {
+                if (!pokedex.includes(p)) {
+                    pokedex.push(p);
+                }
+            });
+            saveGame();
+            renderPokedex();
+            showMessage("Trade Redeemed!", `You received ${addedCount} new Pokémon!`);
+            updateAchievements();
+        } catch (e) {
+            showMessage("Invalid Code", "The code you entered is not a valid trade code.");
+        }
+    }
+
+    // --- Initial Setup and Event Listeners ---
+    window.onload = function () {
+        loadGame();
+        
+        // This is the new, simplified tab switching logic
+        document.querySelectorAll('.tab-footer button').forEach(button => {
+            button.addEventListener('click', () => {
                 const tabId = button.getAttribute('data-tab');
                 switchTab(tabId);
-            }
+            });
         });
 
-        // Event listeners for other buttons
+        // Event listeners for game buttons
         document.getElementById("catchHomeBtn").addEventListener('click', catchPokemon);
         document.getElementById("catchExploreBtn").addEventListener('click', catchPokemon);
         document.getElementById("dailyRewardBtn").addEventListener('click', dailyReward);
+        document.getElementById("gatherBtn").addEventListener('click', gatherResources);
         document.getElementById("exportBtn").addEventListener('click', exportPokedex);
         document.getElementById("importBtn").addEventListener('click', importPokedex);
-        document.getElementById("gatherBtn").addEventListener('click', gatherResources);
-        document.getElementById("transferButton").addEventListener('click', transferPokedex);
+        document.getElementById("transferButton").addEventListener('click', () => showMessage("Transfer Feature", "This feature is currently under development."));
    ,  };
 </script>
 
