@@ -177,4 +177,72 @@ function sellAllItems(item){const count=items[item];if(count>0){playerState.mone
 function buyItem(item){if(playerState.money>=ITEM_PRICES[item]){playerState.money-=ITEM_PRICES[item];items[item]++;saveGame();renderInventory();renderMart();showMessage("Item Bought!",`Bought 1 ${item} for 💰${ITEM_PRICES[item]}`);}else showMessage("Can't Buy","Not enough money.");}
 
 // --- Verify ---
-function verifyGame(){let errors=[];try{if(!pokedex||!items||!playerState)
+function verifyGame(){let errors=[];try{if(!pokedex||!items||!playerState)<!-- Audio Elements -->
+<audio id="bgMusic" loop src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_2a4e2315a0.mp3?filename=adventure-112833.mp3"></audio>
+<audio id="catchSound" src="https://freesound.org/data/previews/264/264412_5121236-lq.mp3"></audio>
+<audio id="gatherSound" src="https://freesound.org/data/previews/331/331912_3248244-lq.mp3"></audio>
+<audio id="levelupSound" src="https://freesound.org/data/previews/276/276033_5121236-lq.mp3"></audio>
+
+<script>
+let musicStarted = false;
+document.body.addEventListener('click', () => {
+    if (!musicStarted) {
+        const bgMusic = document.getElementById('bgMusic');
+        bgMusic.volume = 0.5;
+        bgMusic.play().catch(()=>console.log("Autoplay blocked, waiting for user."));
+        musicStarted = true;
+    }
+});
+
+// Updated gatherResources with TalkBack & sound
+function gatherResources() {
+    const resources = ["Berries", "Stones"];
+    const gathered = resources[Math.floor(Math.random() * resources.length)];
+    const amount = Math.floor(Math.random() * 3) + 1;
+    items[gathered] += amount;
+    playerState.exp += GATHER_EXP_GAIN;
+    checkLevelUp();
+    saveGame();
+    renderGatherUI();
+
+    // Play sound
+    const gatherSound = document.getElementById('gatherSound');
+    gatherSound.play().catch(()=>console.log("Sound blocked, waiting for user tap."));
+
+    // Announce to TalkBack
+    const announce = `You gathered ${amount} ${gathered}!`;
+    speechSynthesis.speak(new SpeechSynthesisUtterance(announce));
+
+    showMessage("Gathering Complete!", `You found ${amount} ${gathered}!`);
+}
+
+// Updated catchPokemon with TalkBack & sound
+function catchPokemon() {
+    const foundPokemon = pokemonList[Math.floor(Math.random() * pokemonList.length)];
+    if (!pokedex.includes(foundPokemon)) {
+        pokedex.push(foundPokemon);
+        speechSynthesis.speak(new SpeechSynthesisUtterance(`You found a wild ${foundPokemon}!`));
+        const catchSound = document.getElementById('catchSound');
+        catchSound.play().catch(()=>console.log("Sound blocked, waiting for user tap."));
+        showMessage("New Catch!", `You found a wild ${foundPokemon}! It has been added to your Pokédex.`);
+    } else {
+        speechSynthesis.speak(new SpeechSynthesisUtterance(`You already have ${foundPokemon} in your Pokédex.`));
+        showMessage("Already Caught!", `You already have ${foundPokemon} in your Pokédex.`);
+    }
+    saveGame();
+    renderPokedex();
+}
+
+// Updated checkLevelUp with TalkBack & sound
+function checkLevelUp() {
+    const expNeeded = EXP_PER_LEVEL * playerState.level;
+    if (playerState.exp >= expNeeded) {
+        playerState.level++;
+        playerState.exp = 0;
+        const levelupSound = document.getElementById('levelupSound');
+        levelupSound.play().catch(()=>console.log("Sound blocked, waiting for user tap."));
+        speechSynthesis.speak(new SpeechSynthesisUtterance(`Congratulations! You are now level ${playerState.level}.`));
+        showMessage("Level Up!", `Congratulations, you are now level ${playerState.level}!`);
+    }
+}
+</script>
