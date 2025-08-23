@@ -143,14 +143,13 @@ function renderTabs(){
     document.getElementById("dailyRewardBtn").onclick=dailyReward;
     document.getElementById("exportBtn").onclick=exportPokedex;
     document.getElementById("importBtn").onclick=importPokedex;
-    document.getElementById("startBattleBtn").onclick=startBattle;
 }
 
-//////////////////// BATTLE SYSTEM ////////////////////
+// //////////////////// BATTLE SYSTEM ////////////////////
 let battleState={player:null,opponent:null,playerHP:0,opponentHP:0,turn:"player"};
+
 function startBattle(){
     if(pokedex.length===0){alert("You have no Pokémon to battle with!");return;}
-    switchTab("battle");
     renderBattleSelection();
 }
 
@@ -159,4 +158,27 @@ function renderBattleSelection(){
     battleArea.innerHTML="<h3>Select your Pokémon:</h3>";
     let select=document.createElement("select");select.id="battleSelect";
     pokedex.forEach(p=>{
-        let opt=document.createElement("option");
+        let opt=document.createElement("option");opt.value=p;opt.textContent=p;select.appendChild(opt);
+    });
+    battleArea.appendChild(select);
+    let btn=document.createElement("button");btn.textContent="Start Battle";btn.onclick=beginBattle;battleArea.appendChild(btn);
+    document.getElementById("battleLog").innerHTML="";
+    announce("Select your Pokémon to begin battle.");
+}
+
+function beginBattle(){
+    let playerPoke=document.getElementById("battleSelect").value;
+    battleState.player=playerPoke;
+    battleState.opponent=pokemonList[Math.floor(Math.random()*pokemonList.length)];
+    battleState.playerHP=100;battleState.opponentHP=100;
+    battleState.turn="player";
+    document.getElementById("battleLog").innerHTML="";
+    announce("Battle started! You chose "+battleState.player+". Opponent is "+battleState.opponent+".");
+    updateBattleLog("Battle started! You chose "+battleState.player+". Opponent is "+battleState.opponent+".");
+    document.getElementById("battleArea").innerHTML="<button onclick='playerAttack()'>Attack</button>";
+}
+
+function playerAttack(){
+    let dmg=Math.floor(Math.random()*16)+10;
+    battleState.opponentHP-=dmg;if(battleState.opponentHP<0) battleState.opponentHP=0;
+    updateBattleLog(`${battleState.player} hits ${battleState.opponent} for ${dmg} damage. Opponent HP: ${battleState.opponentHP
