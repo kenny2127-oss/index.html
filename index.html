@@ -374,14 +374,18 @@
                     <p class="font-bold">${item}</p>
                     <p>x${items[item]}</p>
                     <p class="text-xs text-gray-400">Value: 💰${ITEM_PRICES[item]}</p>
-                    <button onclick="sellItem('${item}')" class="mt-2 w-full bg-yellow-500 text-gray-900 font-bold py-1 rounded-md text-xs hover:bg-yellow-600 transition duration-300">Sell</button>
+                    <div class="flex flex-col gap-2 mt-2">
+                        <button onclick="sellItem('${item}')" class="w-full bg-yellow-500 text-gray-900 font-bold py-1 rounded-md text-xs hover:bg-yellow-600 transition duration-300">Sell One</button>
+                        <button onclick="sellAllItems('${item}')" class="w-full bg-red-500 text-white font-bold py-1 rounded-md text-xs hover:bg-red-600 transition duration-300">Sell All</button>
+                    </div>
                 `;
                 martContainer.appendChild(itemCard);
             }
         }
     }
-
-    // Game logic functions
+    
+    // --- Game logic functions ---
+    
     function catchPokemon() {
         let foundPokemon = pokemonList[Math.floor(Math.random() * pokemonList.length)];
         if (!pokedex.includes(foundPokemon)) {
@@ -396,6 +400,15 @@
     }
 
     function gatherResources() {
+        // --- Added a 50% chance to encounter a Pokémon ---
+        if (Math.random() < 0.5) {
+            let foundPokemon = pokemonList[Math.floor(Math.random() * pokemonList.length)];
+            if (!pokedex.includes(foundPokemon)) {
+                pokedex.push(foundPokemon);
+                showMessage("Pokémon Encounter!", `While gathering, you found a wild ${foundPokemon}! It has been added to your Pokédex.`);
+            }
+        }
+
         const resources = ["Berries", "Stones"];
         const gatheredResource = resources[Math.floor(Math.random() * resources.length)];
         const amount = Math.floor(Math.random() * 3) + 1;
@@ -405,7 +418,7 @@
         checkLevelUp();
 
         saveGame();
-        renderInventory(); // This is the fix! Now inventory updates immediately.
+        renderInventory(); // Now inventory updates immediately.
         renderGatherUI();
         showMessage("Gathering Complete!", `You found ${amount} ${gatheredResource}!`);
         announce(`You found ${amount} ${gatheredResource}!`);
@@ -420,6 +433,23 @@
             renderPokemart();
             showMessage("Item Sold!", `You sold one ${item} for 💰${ITEM_PRICES[item]}.`);
             announce(`You sold one ${item}. You now have 💰${playerState.money}.`);
+        } else {
+            showMessage("Can't Sell", `You don't have any ${item} to sell.`);
+        }
+    }
+    
+    // --- New function to sell all items of a single type ---
+    function sellAllItems(item) {
+        const count = items[item];
+        if (count > 0) {
+            const totalValue = count * ITEM_PRICES[item];
+            playerState.money += totalValue;
+            items[item] = 0;
+            saveGame();
+            renderInventory();
+            renderPokemart();
+            showMessage("Items Sold!", `You sold all ${count} ${item} for a total of 💰${totalValue}!`);
+            announce(`You sold all ${count} ${item}. You now have 💰${playerState.money}.`);
         } else {
             showMessage("Can't Sell", `You don't have any ${item} to sell.`);
         }
@@ -686,4 +716,3 @@
 
 </body>
 </html>
-
