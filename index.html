@@ -35,8 +35,9 @@
             color: white;
             transition: background-color 0.3s;
         }
-
-        footer button[aria-selected="true"] {
+        
+        /* New style for selected tab button to improve visual state on iOS */
+        footer button.is-selected {
             background: #ffcb05; /* Pokémon Yellow */
             font-weight: bold;
             color: #1a202c;
@@ -83,7 +84,6 @@
             transition: width 0.5s ease-in-out;
             border-radius: 9999px; /* Tailwind: rounded-full */
         }
-        
     </style>
 </head>
 <body class="bg-gray-900 text-gray-100">
@@ -187,8 +187,13 @@
     function switchTab(tabId) {
         document.querySelectorAll("section").forEach(sec => sec.classList.remove("active"));
         document.getElementById(tabId).classList.add("active");
-        document.querySelectorAll(".tab-button").forEach(btn => btn.setAttribute("aria-selected", "false"));
-        document.querySelector(`[data-tab='${tabId}']`).setAttribute("aria-selected", "true");
+        document.querySelectorAll(".tab-button").forEach(btn => {
+            btn.setAttribute("aria-selected", "false");
+            btn.classList.remove("is-selected");
+        });
+        const selectedButton = document.querySelector(`[data-tab='${tabId}']`);
+        selectedButton.setAttribute("aria-selected", "true");
+        selectedButton.classList.add("is-selected"); // Add new class for visual state
         announce(tabId.charAt(0).toUpperCase() + tabId.slice(1) + " tab selected");
         if (tabId === "battle") {
             // Check if a new battle needs to be started
@@ -483,6 +488,7 @@
         if (battleState.opponentHP < 0) battleState.opponentHP = 0;
         updateBattleUI();
         updateBattleLog(`${battleState.player.name} hits ${battleState.opponent.name} for ${damage} damage!`);
+        // Remove the `speak()` call to prevent double announcements on Android
         announce(`${battleState.player.name} hits ${battleState.opponent.name} for ${damage} damage! Opponent's HP is now ${battleState.opponentHP}.`);
         checkBattleEnd();
         if (battleState.opponentHP > 0) {
@@ -497,6 +503,7 @@
         if (battleState.playerHP < 0) battleState.playerHP = 0;
         updateBattleUI();
         updateBattleLog(`${battleState.opponent.name} hits ${battleState.player.name} for ${damage} damage!`);
+        // Remove the `speak()` call to prevent double announcements on Android
         announce(`${battleState.opponent.name} hits ${battleState.player.name} for ${damage} damage! Your HP is now ${battleState.playerHP}.`);
         checkBattleEnd();
     }
