@@ -1,240 +1,159 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Pokémon Catcher</title>
-  <style>
-    body {
-      font-family: sans-serif;
-      background-color: #333;
-      color: #fff;
-      margin: 0;
-      padding: 20px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      min-height: 100vh;
-      text-align: center;
-    }
-    .container {
-      background-color: #444;
-      padding: 20px;
-      border-radius: 10px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.5);
-      max-width: 400px;
-      width: 100%;
-    }
-    h1 { color: #ffcc00; }
-    button {
-      background-color: #007bff;
-      color: #fff;
-      border: none;
-      padding: 10px 20px;
-      border-radius: 5px;
-      cursor: pointer;
-      margin: 5px;
-      font-size: 16px;
-    }
-    button:hover { opacity: 0.85; }
-    #battle-area, #result-area { display: none; margin-top: 20px; }
-    #pokemon-display {
-      font-size: 24px;
-      font-weight: bold;
-      margin: 10px 0;
-    }
-    #health-bar-container {
-      background-color: #555;
-      border-radius: 5px;
-      height: 20px;
-      width: 100%;
-      margin-top: 10px;
-    }
-    #health-bar {
-      height: 100%;
-      background-color: #28a745;
-      border-radius: 5px;
-      transition: width 0.5s ease-in-out;
-      width: 100%;
-    }
-    #log {
-      border: 1px solid #555;
-      background-color: #222;
-      padding: 10px;
-      margin-top: 20px;
-      max-height: 150px;
-      overflow-y: auto;
-      border-radius: 5px;
-      text-align: left;
-      font-size: 14px;
-    }
-    #log p { margin: 0; padding: 2px 0; }
-    /* Responsive */
-    @media (max-width: 500px) {
-      .container { padding: 15px; }
-      button { width: 100%; }
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pokémon Adventure</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+body { font-family:'Inter',sans-serif; background:#1a202c; color:#e6eef8; -webkit-tap-highlight-color:transparent; }
+.tab-content { display:none; padding-bottom:5rem; }
+.tab-content.is-active { display:block; }
+.tab-footer { position:fixed; bottom:0; left:0; width:100%; display:flex; background:#3b4cca; z-index:1000; }
+.tab-footer button { flex:1; background-color:transparent; border:none; padding:1rem 0; cursor:pointer; color:white; transition:background-color 0.3s; font-weight:bold; }
+.tab-footer button.is-active { background:#ffcb05; color:#1a202c; }
+.modal { display:none; position:fixed; z-index:2000; left:0; top:0; width:100%; height:100%; overflow:auto; background-color:rgba(0,0,0,0.6); backdrop-filter:blur(5px); -webkit-backdrop-filter:blur(5px); }
+.modal-content { background-color:#2d3748; margin:15% auto; padding:2rem; border-radius:1rem; width:80%; max-width:400px; text-align:center; }
+</style>
 </head>
 <body>
-  <div class="container">
-    <h1>Pokémon Catcher</h1>
 
-    <!-- Home -->
-    <div id="home-area">
-      <button onclick="findPokemon()">Find a Wild Pokémon</button>
-      <div id="pokedex-list">
-        <h3>Caught Pokémon:</h3>
-        <p id="pokedex-message">No Pokémon caught yet.</p>
-        <ul id="pokedex-ul" style="list-style-type:none; padding:0;"></ul>
-      </div>
-    </div>
-
-    <!-- Battle -->
-    <div id="battle-area">
-      <p>A wild <span id="pokemon-display"></span> appeared!</p>
-      <p>HP: <span id="current-hp"></span> / <span id="max-hp"></span></p>
-      <div id="health-bar-container">
-        <div id="health-bar"></div>
-      </div>
-      <button onclick="attack()">Attack!</button>
-      <button onclick="catchPokemon()"><span id="catch-chance">Try to Catch (5%)</span></button>
-      <button onclick="runAway()">Run Away</button>
-    </div>
-
-    <!-- Results -->
-    <div id="result-area">
-      <p id="result-message"></p>
-      <button onclick="resetGame()">Return to Home</button>
-    </div>
-
-    <!-- Log -->
-    <div id="log" aria-live="polite"></div>
+<!-- Message Modal -->
+<div id="messageModal" class="modal">
+  <div class="modal-content">
+    <h3 id="messageTitle" class="text-xl font-bold mb-4"></h3>
+    <p id="messageText" class="mb-6"></p>
+    <button onclick="hideMessage()" class="bg-blue-500 text-white font-bold py-2 px-6 rounded-lg shadow-lg hover:bg-blue-600 transition duration-300">OK</button>
   </div>
+</div>
 
-  <script>
-    // Data
-    const pokemonList = ["Bulbasaur","Charmander","Squirtle","Pikachu","Jigglypuff","Meowth"];
-    let caughtPokemon = [];
-    let currentOpponent = null;
-    let opponentMaxHP = 0;
-    let opponentCurrentHP = 0;
+<header class="p-4 text-center">
+  <h1 class="text-4xl font-bold text-yellow-400">Pokémon Adventure</h1>
+</header>
 
-    // Elements
-    const homeArea = document.getElementById("home-area");
-    const battleArea = document.getElementById("battle-area");
-    const resultArea = document.getElementById("result-area");
-    const pokedexUl = document.getElementById("pokedex-ul");
-    const pokedexMessage = document.getElementById("pokedex-message");
-    const pokemonDisplay = document.getElementById("pokemon-display");
-    const currentHpEl = document.getElementById("current-hp");
-    const maxHpEl = document.getElementById("max-hp");
-    const healthBar = document.getElementById("health-bar");
-    const catchChanceEl = document.getElementById("catch-chance");
-    const logEl = document.getElementById("log");
-    const resultMessageEl = document.getElementById("result-message");
+<main class="container mx-auto p-4">
 
-    // Load/Save
-    function loadGame(){
-      const stored = localStorage.getItem("caughtPokemon");
-      if(stored){ caughtPokemon = JSON.parse(stored); }
-      renderPokedex();
-    }
-    function saveGame(){
-      localStorage.setItem("caughtPokemon", JSON.stringify(caughtPokemon));
-    }
+<!-- Home Tab -->
+<section id="home" class="tab-content is-active">
+  <div class="bg-gray-800 p-6 rounded-xl shadow-lg">
+    <h2 class="text-2xl font-semibold mb-4 text-center">Pokédex</h2>
+    <div id="pokedex" class="grid grid-cols-4 sm:grid-cols-6 lg:grid-cols-8 gap-3"></div>
+  </div>
+  <div class="flex flex-col sm:flex-row gap-4 mt-6">
+    <button onclick="catchPokemon()" class="w-full bg-green-500 text-white font-bold py-3 rounded-lg shadow-md hover:bg-green-600 transition duration-300">Catch Pokémon</button>
+    <button onclick="dailyReward()" class="w-full bg-yellow-500 text-gray-900 font-bold py-3 rounded-lg shadow-md hover:bg-yellow-600 transition duration-300">Daily Reward</button>
+  </div>
+  <button onclick="showMessage('Transfer Feature', 'This feature is currently under development.')" class="w-full bg-blue-500 text-white font-bold py-3 rounded-lg shadow-md mt-4 hover:bg-blue-600 transition duration-300">Transfer Pokédex</button>
+</section>
 
-    // Render
-    function renderPokedex(){
-      pokedexUl.innerHTML = "";
-      if(caughtPokemon.length===0){
-        pokedexMessage.style.display="block";
-      } else {
-        pokedexMessage.style.display="none";
-        caughtPokemon.forEach(p=>{
-          const li=document.createElement("li");
-          li.textContent=p;
-          pokedexUl.appendChild(li);
-        });
-      }
-    }
+<!-- Explore Tab -->
+<section id="explore" class="tab-content">
+  <div class="bg-gray-800 p-6 rounded-xl shadow-lg text-center">
+    <h2 class="text-2xl font-semibold mb-2">Explore</h2>
+    <p class="text-gray-400 mb-4">Click below to find a new Pokémon!</p>
+    <button onclick="catchPokemon()" class="w-full bg-green-500 text-white font-bold py-3 rounded-lg shadow-md hover:bg-green-600 transition duration-300">Catch Pokémon</button>
+  </div>
+</section>
 
-    // Log
-    function addLog(msg){
-      const p=document.createElement("p");
-      p.textContent=msg;
-      logEl.appendChild(p);
-      logEl.scrollTop=logEl.scrollHeight;
-    }
+<!-- Gather Tab -->
+<section id="gather" class="tab-content">
+  <div class="bg-gray-800 p-6 rounded-xl shadow-lg">
+    <h2 class="text-2xl font-semibold mb-4 text-center">Gather Resources</h2>
+    <p class="text-gray-400 mb-2">Click to gather resources and gain experience.</p>
+    <div class="flex justify-between items-center text-sm font-semibold mb-2">
+      <span>Level: <span id="playerLevel">1</span></span>
+      <span>Exp: <span id="playerExp">0</span>/<span id="expToNextLevel">100</span></span>
+    </div>
+    <div class="w-full bg-gray-600 rounded-full h-4 overflow-hidden">
+      <div id="expBar" class="bg-green-500 h-full transition-all duration-500" style="width: 0%;"></div>
+    </div>
+    <button onclick="gatherResources()" class="w-full bg-indigo-500 text-white font-bold py-3 rounded-lg shadow-md mt-4 hover:bg-indigo-600 transition duration-300">Gather</button>
+  </div>
+</section>
 
-    // Battle Flow
-    function findPokemon(){
-      currentOpponent=pokemonList[Math.floor(Math.random()*pokemonList.length)];
-      opponentMaxHP=Math.floor(Math.random()*50)+50;
-      opponentCurrentHP=opponentMaxHP;
-      homeArea.style.display="none";
-      resultArea.style.display="none";
-      battleArea.style.display="block";
-      pokemonDisplay.textContent=currentOpponent;
-      updateBattleUI();
-      addLog(`A wild ${currentOpponent} appeared!`);
-    }
+<!-- Inventory Tab -->
+<section id="inventory" class="tab-content">
+  <div class="bg-gray-800 p-6 rounded-xl shadow-lg">
+    <h2 class="text-2xl font-semibold mb-4 text-center">Inventory</h2>
+    <div id="moneyDisplay" class="text-center text-lg font-bold mb-4"></div>
+    <div id="inventoryItems" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4"></div>
+  </div>
+</section>
 
-    function updateBattleUI(){
-      currentHpEl.textContent=opponentCurrentHP;
-      maxHpEl.textContent=opponentMaxHP;
-      const hpPct=(opponentCurrentHP/opponentMaxHP)*100;
-      healthBar.style.width=hpPct+"%";
-      healthBar.style.backgroundColor= hpPct>50?"#28a745": hpPct>20?"#ffc107":"#dc3545";
-      const base=5;
-      const factor=1-(opponentCurrentHP/opponentMaxHP);
-      const chance=base+(factor*95);
-      catchChanceEl.textContent=`Try to Catch (${Math.round(chance)}%)`;
-    }
+<!-- Poké Mart Tab -->
+<section id="pokemart" class="tab-content">
+  <div class="bg-gray-800 p-6 rounded-xl shadow-lg">
+    <h2 class="text-2xl font-semibold mb-4 text-center">Poké Mart</h2>
+    <div id="martItems" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4"></div>
+  </div>
+</section>
 
-    function attack(){
-      const dmg=Math.floor(Math.random()*10)+5;
-      opponentCurrentHP=Math.max(0,opponentCurrentHP-dmg);
-      addLog(`You attacked ${currentOpponent} for ${dmg} damage!`);
-      updateBattleUI();
-      if(opponentCurrentHP===0){
-        endBattle("You defeated the wild Pokémon!");
-      }
-    }
+<!-- Trade Tab -->
+<section id="trade" class="tab-content">
+  <div class="bg-gray-800 p-6 rounded-xl shadow-lg">
+    <h2 class="text-2xl font-semibold mb-4 text-center">Trade</h2>
+    <label for="exportData" class="block mb-2 text-sm text-gray-400">Offer a Pokémon to generate a short code:</label>
+    <textarea id="exportData" readonly class="w-full p-2 bg-gray-700 rounded-lg text-gray-100 border border-gray-600"></textarea>
+    <button onclick="exportPokedex()" class="w-full bg-blue-500 text-white font-bold py-3 rounded-lg shadow-md mt-4 hover:bg-blue-600 transition duration-300">Generate Trade Code</button>
+    <label for="importData" class="block mt-6 mb-2 text-sm text-gray-400">Enter a code to receive a Pokémon:</label>
+    <textarea id="importData" class="w-full p-2 bg-gray-700 rounded-lg text-gray-100 border border-gray-600"></textarea>
+    <button onclick="importPokedex()" class="w-full bg-purple-500 text-white font-bold py-3 rounded-lg shadow-md mt-4 hover:bg-purple-600 transition duration-300">Redeem Code</button>
+  </div>
+</section>
 
-    function catchPokemon(){
-      const chance=parseFloat(catchChanceEl.textContent.match(/\((.*?)%\)/)[1]);
-      addLog("You threw a Poké Ball...");
-      if(Math.random()*100<chance){
-        addLog(`Gotcha! You caught ${currentOpponent}!`);
-        caughtPokemon.push(currentOpponent);
-        saveGame();
-        endBattle("Success! You caught it!");
-      } else {
-        addLog(`${currentOpponent} broke free!`);
-      }
-    }
+</main>
 
-    function runAway(){
-      addLog("You ran away from the battle.");
-      endBattle("You ran away.");
-    }
+<!-- Tab Navigation -->
+<footer class="tab-footer" role="tablist">
+  <button onclick="switchTab('home')" data-tab="home" class="is-active" role="tab" aria-selected="true">Home</button>
+  <button onclick="switchTab('explore')" data-tab="explore" role="tab" aria-selected="false">Explore</button>
+  <button onclick="switchTab('gather')" data-tab="gather" role="tab" aria-selected="false">Gather</button>
+  <button onclick="switchTab('inventory')" data-tab="inventory" role="tab" aria-selected="false">Inventory</button>
+  <button onclick="switchTab('pokemart')" data-tab="pokemart" role="tab" aria-selected="false">Poké Mart</button>
+  <button onclick="switchTab('trade')" data-tab="trade" role="tab" aria-selected="false">Trade</button>
+</footer>
 
-    function endBattle(msg){
-      battleArea.style.display="none";
-      resultArea.style.display="block";
-      resultMessageEl.textContent=msg;
-      renderPokedex();
-    }
+<script>
+// --- Game Data ---
+const pokemonList = ["Bulbasaur","Ivysaur","Venusaur","Charmander","Charmeleon","Charizard","Squirtle","Wartortle","Blastoise"];
+let pokedex = [], items = {Potion:0,"Poké Ball":0,"Rare Candy":0,"Berries":0,"Stones":0,"Fire Stone":0,"Water Stone":0}, playerState = {level:1,exp:0,money:100};
+const ITEM_PRICES = {Potion:50,"Poké Ball":100,"Rare Candy":500,Berries:5,Stones:20,"Fire Stone":500,"Water Stone":500};
+const evolutionStones = {"Fire Stone":["Vulpix","Eevee"],"Water Stone":["Poliwhirl","Eevee"]};
 
-    function resetGame(){
-      resultArea.style.display="none";
-      homeArea.style.display="block";
-    }
+// --- Helpers ---
+function showMessage(title,text){document.getElementById("messageTitle").innerText=title;document.getElementById("messageText").innerText=text;document.getElementById("messageModal").style.display="block";}
+function hideMessage(){document.getElementById("messageModal").style.display="none";}
+function switchTab(tab){document.querySelectorAll(".tab-content").forEach(s=>s.classList.remove("is-active"));document.querySelectorAll(".tab-footer button").forEach(b=>b.classList.remove("is-active"));document.getElementById(tab).classList.add("is-active");document.querySelector(`[data-tab='${tab}']`).classList.add("is-active");if(tab==="inventory"){renderInventory()}else if(tab==="pokemart"){renderPokemart()}}
 
-    // Init
-    window.onload=loadGame;
-  </script>
+// --- Save/Load ---
+function saveGame(){localStorage.setItem("pokedex",JSON.stringify(pokedex));localStorage.setItem("items",JSON.stringify(items));localStorage.setItem("playerState",JSON.stringify(playerState))}
+function loadGame(){pokedex=JSON.parse(localStorage.getItem("pokedex"))||[];items=JSON.parse(localStorage.getItem("items"))||items;playerState=JSON.parse(localStorage.getItem("playerState"))||playerState;renderPokedex();renderGatherUI();}
+
+// --- Rendering ---
+function renderPokedex(){const c=document.getElementById("pokedex");c.innerHTML=pokemonList.map(p=>`<div class="card bg-gray-700 rounded-lg p-2 text-center shadow-inner text-sm">${pokedex.includes(p)?p:"???"}</div>`).join('');}
+function renderGatherUI(){document.getElementById("playerLevel").textContent=playerState.level;document.getElementById("playerExp").textContent=playerState.exp;document.getElementById("expToNextLevel").textContent=expToNextLevel(playerState.level);document.getElementById("expBar").style.width=`${Math.min(100,(playerState.exp/expToNextLevel(playerState.level))*100)}%`;}
+function renderInventory(){const inv=document.getElementById("inventoryItems");inv.innerHTML="";document.getElementById("moneyDisplay").textContent=`💰: ${playerState.money}`;for(const i in items){if(items[i]>0){const div=document.createElement("div");div.className="card bg-gray-700 rounded-lg p-3 text-center shadow-inner text-sm";let evo="";if(evolutionStones[i]){evo=`<p class="text-xs text-green-400">Can evolve: ${evolutionStones[i].join(", ")}</p>`}div.innerHTML=`<p class="font-bold">${i}</p><p>x${items[i]}</p>${evo}`;inv.appendChild(div)}}}
+function renderPokemart(){const m=document.getElementById("martItems");m.innerHTML="";for(const i in ITEM_PRICES){if(playerState.money>=ITEM_PRICES[i]){const div=document.createElement("div");div.className="card bg-gray-700 rounded-lg p-3 text-center shadow-inner text-sm";div.innerHTML=`<p class="font-bold">${i}</p><p>Price: 💰${ITEM_PRICES[i]}</p><button onclick="buyItem('${i}')" class="w-full bg-green-500 text-white py-1 rounded-md text-xs hover:bg-green-600 mt-1">Buy</button>`;m.appendChild(div)}}}
+
+// --- Gameplay ---
+function catchPokemon(){const p=pokemonList[Math.floor(Math.random()*pokemonList.length)];if(!pokedex.includes(p)){pokedex.push(p);showMessage("New Catch!",`You found a wild ${p}!`) } else {showMessage("Already Caught!",`You already have ${p}`)}saveGame();renderPokedex();}
+function gatherResources(){const res=["Berries","Stones"];const r=res[Math.floor(Math.random()*res.length)];const amt=Math.floor(Math.random()*3)+1;items[r]+=amt;playerState.exp+=10;checkLevelUp();saveGame();renderGatherUI();showMessage("Gather Complete!",`You found ${amt} ${r}!`);}
+function checkLevelUp(){while(playerState.exp>=expToNextLevel(playerState.level)){playerState.exp-=expToNextLevel(playerState.level);playerState.level++;showMessage("Level Up!",`You are now level ${playerState.level}!`)}}
+function expToNextLevel(lvl){return Math.floor(100*Math.pow(1.2,lvl-1));}
+
+// --- Poké Mart ---
+function buyItem(item){if(playerState.money>=ITEM_PRICES[item]){playerState.money-=ITEM_PRICES[item];items[item]=(items[item]||0)+1;saveGame();renderInventory();renderPokemart();showMessage("Purchased",`You bought 1 ${item}`);}}
+
+// --- Daily Reward ---
+function dailyReward(){const last=localStorage.getItem("lastDaily");const today=new Date().toDateString();if(last===today){showMessage("Daily Reward","Already claimed today!");return;}const p=pokemonList[Math.floor(Math.random()*pokemonList.length)];if(!pokedex.includes(p))pokedex.push(p);items.Potion++;localStorage.setItem("lastDaily",today);saveGame();renderPokedex();showMessage("Daily Reward Claimed!",`You received ${p} and 1 Potion!`);}
+
+// --- Trading ---
+function exportPokedex(){const data=JSON.stringify(pokedex);const el=document.getElementById("exportData");el.value=data;el.select();try{document.execCommand('copy');showMessage("Success!","Trade code copied!");}catch{showMessage("Failed","Copy manually.");}}
+function importPokedex(){const data=document.getElementById("importData").value;try{const imported=JSON.parse(data);let added=0;imported.forEach(p=>{if(!pokedex.includes(p)){pokedex.push(p);added++;}});saveGame();renderPokedex();showMessage("Trade Redeemed!",`You received ${added} new Pokémon!`);}catch{showMessage("Invalid Code","Not a valid trade code.");}}
+
+// --- Init ---
+window.onload=loadGame;
+</script>
+
 </body>
 </html>
