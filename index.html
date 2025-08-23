@@ -120,10 +120,10 @@
             <div id="pokedex" class="grid grid-cols-4 sm:grid-cols-6 lg:grid-cols-8 gap-3"></div>
         </div>
         <div class="flex flex-col sm:flex-row gap-4 mt-6">
-            <button id="catchHomeBtn" class="w-full bg-green-500 text-white font-bold py-3 rounded-lg shadow-md,  hover:bg-green-600 transition duration-300">Catch Pokémon</button>
-            <button id="dailyRewardBtn" class="w-full bg-yellow-500 text-gray-900 font-bold py-3 rounded-lg shadow-md hover:bg-yellow-600 transition duration-300">Daily Reward</button>
+            <button onclick="catchPokemon()" class="w-full bg-green-500 text-white font-bold py-3 rounded-lg shadow-md hover:bg-green-600 transition duration-300">Catch Pokémon</button>
+            <button onclick="dailyReward()" class="w-full bg-yellow-500 text-gray-900 font-bold py-3 rounded-lg shadow-md hover:bg-yellow-600 transition duration-300">Daily Reward</button>
         </div>
-        <button id="transferButton" class="w-full bg-blue-500 text-white font-bold py-3 rounded-lg shadow-md mt-4 hover:bg-blue-600 transition duration-300">Transfer Pokédex from another app</button>
+        <button onclick="showMessage('Transfer Feature', 'This feature is currently under development.')" class="w-full bg-blue-500 text-white font-bold py-3 rounded-lg shadow-md mt-4 hover:bg-blue-600 transition duration-300">Transfer Pokédex from another app</button>
     </section>
 
     <!-- Explore Tab Content -->
@@ -131,7 +131,7 @@
         <div class="bg-gray-800 p-6 rounded-xl shadow-lg text-center">
             <h2 class="text-2xl font-semibold mb-2">Explore</h2>
             <p class="text-gray-400 mb-4">Click below to find a new Pokémon!</p>
-            <button id="catchExploreBtn" class="w-full bg-green-500 text-white font-bold py-3 rounded-lg shadow-md hover:bg-green-600 transition duration-300">Catch Pokémon</button>
+            <button onclick="catchPokemon()" class="w-full bg-green-500 text-white font-bold py-3 rounded-lg shadow-md hover:bg-green-600 transition duration-300">Catch Pokémon</button>
         </div>
     </section>
 
@@ -147,7 +147,7 @@
             <div class="w-full bg-gray-600 rounded-full h-4 overflow-hidden">
                 <div id="expBar" class="progress-bar" style="width: 0%;"></div>
             </div>
-            <button id="gatherBtn" class="w-full bg-indigo-500 text-white font-bold py-3 rounded-lg shadow-md mt-4 hover:bg-indigo-600 transition duration-300">Gather</button>
+            <button onclick="gatherResources()" class="w-full bg-indigo-500 text-white font-bold py-3 rounded-lg shadow-md mt-4 hover:bg-indigo-600 transition duration-300">Gather</button>
         </div>
     </section>
 
@@ -183,23 +183,23 @@
             <h2 class="text-2xl font-semibold mb-4 text-center">Trade</h2>
             <label for="exportData" class="block mb-2 text-sm text-gray-400">Offer a Pokémon to generate a short code:</label>
             <textarea id="exportData" readonly class="w-full p-2 bg-gray-700 rounded-lg text-gray-100 border border-gray-600"></textarea>
-            <button id="exportBtn" class="w-full bg-blue-500 text-white font-bold py-3 rounded-lg shadow-md mt-4 hover:bg-blue-600 transition duration-300">Generate Trade Code</button>
-            <label,  for="importData" class="block mt-6 mb-2 text-sm text-gray-400">Enter a code to receive a Pokémon:</label>
+            <button onclick="exportPokedex()" class="w-full bg-blue-500 text-white font-bold py-3 rounded-lg shadow-md mt-4 hover:bg-blue-600 transition duration-300">Generate Trade Code</button>
+            <label for="importData" class="block mt-6 mb-2 text-sm text-gray-400">Enter a code to receive a Pokémon:</label>
             <textarea id="importData" class="w-full p-2 bg-gray-700 rounded-lg text-gray-100 border border-gray-600"></textarea>
-            <button id="importBtn" class="w-full bg-purple-500 text-white font-bold py-3 rounded-lg shadow-md mt-4 hover:bg-purple-600 transition duration-300">Redeem Code</button>
+            <button onclick="importPokedex()" class="w-full bg-purple-500 text-white font-bold py-3 rounded-lg shadow-md mt-4 hover:bg-purple-600 transition duration-300">Redeem Code</button>
         </div>
     </section>
 </main>
 
 <!-- Tab Navigation Footer -->
 <footer class="tab-footer" role="tablist">
-    <button role="tab" data-tab="home" class="is-active" aria-selected="true">Home</button>
-    <button role="tab" data-tab="explore" aria-selected="false">Explore</button>
-    <button role="tab" data-tab="gather" aria-selected="false">Gather</button>
-    <button role="tab" data-tab="inventory" aria-selected="false">Inventory</button>
-    <button role="tab" data-tab="pokemart" aria-selected="false">Poké Mart</button>
-    <button role="tab" data-tab="battle" aria-selected="false">Battle</button>
-    <button role="tab" data-tab="trade" aria-selected="false">Trade</button>
+    <button onclick="switchTab('home')" role="tab" data-tab="home" class="is-active" aria-selected="true">Home</button>
+    <button onclick="switchTab('explore')" role="tab" data-tab="explore" aria-selected="false">Explore</button>
+    <button onclick="switchTab('gather')" role="tab" data-tab="gather" aria-selected="false">Gather</button>
+    <button onclick="switchTab('inventory')" role="tab" data-tab="inventory" aria-selected="false">Inventory</button>
+    <button onclick="switchTab('pokemart')" role="tab" data-tab="pokemart" aria-selected="false">Poké Mart</button>
+    <button onclick="switchTab('battle')" role="tab" data-tab="battle" aria-selected="false">Battle</button>
+    <button onclick="switchTab('trade')" role="tab" data-tab="trade" aria-selected="false">Trade</button>
 </footer>
 
 <script>
@@ -251,7 +251,7 @@
         document.getElementById("liveRegion").innerText = text;
     }
 
-    // --- Tab Switching Logic (The most important part of the fix) ---
+    // --- Tab Switching Logic ---
     function switchTab(tabId) {
         // Deactivate all content sections and buttons
         const sections = document.querySelectorAll(".tab-content");
@@ -265,7 +265,7 @@
 
         announce(`${tabId.charAt(0).toUpperCase() + tabId.slice(1)} tab selected`);
         
-        // Re-render content specific to the tab being,  switched to
+        // Re-render content specific to the tab being switched to
         if (tabId === "inventory") {
             renderInventory();
         } else if (tabId === "pokemart") {
@@ -349,7 +349,7 @@
     function updateBattleLog(message) {
         const log = document.getElementById("battleLog");
         const entry = document.createElement("p");
-        entry.textContent =,  message;
+        entry.textContent = message;
         log.appendChild(entry);
         log.scrollTop = log.scrollHeight;
     }
@@ -452,7 +452,7 @@
     }
 
     function dailyReward() {
-        let,  last = localStorage.getItem("lastDaily"),
+        let last = localStorage.getItem("lastDaily"),
             today = new Date().toDateString();
         if (last === today) {
             showMessage("Daily Reward", "You have already claimed your daily reward today!");
@@ -491,7 +491,7 @@
         battleArea.innerHTML = `
             <h3 class="text-xl font-semibold text-center mb-4">Select your Pokémon:</h3>
             <select id="battleSelect" class="w-full p-2 bg-gray-700 rounded-lg mb-4 text-gray-100"></select>
-            <button id="startBattleBtn" class="w-full bg-red-500 text-white font-bold py-3 rounded-lg shadow-md hover:bg-red-600 transition duration-300">Start Battle</button>
+            <button onclick="beginBattle()" class="w-full bg-red-500 text-white font-bold py-3 rounded-lg shadow-md hover:bg-red-600 transition duration-300">Start Battle</button>
         `;
         const select = document.getElementById("battleSelect");
         pokedex.forEach(p => {
@@ -500,7 +500,6 @@
             option.textContent = p;
             select.appendChild(option);
         });
-        document.getElementById("startBattleBtn").onclick = beginBattle;
         document.getElementById("battleLog").innerHTML = "";
     }
 
@@ -534,7 +533,7 @@
                 <div class="text-center">
                     <p class="font-bold text-lg">${battleState.opponent.name}</p>
                     <div class="w-24 h-24 bg-gray-700 rounded-full flex items-center justify-center text-5xl">👾</div>
-                    <p class="text-sm">HP: <span,  id="opponentHP">${battleState.opponentHP}</span>/${battleState.opponent.hp}</p>
+                    <p class="text-sm">HP: <span id="opponentHP">${battleState.opponentHP}</span>/${battleState.opponent.hp}</p>
                     <div class="bg-gray-700 rounded-full mt-1">
                         <div id="opponentHealthBar" class="health-bar" style="width: 100%;"></div>
                     </div>
@@ -606,7 +605,7 @@
             showMessage("Success!", `You caught ${battleState.opponent.name}!`);
             document.getElementById("battleArea").innerHTML = `<p class="text-center font-bold mb-4">You caught it!</p><button onclick="switchTab('home')" class="w-full bg-blue-500 text-white font-bold py-3 rounded-lg shadow-md hover:bg-blue-600 transition duration-300">Return to Home</button>`;
         } else {
-            updateBattleLog("Aww, it,  escaped!");
+            updateBattleLog("Aww, it escaped!");
             showMessage("Failed", `${battleState.opponent.name} broke free!`);
             setTimeout(opponentAttack, 1500);
         }
@@ -657,29 +656,14 @@
         }
     }
 
-    // --- Initial Setup and Event Listeners ---
-    document.addEventListener('DOMContentLoaded', () => {
-        // Load game data and render initial UI
+    // --- Initial Setup and Game Start ---
+    function initGame() {
         loadGame();
-        
-        // This is the new, more reliable tab switching logic
-        document.querySelectorAll('.tab-footer button').forEach(button => {
-            button.addEventListener('click', () => {
-                const tabId = button.getAttribute('data-tab');
-                switchTab(tabId);
-            });
-        });
-
-        // Event listeners for all game buttons
-        document.getElementById("catchHomeBtn").addEventListener('click', catchPokemon);
-        document.getElementById("catchExploreBtn").addEventListener('click', catchPokemon);
-        document.getElementById("dailyRewardBtn").addEventListener('click', dailyReward);
-        document.getElementById("gatherBtn").addEventListener('click', gatherResources);
-        document.getElementById("exportBtn").addEventListener('click', exportPokedex);
-        document.getElementById("importBtn").addEventListener('click', importPokedex);
-        document.getElementById("transferButton").addEventListener('click', () => showMessage("Transfer Feature", "This feature is currently under development."));
-   ,  });
+    }
+    
+    window.onload = initGame;
 </script>
 
 </body>
 </html>
+
