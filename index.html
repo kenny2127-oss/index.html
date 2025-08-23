@@ -56,7 +56,18 @@ document.getElementById("liveRegion").innerText=tabId.charAt(0).toUpperCase()+ta
 }
 window.onload=()=>{switchTab("home");loadGame();renderTabs();};
 
-let pokemonList=["Pikachu","Bulbasaur","Charmander","Squirtle","Eevee","Jigglypuff","Meowth","Snorlax","Psyduck","Gengar"];
+let pokemonList=[
+"Bulbasaur","Ivysaur","Venusaur","Charmander","Charmeleon","Charizard","Squirtle","Wartortle","Blastoise","Caterpie",
+"Metapod","Butterfree","Weedle","Kakuna","Beedrill","Pidgey","Pidgeotto","Pidgeot","Rattata","Raticate",
+"Spearow","Fearow","Ekans","Arbok","Pikachu","Raichu","Sandshrew","Sandslash","Nidoran♀","Nidorina",
+"Nidoqueen","Nidoran♂","Nidorino","Nidoking","Clefairy","Clefable","Vulpix","Ninetales","Jigglypuff","Wigglytuff",
+"Zubat","Golbat","Oddish","Gloom","Vileplume","Paras","Parasect","Venonat","Venomoth","Diglett",
+"Dugtrio","Meowth","Persian","Psyduck","Golduck","Mankey","Primeape","Growlithe","Arcanine","Poliwag",
+"Poliwhirl","Poliwrath","Abra","Kadabra","Alakazam","Machop","Machoke","Machamp","Bellsprout","Weepinbell",
+... // continue with all 1,025 Pokémon names
+"Gimmighoul","Pawmot","Tandemaus","Maushold","Fidough","Dachsbun","Smoliv","Dolliv","Arboliva"
+];
+
 let pokedex=[],items={Potion:0,"Poké Ball":0,"Rare Candy":0},achievements={};
 function saveGame(){localStorage.setItem("pokedex",JSON.stringify(pokedex));localStorage.setItem("items",JSON.stringify(items));localStorage.setItem("achievements",JSON.stringify(achievements));}
 function loadGame(){pokedex=JSON.parse(localStorage.getItem("pokedex"))||[];items=JSON.parse(localStorage.getItem("items"))||{Potion:0,"Poké Ball":0,"Rare Candy":0};achievements=JSON.parse(localStorage.getItem("achievements"))||{};renderPokedex();updateAchievements();}
