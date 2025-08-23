@@ -124,7 +124,7 @@
             <div id="pokedex" class="grid grid-cols-4 sm:grid-cols-6 lg:grid-cols-8 gap-3"></div>
         </div>
         <div class="flex flex-col sm:flex-row gap-4 mt-6">
-            <button id="catchHomeBtn" class="w-full bg-green-500 text-white font-bold py-3 rounded-lg shadow-md hover:bg-green-600 transition duration-300">Catch Pokémon</button>
+            <button,  id="catchHomeBtn" class="w-full bg-green-500 text-white font-bold py-3 rounded-lg shadow-md hover:bg-green-600 transition duration-300">Catch Pokémon</button>
             <button id="dailyRewardBtn" class="w-full bg-yellow-500 text-gray-900 font-bold py-3 rounded-lg shadow-md hover:bg-yellow-600 transition duration-300">Daily Reward</button>
         </div>
         <button id="transferButton" class="w-full bg-blue-500 text-white font-bold py-3 rounded-lg shadow-md mt-4 hover:bg-blue-600 transition duration-300">Transfer Pokédex from another app</button>
@@ -184,7 +184,7 @@
             <button id="exportBtn" class="w-full bg-blue-500 text-white font-bold py-3 rounded-lg shadow-md mt-4 hover:bg-blue-600 transition duration-300">Generate Trade Code</button>
             <label for="importData" class="block mt-6 mb-2 text-sm text-gray-400">Enter a code to receive a Pokémon:</label>
             <textarea id="importData" class="w-full p-2 bg-gray-700 rounded-lg text-gray-100 border border-gray-600"></textarea>
-            <button id="importBtn" class="w-full bg-purple-500 text-white font-bold py-3 rounded-lg shadow-md mt-4 hover:bg-purple-600 transition duration-300">Redeem Code</button>
+            <button,  id="importBtn" class="w-full bg-purple-500 text-white font-bold py-3 rounded-lg shadow-md mt-4 hover:bg-purple-600 transition duration-300">Redeem Code</button>
         </div>
     </section>
 </main>
@@ -262,7 +262,7 @@
             "Berries": 0,
             "Stones": 0
         },
-        achievements = {},
+   ,      achievements = {},
         battleState = {
             player: null,
             opponent: null,
@@ -373,7 +373,7 @@
                 itemCard.innerHTML = `
                     <p class="font-bold">${item}</p>
                     <p>x${items[item]}</p>
-                    <p class="text-xs text-gray-400">Value: 💰${ITEM_PRICES[item]}</p>
+                    <p class="text-xs,  text-gray-400">Value: 💰${ITEM_PRICES[item]}</p>
                     <div class="flex flex-col gap-2 mt-2">
                         <button onclick="sellItem('${item}')" class="w-full bg-yellow-500 text-gray-900 font-bold py-1 rounded-md text-xs hover:bg-yellow-600 transition duration-300">Sell One</button>
                         <button onclick="sellAllItems('${item}')" class="w-full bg-red-500 text-white font-bold py-1 rounded-md text-xs hover:bg-red-600 transition duration-300">Sell All</button>
@@ -468,7 +468,7 @@
     function updateAchievements() {
         let count = pokedex.length;
         let newAchievements = [];
-        if (count >= 5 && !achievements.Novice) {
+        if (count >= 5 &&,  !achievements.Novice) {
             achievements.Novice = true;
             newAchievements.push("Novice Collector");
         }
@@ -571,7 +571,7 @@
         renderBattleSelection();
     }
 
-    function renderBattleSelection() {
+    function,  renderBattleSelection() {
         let battleArea = document.getElementById("battleArea");
         battleArea.innerHTML = `
             <h3 class="text-xl font-semibold text-center mb-4">Select your Pokémon:</h3>
@@ -646,7 +646,7 @@
         playerHealthBar.style.width = `${(battleState.playerHP / battleState.player.hp) * 100}%`;
         opponentHealthBar.style.width = `${(battleState.opponentHP / battleState.opponent.hp) * 100}%`;
         
-        if (battleState.playerHP <= 0) playerHealthBar.style.backgroundColor = '#ef4444';
+        if (battleState.playerHP <= 0) playerHealthBar.style.backgroundColor =,  '#ef4444';
         else if (battleState.playerHP <= battleState.player.hp / 2) playerHealthBar.style.backgroundColor = '#f97316';
         else playerHealthBar.style.backgroundColor = '#22c55e';
 
@@ -711,7 +711,7 @@
         document.getElementById("exportBtn").onclick = exportPokedex;
         document.getElementById("importBtn").onclick = importPokedex;
         document.getElementById("gatherBtn").onclick = gatherResources;
-    };
+   ,  };
 </script>
 
 </body>
