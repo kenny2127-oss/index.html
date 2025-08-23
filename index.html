@@ -1,166 +1,90 @@
-<!doctype html>
-
+<!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Pokémon Adventure</title>
-<style>
-body{margin:0;font-family:sans-serif;background:#1a202c;color:#e6eef8}
-header{text-align:center;padding:10px;background:#2d3748;color:#fff;}
-nav{display:flex;gap:6px;padding:8px;background:#2d3748;justify-content:space-around;position:relative;z-index:1000;pointer-events:auto;flex-wrap:wrap;}
-nav button{flex:1;padding:8px;border-radius:6px;background:#3182ce;color:white;border:none;cursor:pointer;pointer-events:auto;margin:2px;}
-nav button:hover{background:#63b3ed;}
-nav button.activeTab{background:#63b3ed; font-weight:bold;}
-.tab{display:none;padding:16px}
-.tab.active{display:block}
-.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(80px,1fr));gap:10px}
-.card{background:#2d3748;border-radius:10px;padding:8px;text-align:center}
-button{padding:6px 10px;border:none;border-radius:6px;background:#3182ce;color:white;cursor:pointer;margin:2px}
-button:disabled{opacity:0.5;cursor:not-allowed}
-input,textarea{padding:6px;border-radius:6px;border:none;margin:2px;width:100%;}
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pokémon Adventure</title>
+  <link rel="stylesheet" href="style.css">
+
+  <!-- ✅ PWA support -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#3b4cca">
+
+  <!-- iOS support -->
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+  <script>
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.register("service-worker.js")
+        .then(() => console.log("✅ Service Worker registered"))
+        .catch(err => console.error("❌ Service Worker failed", err));
+    }
+  </script>
 </head>
 <body>
-<header><h1>Pokémon Adventure</h1></header><div id="tabAnnouncement" aria-live="polite" style="position:absolute; left:-9999px;"></div><nav role="tablist">
-<button role="tab" aria-selected="true" aria-controls="home" data-tab="home" class="activeTab">Home</button>
-<button role="tab" aria-selected="false" aria-controls="explore" data-tab="explore">Explore</button>
-<button role="tab" aria-selected="false" aria-controls="battle" data-tab="battle">Battle</button>
-<button role="tab" aria-selected="false" aria-controls="center" data-tab="center">Poké Center</button>
-<button role="tab" aria-selected="false" aria-controls="trade" data-tab="trade">Trading Center</button>
-<button role="tab" aria-selected="false" aria-controls="tradePlayers" data-tab="tradePlayers">Trade with Players</button>
-</nav><main>
-<section id="home" class="tab active">
-<h2>Your Pokédex</h2>
-<div id="pokedex" class="grid"></div>
-<h3>Import / Transfer Pokédex</h3>
-<textarea id="importData" placeholder="Paste exported Pokédex JSON here" rows="4"></textarea>
-<button id="importBtn">Import Pokédex</button>
-<div id="importResult"></div>
-<h3>Export Pokédex</h3>
-<button id="exportBtn">Export Pokédex</button>
-<textarea id="exportData" readonly rows="2"></textarea>
-</section><section id="explore" class="tab">
-<h2>Explore</h2>
-<button id="exploreBtn">Explore Area</button>
-<div id="exploreResult"></div>
-</section><section id="battle" class="tab">
-<h2>Battle</h2>
-<p>Select one of your Pokémon to battle:</p>
-<div id="battleGrid" class="grid"></div>
-<div id="battleInfo"></div>
-<button id="battleNextBtn" style="display:none;">Next Turn</button>
-</section><section id="center" class="tab">
-<h2>Poké Center</h2>
-<button id="healBtn">Heal All Pokémon</button>
-<div id="healResult"></div>
-</section><section id="trade" class="tab">
-<h2>Trading Center</h2>
-<div id="tradeGrid" class="grid"></div>
-<div id="tradeResult"></div>
-</section><section id="tradePlayers" class="tab">
-<h2>Trade with Other Players</h2>
-<p>Select one of your Pokémon to generate a trade code to give to someone else:</p>
-<div id="offerGrid" class="grid"></div>
-<p>Or enter a code to receive a Pokémon from another player:</p>
-<input type="text" id="redeemCode" placeholder="Enter trade code">
-<button id="redeemBtn">Redeem Code</button>
-<div id="tradePlayerResult"></div>
-</section>
-</main><script>
-document.addEventListener('DOMContentLoaded', () => {
-  const pokemonList = ["Pikachu","Bulbasaur","Charmander","Squirtle","Eevee","Jigglypuff","Meowth","Snorlax","Psyduck","Gengar"];
-  let pokedex = JSON.parse(localStorage.getItem('pokedex')) || [];
-  let trades = JSON.parse(localStorage.getItem('trades')) || {};
-  let battleState = null;
-  const liveRegion = document.getElementById('tabAnnouncement');
+  <div id="app">
+    <header>
+      <h1 id="tabTitle">Home Tab Selected</h1>
+      <nav>
+        <button class="tab-button" data-tab="home" aria-label="Home Tab">Home</button>
+        <button class="tab-button" data-tab="explore" aria-label="Explore Tab">Explore</button>
+        <button class="tab-button" data-tab="battle" aria-label="Battle Tab">Battle</button>
+        <button class="tab-button" data-tab="trade" aria-label="Trade with other players Tab">Trade</button>
+      </nav>
+    </header>
 
-  function saveGame(){
-    localStorage.setItem('pokedex', JSON.stringify(pokedex));
-    localStorage.setItem('trades', JSON.stringify(trades));
-  }
+    <main id="tabContent">
+      <section id="home" class="tab active">
+        <h2>Pokédex</h2>
+        <div id="pokedex"></div>
+        <button id="transferButton">Transfer Pokédex from another app</button>
+      </section>
 
-  function speakText(text){
-    if('speechSynthesis' in window){
-      const utter=new SpeechSynthesisUtterance(text);
-      speechSynthesis.speak(utter);
-    }
-  }
+      <section id="explore" class="tab">
+        <h2>Explore</h2>
+        <p>Catch Pokémon while exploring!</p>
+        <button id="catchBtn">Catch Pokémon</button>
+      </section>
 
-  function renderPokedex(){
-    const container = document.getElementById('pokedex');
-    container.innerHTML='';
-    pokemonList.forEach(p=>{
-      const div=document.createElement('div');
-      div.className='card';
-      div.textContent=pokedex.includes(p)?p:'???';
-      container.appendChild(div);
+      <section id="battle" class="tab">
+        <h2>Battle</h2>
+        <p>Battle mode coming soon!</p>
+      </section>
+
+      <section id="trade" class="tab">
+        <h2>Trade with other players</h2>
+        <p>Select one of your Pokémon to generate a short code for trading.</p>
+        <button id="offerPokemonBtn">Offer Pokémon</button>
+        <div id="tradeResult"></div>
+      </section>
+    </main>
+  </div>
+
+  <script src="script.js"></script>
+
+  <!-- ✅ Service Worker inline fallback (for quick testing) -->
+  <script id="inline-sw" type="javascript/worker">
+    self.addEventListener("install", (event) => {
+      event.waitUntil(
+        caches.open("poke-cache").then((cache) => {
+          return cache.addAll([
+            "./index.html",
+            "./style.css",
+            "./script.js"
+          ]);
+        })
+      );
     });
-  }
 
-  function explorePokemon(){
-    const found=pokemonList[Math.floor(Math.random()*pokemonList.length)];
-    if(!pokedex.includes(found)) pokedex.push(found);
-    saveGame();
-    document.getElementById('exploreResult').textContent=`You found ${found}!`;
-    speakText(`You found ${found}`);
-    renderPokedex();
-    renderTrade();
-    renderTradePlayers();
-  }
-
-  function healPokemon(){
-    document.getElementById('healResult').textContent='All Pokémon healed!';
-    speakText('All Pokémon healed');
-  }
-
-  function renderTrade(){
-    const container=document.getElementById('tradeGrid');
-    container.innerHTML='';
-    pokedex.forEach(p=>{
-      const div=document.createElement('div');
-      div.className='card';
-      div.innerHTML=`${p}<br><button class='tradeBtn' data-poke='${p}'>Trade</button>`;
-      container.appendChild(div);
+    self.addEventListener("fetch", (event) => {
+      event.respondWith(
+        caches.match(event.request).then((response) => {
+          return response || fetch(event.request);
+        })
+      );
     });
-  }
-
-  function tradePokemon(name){
-    const newPoke=pokemonList[Math.floor(Math.random()*pokemonList.length)];
-    pokedex=pokedex.filter(p=>p!==name);
-    if(!pokedex.includes(newPoke)) pokedex.push(newPoke);
-    saveGame();
-    document.getElementById('tradeResult').textContent=`Traded ${name} for ${newPoke}!`;
-    speakText(`Traded ${name} for ${newPoke}`);
-    renderPokedex();
-    renderTrade();
-  }
-
-  function renderTradePlayers(){
-    const container=document.getElementById('offerGrid');
-    container.innerHTML='';
-    pokedex.forEach(p=>{
-      const div=document.createElement('div');
-      div.className='card';
-      div.innerHTML=`${p}<br><button class='offerBtn' data-poke='${p}'>Generate Code</button>`;
-      container.appendChild(div);
-    });
-  }
-
-  function generateCode(pokemon){
-    const code='TR-'+Math.random().toString(36).substring(2,8).toUpperCase();
-    trades[code]=pokemon;
-    pokedex=pokedex.filter(p=>p!==pokemon);
-    saveGame();
-    renderPokedex();
-    renderTradePlayers();
-    document.getElementById('tradePlayerResult').textContent=`Your trade code for ${pokemon}: ${code}`;
-    speakText(`Your trade code for ${pokemon} is ${code}`);
-  }
-
-  function redeemTrade(){
-    const code=document.getElementById('redeemCode').value.trim().toUpperCase();
-    if(trades[code]){
-      const pokemon=trades[code];
-      if(!pokedex.includes(pokemon)) pokedex.push(pokemon);
-      delete
+  </script>
+</body>
+</html>
