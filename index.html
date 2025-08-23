@@ -17,7 +17,7 @@ footer button{flex:1;background:white;border:none;padding:12px 0;cursor:pointer;
 footer button[aria-selected="true"]{background:#ffcb05;font-weight:bold;}
 section{display:none;padding:20px;}
 section.active{display:block;}
-#installBtn,#dailyRewardBtn,#catchBtn,#exportBtn,#importBtn,#startBattleBtn,#transferButton{margin:10px;padding:10px;border:none;border-radius:8px;background:#ffcb05;cursor:pointer;}
+#installBtn,#dailyRewardBtn,#catchHomeBtn,#catchExploreBtn,#exportBtn,#importBtn,#startBattleBtn,#transferButton{margin:10px;padding:10px;border:none;border-radius:8px;background:#ffcb05;cursor:pointer;}
 #liveRegion{position:absolute;left:-9999px;}
 #pokedex,.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(80px,1fr));gap:10px;margin-top:10px;}
 .card{background:#2d3748;border-radius:10px;padding:8px;text-align:center;}
@@ -33,6 +33,7 @@ if("serviceWorker" in navigator){navigator.serviceWorker.register("service-worke
 window.addEventListener("beforeinstallprompt",(e)=>{
     e.preventDefault();
     deferredPrompt = e;
+    document.getElementById("installBtn").disabled = false;
 });
 
 function installApp(){
@@ -45,7 +46,6 @@ function installApp(){
             "Android: Open this page via HTTPS; the install prompt should appear automatically."
         );
     }
-    document.getElementById("installBtn").disabled=false;
 }
 
 function switchTab(tabId){
@@ -55,15 +55,16 @@ function switchTab(tabId){
     document.querySelector(`[data-tab='${tabId}']`).setAttribute("aria-selected","true");
     document.getElementById("liveRegion").innerText = tabId.charAt(0).toUpperCase()+tabId.slice(1) + " tab selected";
 
-    // Auto-start battle if Battle tab is selected
     if(tabId === "battle"){
-        startBattle();
+        if(!battleState.player || battleState.playerHP <= 0 || battleState.opponentHP <= 0){
+            startBattle();
+        }
     }
 }
 
 window.onload = ()=>{switchTab("home");loadGame();renderTabs();};
 
-// Pokémon list (first 340 Pokémon for demonstration)
+// Pokémon list (first 340 Pokémon)
 let pokemonList=[
 "Bulbasaur","Ivysaur","Venusaur","Charmander","Charmeleon","Charizard","Squirtle","Wartortle","Blastoise","Caterpie",
 "Metapod","Butterfree","Weedle","Kakuna","Beedrill","Pidgey","Pidgeotto","Pidgeot","Rattata","Raticate",
@@ -75,19 +76,9 @@ let pokemonList=[
 // ... continue up to 340 Pokémon
 ];
 
-// Game data
 let pokedex=[],items={Potion:0,"Poké Ball":0,"Rare Candy":0},achievements={};
-function saveGame(){
-    localStorage.setItem("pokedex",JSON.stringify(pokedex));
-    localStorage.setItem("items",JSON.stringify(items));
-    localStorage.setItem("achievements",JSON.stringify(achievements));
-}
-function loadGame(){
-    pokedex=JSON.parse(localStorage.getItem("pokedex"))||[];
-    items=JSON.parse(localStorage.getItem("items"))||{Potion:0,"Poké Ball":0,"Rare Candy":0};
-    achievements=JSON.parse(localStorage.getItem("achievements"))||{};
-    renderPokedex();updateAchievements();
-}
+function saveGame(){localStorage.setItem("pokedex",JSON.stringify(pokedex));localStorage.setItem("items",JSON.stringify(items));localStorage.setItem("achievements",JSON.stringify(achievements));}
+function loadGame(){pokedex=JSON.parse(localStorage.getItem("pokedex"))||[];items=JSON.parse(localStorage.getItem("items"))||{Potion:0,"Poké Ball":0,"Rare Candy":0};achievements=JSON.parse(localStorage.getItem("achievements"))||{};renderPokedex();updateAchievements();}
 
 function speak(text){if("speechSynthesis" in window){let u=new SpeechSynthesisUtterance(text);speechSynthesis.speak(u);}}
 function announce(text){document.getElementById("liveRegion").innerText=text;}
@@ -99,52 +90,17 @@ function renderPokedex(){
     });
 }
 
-function catchPokemon(){
-    let found=pokemonList[Math.floor(Math.random()*pokemonList.length)];
-    if(!pokedex.includes(found)) pokedex.push(found);
-    saveGame();renderPokedex();
-    speak("You found "+found);announce("You found "+found);
-    updateAchievements();
-}
+function catchPokemon(){let found=pokemonList[Math.floor(Math.random()*pokemonList.length)];if(!pokedex.includes(found)) pokedex.push(found);saveGame();renderPokedex();speak("You found "+found);announce("You found "+found);updateAchievements();}
+function updateAchievements(){let count=pokedex.length;let newAchieve=[];if(count>=5&&!achievements.Novice){achievements.Novice=true;newAchieve.push("Novice Collector");}if(count>=10&&!achievements.Collector){achievements.Collector=true;newAchieve.push("Collector");}if(count>=20&&!achievements.Expert){achievements.Expert=true;newAchieve.push("Expert Collector");}saveGame();if(newAchieve.length>0){newAchieve.forEach(a=>speak("Achievement unlocked: "+a));announce("Achievements unlocked: "+newAchieve.join(", "));}}
 
-function updateAchievements(){
-    let count=pokedex.length;let newAchieve=[];
-    if(count>=5&&!achievements.Novice){achievements.Novice=true;newAchieve.push("Novice Collector");}
-    if(count>=10&&!achievements.Collector){achievements.Collector=true;newAchieve.push("Collector");}
-    if(count>=20&&!achievements.Expert){achievements.Expert=true;newAchieve.push("Expert Collector");}
-    saveGame();
-    if(newAchieve.length>0){newAchieve.forEach(a=>speak("Achievement unlocked: "+a));announce("Achievements unlocked: "+newAchieve.join(", "));}
-}
+function dailyReward(){let lastClaim=localStorage.getItem("lastDaily");let today=new Date().toDateString();if(lastClaim===today){alert("Daily reward already claimed!");return;}let reward=pokemonList[Math.floor(Math.random()*pokemonList.length)];if(!pokedex.includes(reward)) pokedex.push(reward);items.Potion+=1;localStorage.setItem("lastDaily",today);saveGame();renderPokedex();speak("Daily reward: "+reward+" and 1 Potion!");announce("Daily reward: "+reward+" and 1 Potion!");updateAchievements();}
 
-function dailyReward(){
-    let lastClaim=localStorage.getItem("lastDaily");
-    let today=new Date().toDateString();
-    if(lastClaim===today){alert("Daily reward already claimed!");return;}
-    let reward=pokemonList[Math.floor(Math.random()*pokemonList.length)];
-    if(!pokedex.includes(reward)) pokedex.push(reward);
-    items.Potion+=1;
-    localStorage.setItem("lastDaily",today);
-    saveGame();renderPokedex();
-    speak("Daily reward: "+reward+" and 1 Potion!");announce("Daily reward: "+reward+" and 1 Potion!");
-    updateAchievements();
-}
-
-function exportPokedex(){
-    document.getElementById("exportData").value=JSON.stringify(pokedex);
-    announce("Pokédex exported.");
-}
-
-function importPokedex(){
-    let data=document.getElementById("importData").value;
-    try{
-        let imported=JSON.parse(data);let added=0;
-        imported.forEach(p=>{if(!pokedex.includes(p)){pokedex.push(p);added++;}});
-        saveGame();renderPokedex();announce("Pokédex updated. "+added+" new Pokémon added.");speak(added+" new Pokémon added.");updateAchievements();
-    }catch(e){alert("Invalid data!");}
-}
+function exportPokedex(){document.getElementById("exportData").value=JSON.stringify(pokedex);announce("Pokédex exported.");}
+function importPokedex(){let data=document.getElementById("importData").value;try{let imported=JSON.parse(data);let added=0;imported.forEach(p=>{if(!pokedex.includes(p)){pokedex.push(p);added++;}});saveGame();renderPokedex();announce("Pokédex updated. "+added+" new Pokémon added.");speak(added+" new Pokémon added.");updateAchievements();}catch(e){alert("Invalid data!");}}
 
 function renderTabs(){
-    document.getElementById("catchBtn").onclick=catchPokemon;
+    document.getElementById("catchHomeBtn").onclick=catchPokemon;
+    document.getElementById("catchExploreBtn").onclick=catchPokemon;
     document.getElementById("dailyRewardBtn").onclick=dailyReward;
     document.getElementById("exportBtn").onclick=exportPokedex;
     document.getElementById("importBtn").onclick=importPokedex;
@@ -153,78 +109,7 @@ function renderTabs(){
 // //////////////////// BATTLE SYSTEM ////////////////////
 let battleState={player:null,opponent:null,playerHP:0,opponentHP:0,turn:"player"};
 
-function startBattle(){
-    if(pokedex.length===0){alert("You have no Pokémon to battle with!");return;}
-    renderBattleSelection();
-}
+function startBattle(){if(pokedex.length===0){alert("You have no Pokémon to battle with!");return;}renderBattleSelection();}
+function renderBattleSelection(){let battleArea=document.getElementById("battleArea");battleArea.innerHTML="<h3>Select your Pokémon:</h3>";let select=document.createElement("select");select.id="battleSelect";pokedex.forEach(p=>{let opt=document.createElement("option");opt.value=p;opt.textContent=p;select.appendChild(opt);});battleArea.appendChild(select);let btn=document.createElement("button");btn.textContent="Start Battle";btn.onclick=beginBattle;battleArea.appendChild(btn);document.getElementById("battleLog").innerHTML="";announce("Select your Pokémon to begin battle.");}
 
-function renderBattleSelection(){
-    let battleArea=document.getElementById("battleArea");
-    battleArea.innerHTML="<h3>Select your Pokémon:</h3>";
-    let select=document.createElement("select");select.id="battleSelect";
-    pokedex.forEach(p=>{
-        let opt=document.createElement("option");opt.value=p;opt.textContent=p;select.appendChild(opt);
-    });
-    battleArea.appendChild(select);
-    let btn=document.createElement("button");btn.textContent="Start Battle";btn.onclick=beginBattle;battleArea.appendChild(btn);
-    document.getElementById("battleLog").innerHTML="";
-    announce("Select your Pokémon to begin battle.");
-}
-
-function beginBattle(){
-    let playerPoke=document.getElementById("battleSelect").value;
-    battleState.player=playerPoke;
-    battleState.opponent=pokemonList[Math.floor(Math.random()*pokemonList.length)];
-    battleState.playerHP=100;battleState.opponentHP=100;
-    battleState.turn="player";
-    document.getElementById("battleLog").innerHTML="";
-    announce("Battle started! You chose "+battleState.player+". Opponent is "+battleState.opponent+".");
-    updateBattleLog("Battle started! You chose "+battleState.player+". Opponent is "+battleState.opponent+".");
-    document.getElementById("battleArea").innerHTML="<button onclick='playerAttack()'>Attack</button>";
-}
-
-function playerAttack(){
-    let dmg=Math.floor(Math.random()*16)+10;
-    battleState.opponentHP-=dmg;if(battleState.opponentHP<0) battleState.opponentHP=0;
-    updateBattleLog(`${battleState.player} hits ${battleState.opponent} for ${dmg} damage. Opponent HP: ${battleState.opponentHP}`);
-    announce(`${battleState.player} hits ${battleState.opponent} for ${dmg} damage.`);
-    checkBattleEnd();
-    if(battleState.opponentHP>0){setTimeout(opponentAttack,1000);}
-}
-
-function opponentAttack(){
-    let dmg=Math.floor(Math.random()*11)+10;
-    battleState.playerHP-=dmg;if(battleState.playerHP<0) battleState.playerHP=0;
-    updateBattleLog(`${battleState.opponent} hits ${battleState.player} for ${dmg} damage. Your HP: ${battleState.playerHP}`);
-    announce(`${battleState.opponent} hits ${battleState.player} for ${dmg} damage.`);
-    checkBattleEnd();
-}
-
-function checkBattleEnd(){
-    if(battleState.playerHP<=0){
-        updateBattleLog("You lost the battle!");announce("You lost the battle!");
-        document.getElementById("battleArea").innerHTML='<button onclick="switchTab(\'home\')">Return to Tabs</button>';
-    }
-    else if(battleState.opponentHP<=0){
-        updateBattleLog("You won the battle!");announce("You won the battle!");
-        rewardBattle();
-        document.getElementById("battleArea").innerHTML='<button onclick="switchTab(\'home\')">Return to Tabs</button>';
-    }
-}
-
-function rewardBattle(){
-    let rewards=["Potion","Rare Candy","Poké Ball"];
-    let reward=rewards[Math.floor(Math.random()*rewards.length)];
-    items[reward]+=1;
-    let chance=Math.random();
-    let rare="";
-    if(chance<0.3){
-        let rarePokemon=pokemonList[Math.floor(Math.random()*pokemonList.length)];
-        if(!pokedex.includes(rarePokemon)){pokedex.push(rarePokemon);rare=rarePokemon;}
-    }
-    saveGame();renderPokedex();
-    let msg="You received 1 "+reward+(rare?(" and found "+rare):"")+"!";
-    updateBattleLog(msg);announce(msg);speak(msg);
-}
-
-function updateBattleLog(text){
+function beginBattle(){let playerPoke=document.getElementById("battleSelect").value;battleState.player=playerPoke;battleState.opponent=pokemonList[Math.floor(Math.random()*pokemonList.length)];battleState.playerHP=100;battleState.opponentHP=100;battleState.turn="player";document.getElementById("battleLog").innerHTML="";announce("Battle started! You
