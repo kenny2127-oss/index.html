@@ -28,34 +28,37 @@ textarea,input,select{width:100%;margin:4px 0;padding:6px;border-radius:6px;bord
 </style>
 <script>
 let deferredPrompt;
-if("serviceWorker"in navigator){navigator.serviceWorker.register("service-worker.js");}
+if("serviceWorker" in navigator){navigator.serviceWorker.register("service-worker.js");}
+
 window.addEventListener("beforeinstallprompt",(e)=>{
     e.preventDefault();
-    deferredPrompt=e;
+    deferredPrompt = e;
 });
 
 function installApp(){
-  if(deferredPrompt){
-    deferredPrompt.prompt();
-    deferredPrompt.userChoice.finally(()=>deferredPrompt=null);
-  } else {
-    alert(
-      "iOS: Tap the Share button → 'Add to Home Screen'.\n" +
-      "Android: Open this page via HTTPS; the install prompt should appear automatically."
-    );
-  }
-  document.getElementById("installBtn").disabled=false;
+    if(deferredPrompt){
+        deferredPrompt.prompt();
+        deferredPrompt.userChoice.finally(()=>deferredPrompt=null);
+    } else {
+        alert(
+            "iOS: Tap the Share button → 'Add to Home Screen'.\n" +
+            "Android: Open this page via HTTPS; the install prompt should appear automatically."
+        );
+    }
+    document.getElementById("installBtn").disabled=false;
 }
 
 function switchTab(tabId){
-document.querySelectorAll("section").forEach(sec=>sec.classList.remove("active"));
-document.getElementById(tabId).classList.add("active");
-document.querySelectorAll(".tab-button").forEach(btn=>btn.setAttribute("aria-selected","false"));
-document.querySelector(`[data-tab='${tabId}']`).setAttribute("aria-selected","true");
-document.getElementById("liveRegion").innerText=tabId.charAt(0).toUpperCase()+tabId.slice(1)+" tab selected";
+    document.querySelectorAll("section").forEach(sec=>sec.classList.remove("active"));
+    document.getElementById(tabId).classList.add("active");
+    document.querySelectorAll(".tab-button").forEach(btn=>btn.setAttribute("aria-selected","false"));
+    document.querySelector(`[data-tab='${tabId}']`).setAttribute("aria-selected","true");
+    document.getElementById("liveRegion").innerText = tabId.charAt(0).toUpperCase()+tabId.slice(1)+" tab selected";
 }
-window.onload=()=>{switchTab("home");loadGame();renderTabs();};
 
+window.onload = ()=>{switchTab("home");loadGame();renderTabs();};
+
+// Pokémon list (first 340 for now)
 let pokemonList=[
 "Bulbasaur","Ivysaur","Venusaur","Charmander","Charmeleon","Charizard","Squirtle","Wartortle","Blastoise","Caterpie",
 "Metapod","Butterfree","Weedle","Kakuna","Beedrill","Pidgey","Pidgeotto","Pidgeot","Rattata","Raticate",
@@ -64,195 +67,96 @@ let pokemonList=[
 "Zubat","Golbat","Oddish","Gloom","Vileplume","Paras","Parasect","Venonat","Venomoth","Diglett",
 "Dugtrio","Meowth","Persian","Psyduck","Golduck","Mankey","Primeape","Growlithe","Arcanine","Poliwag",
 "Poliwhirl","Poliwrath","Abra","Kadabra","Alakazam","Machop","Machoke","Machamp","Bellsprout","Weepinbell",
-... // continue with all 1,025 Pokémon names
-"Gimmighoul","Pawmot","Tandemaus","Maushold","Fidough","Dachsbun","Smoliv","Dolliv","Arboliva"
+// ... continue up to 340 Pokémon
 ];
 
+// Game data
 let pokedex=[],items={Potion:0,"Poké Ball":0,"Rare Candy":0},achievements={};
-function saveGame(){localStorage.setItem("pokedex",JSON.stringify(pokedex));localStorage.setItem("items",JSON.stringify(items));localStorage.setItem("achievements",JSON.stringify(achievements));}
-function loadGame(){pokedex=JSON.parse(localStorage.getItem("pokedex"))||[];items=JSON.parse(localStorage.getItem("items"))||{Potion:0,"Poké Ball":0,"Rare Candy":0};achievements=JSON.parse(localStorage.getItem("achievements"))||{};renderPokedex();updateAchievements();}
+function saveGame(){
+    localStorage.setItem("pokedex",JSON.stringify(pokedex));
+    localStorage.setItem("items",JSON.stringify(items));
+    localStorage.setItem("achievements",JSON.stringify(achievements));
+}
+function loadGame(){
+    pokedex=JSON.parse(localStorage.getItem("pokedex"))||[];
+    items=JSON.parse(localStorage.getItem("items"))||{Potion:0,"Poké Ball":0,"Rare Candy":0};
+    achievements=JSON.parse(localStorage.getItem("achievements"))||{};
+    renderPokedex();updateAchievements();
+}
 
-function speak(text){if("speechSynthesis"in window){let u=new SpeechSynthesisUtterance(text);speechSynthesis.speak(u);}}
+function speak(text){if("speechSynthesis" in window){let u=new SpeechSynthesisUtterance(text);speechSynthesis.speak(u);}}
 function announce(text){document.getElementById("liveRegion").innerText=text;}
 
 function renderPokedex(){
-let container=document.getElementById("pokedex");container.innerHTML="";
-pokemonList.forEach(p=>{
-let div=document.createElement("div");div.className="card";div.textContent=pokedex.includes(p)?p:"???";container.appendChild(div);
-});
+    let container=document.getElementById("pokedex");container.innerHTML="";
+    pokemonList.forEach(p=>{
+        let div=document.createElement("div");div.className="card";div.textContent=pokedex.includes(p)?p:"???";container.appendChild(div);
+    });
 }
 
 function catchPokemon(){
-let found=pokemonList[Math.floor(Math.random()*pokemonList.length)];
-if(!pokedex.includes(found)) pokedex.push(found);
-saveGame();renderPokedex();
-speak("You found "+found);announce("You found "+found);
-updateAchievements();
+    let found=pokemonList[Math.floor(Math.random()*pokemonList.length)];
+    if(!pokedex.includes(found)) pokedex.push(found);
+    saveGame();renderPokedex();
+    speak("You found "+found);announce("You found "+found);
+    updateAchievements();
 }
 
 function updateAchievements(){
-let count=pokedex.length;
-let newAchieve=[];
-if(count>=5&&!achievements.Novice){achievements.Novice=true;newAchieve.push("Novice Collector");}
-if(count>=10&&!achievements.Collector){achievements.Collector=true;newAchieve.push("Collector");}
-if(count>=20&&!achievements.Expert){achievements.Expert=true;newAchieve.push("Expert Collector");}
-saveGame();
-if(newAchieve.length>0){newAchieve.forEach(a=>speak("Achievement unlocked: "+a));announce("Achievements unlocked: "+newAchieve.join(", "));}
+    let count=pokedex.length;let newAchieve=[];
+    if(count>=5&&!achievements.Novice){achievements.Novice=true;newAchieve.push("Novice Collector");}
+    if(count>=10&&!achievements.Collector){achievements.Collector=true;newAchieve.push("Collector");}
+    if(count>=20&&!achievements.Expert){achievements.Expert=true;newAchieve.push("Expert Collector");}
+    saveGame();
+    if(newAchieve.length>0){newAchieve.forEach(a=>speak("Achievement unlocked: "+a));announce("Achievements unlocked: "+newAchieve.join(", "));}
 }
 
 function dailyReward(){
-let lastClaim=localStorage.getItem("lastDaily");
-let today=new Date().toDateString();
-if(lastClaim===today){alert("Daily reward already claimed!");return;}
-let reward=pokemonList[Math.floor(Math.random()*pokemonList.length)];
-if(!pokedex.includes(reward)) pokedex.push(reward);
-items.Potion+=1;
-localStorage.setItem("lastDaily",today);
-saveGame();renderPokedex();
-speak("Daily reward: "+reward+" and 1 Potion!");announce("Daily reward: "+reward+" and 1 Potion!");
-updateAchievements();
+    let lastClaim=localStorage.getItem("lastDaily");
+    let today=new Date().toDateString();
+    if(lastClaim===today){alert("Daily reward already claimed!");return;}
+    let reward=pokemonList[Math.floor(Math.random()*pokemonList.length)];
+    if(!pokedex.includes(reward)) pokedex.push(reward);
+    items.Potion+=1;
+    localStorage.setItem("lastDaily",today);
+    saveGame();renderPokedex();
+    speak("Daily reward: "+reward+" and 1 Potion!");announce("Daily reward: "+reward+" and 1 Potion!");
+    updateAchievements();
 }
 
 function exportPokedex(){
-document.getElementById("exportData").value=JSON.stringify(pokedex);
-announce("Pokédex exported.");
+    document.getElementById("exportData").value=JSON.stringify(pokedex);
+    announce("Pokédex exported.");
 }
 
 function importPokedex(){
-let data=document.getElementById("importData").value;
-try{let imported=JSON.parse(data);let added=0;imported.forEach(p=>{if(!pokedex.includes(p)){pokedex.push(p);added++;}});saveGame();renderPokedex();announce("Pokédex updated. "+added+" new Pokémon added.");speak(added+" new Pokémon added.");updateAchievements();}catch(e){alert("Invalid data!");}
+    let data=document.getElementById("importData").value;
+    try{
+        let imported=JSON.parse(data);let added=0;
+        imported.forEach(p=>{if(!pokedex.includes(p)){pokedex.push(p);added++;}});
+        saveGame();renderPokedex();announce("Pokédex updated. "+added+" new Pokémon added.");speak(added+" new Pokémon added.");updateAchievements();
+    }catch(e){alert("Invalid data!");}
 }
 
 function renderTabs(){
-document.getElementById("catchBtn").onclick=catchPokemon;
-document.getElementById("dailyRewardBtn").onclick=dailyReward;
-document.getElementById("exportBtn").onclick=exportPokedex;
-document.getElementById("importBtn").onclick=importPokedex;
-document.getElementById("startBattleBtn").onclick=startBattle;
+    document.getElementById("catchBtn").onclick=catchPokemon;
+    document.getElementById("dailyRewardBtn").onclick=dailyReward;
+    document.getElementById("exportBtn").onclick=exportPokedex;
+    document.getElementById("importBtn").onclick=importPokedex;
+    document.getElementById("startBattleBtn").onclick=startBattle;
 }
 
 //////////////////// BATTLE SYSTEM ////////////////////
 let battleState={player:null,opponent:null,playerHP:0,opponentHP:0,turn:"player"};
 function startBattle(){
-if(pokedex.length===0){alert("You have no Pokémon to battle with!");return;}
-switchTab("battle");
-renderBattleSelection();
+    if(pokedex.length===0){alert("You have no Pokémon to battle with!");return;}
+    switchTab("battle");
+    renderBattleSelection();
 }
+
 function renderBattleSelection(){
-let battleArea=document.getElementById("battleArea");
-battleArea.innerHTML="<h3>Select your Pokémon:</h3>";
-let select=document.createElement("select");select.id="battleSelect";
-pokedex.forEach(p=>{
-let opt=document.createElement("option");opt.value=p;opt.textContent=p;select.appendChild(opt);
-});
-battleArea.appendChild(select);
-let btn=document.createElement("button");btn.textContent="Start Battle";btn.onclick=beginBattle;battleArea.appendChild(btn);
-document.getElementById("battleLog").innerHTML="";
-announce("Select your Pokémon to begin battle.");
-}
-function beginBattle(){
-let playerPoke=document.getElementById("battleSelect").value;
-battleState.player=playerPoke;
-battleState.opponent=pokemonList[Math.floor(Math.random()*pokemonList.length)];
-battleState.playerHP=100;battleState.opponentHP=100;
-battleState.turn="player";
-document.getElementById("battleLog").innerHTML="";
-announce("Battle started! You chose "+battleState.player+". Opponent is "+battleState.opponent+".");
-updateBattleLog("Battle started! You chose "+battleState.player+". Opponent is "+battleState.opponent+".");
-document.getElementById("battleArea").innerHTML="<button onclick='playerAttack()'>Attack</button>";
-}
-function playerAttack(){
-let dmg=Math.floor(Math.random()*16)+10;
-battleState.opponentHP-=dmg;if(battleState.opponentHP<0) battleState.opponentHP=0;
-updateBattleLog(`${battleState.player} hits ${battleState.opponent} for ${dmg} damage. Opponent HP: ${battleState.opponentHP}`);
-announce(`${battleState.player} hits ${battleState.opponent} for ${dmg} damage.`);
-checkBattleEnd();
-if(battleState.opponentHP>0){setTimeout(opponentAttack,1000);}
-}
-function opponentAttack(){
-let dmg=Math.floor(Math.random()*11)+10;
-battleState.playerHP-=dmg;if(battleState.playerHP<0) battleState.playerHP=0;
-updateBattleLog(`${battleState.opponent} hits ${battleState.player} for ${dmg} damage. Your HP: ${battleState.playerHP}`);
-announce(`${battleState.opponent} hits ${battleState.player} for ${dmg} damage.`);
-checkBattleEnd();
-}
-function checkBattleEnd(){
-if(battleState.playerHP<=0){
-updateBattleLog("You lost the battle!");announce("You lost the battle!");
-document.getElementById("battleArea").innerHTML='<button onclick="switchTab(\'home\')">Return to Tabs</button>';
-}
-else if(battleState.opponentHP<=0){
-updateBattleLog("You won the battle!");announce("You won the battle!");
-rewardBattle();
-document.getElementById("battleArea").innerHTML='<button onclick="switchTab(\'home\')">Return to Tabs</button>';
-}
-}
-function rewardBattle(){
-let rewards=["Potion","Rare Candy","Poké Ball"];
-let reward=rewards[Math.floor(Math.random()*rewards.length)];
-items[reward]+=1;
-let chance=Math.random();
-let rare="";
-if(chance<0.3){
-let rarePokemon=pokemonList[Math.floor(Math.random()*pokemonList.length)];
-if(!pokedex.includes(rarePokemon)){pokedex.push(rarePokemon);rare=rarePokemon;}
-}
-saveGame();renderPokedex();
-let msg="You received 1 "+reward+(rare?(" and found "+rare):"")+"!";
-updateBattleLog(msg);announce(msg);
-speak(msg);
-}
-function updateBattleLog(text){
-let log=document.getElementById("battleLog");
-log.innerHTML+=text+"<br>";
-log.scrollTop=log.scrollHeight;
-}
-</script>
-
-<body>
-<header>
-<h1>Pokémon Adventure</h1>
-<button id="installBtn" onclick="installApp()">📲 Install App</button>
-<div id="liveRegion" aria-live="polite"></div>
-</header>
-
-<main>
-<section id="home" class="active">
-<h2>Pokédex</h2>
-<div id="pokedex"></div>
-<button id="transferButton">Transfer Pokédex from another app</button>
-<button id="catchBtn">Catch Pokémon</button>
-<button id="dailyRewardBtn">Daily Reward</button>
-</section>
-
-<section id="explore">
-<h2>Explore</h2>
-<p>Click below to find a new Pokémon!</p>
-<button id="catchBtn">Catch Pokémon</button>
-</section>
-
-<section id="battle">
-<h2>Battle</h2>
-<div id="battleArea"></div>
-<div id="battleLog" aria-live="polite"></div>
-</section>
-
-<section id="trade">
-<h2>Trade</h2>
-<p>Offer a Pokémon to generate a short code:</p>
-<textarea id="exportData" readonly></textarea>
-<button id="exportBtn">Generate Trade Code</button>
-<p>Enter a code to receive a Pokémon:</p>
-<textarea id="importData"></textarea>
-<button id="importBtn">Redeem Code</button>
-</section>
-</main>
-
-<footer role="tablist">
-  <button role="tab" class="tab-button" data-tab="home" aria-selected="true" onclick="switchTab('home')">Home</button>
-  <button role="tab" class="tab-button" data-tab="explore" aria-selected="false" onclick="switchTab('explore')">Explore</button>
-  <button role="tab" class="tab-button" data-tab="battle" aria-selected="false" onclick="switchTab('battle')">Battle</button>
-  <button role="tab" class="tab-button" data-tab="trade" aria-selected="false" onclick="switchTab('trade')">Trade</button>
-</footer>
-</body>
-</html>
+    let battleArea=document.getElementById("battleArea");
+    battleArea.innerHTML="<h3>Select your Pokémon:</h3>";
+    let select=document.createElement("select");select.id="battleSelect";
+    pokedex.forEach(p=>{
+        let opt=document.createElement("option");
