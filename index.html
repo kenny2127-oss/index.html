@@ -381,4 +381,33 @@ document.querySelectorAll('.tab-content').forEach(section => {
         }
     }
 });
+</script><script>
+// Keep only the last battle section and remove the rest
+window.addEventListener('DOMContentLoaded', () => {
+    const battleSections = Array.from(document.querySelectorAll('section#battle'));
+    if (battleSections.length > 1) {
+        // Keep the last one (the proper working battle module)
+        battleSections.slice(0, -1).forEach(sec => sec.remove());
+    }
+});
+</script><script>
+// Wait until the DOM is fully loaded
+window.addEventListener('DOMContentLoaded', () => {
+    // Find all battle sections
+    const battleSections = Array.from(document.querySelectorAll('section#battle'));
+
+    if (battleSections.length > 1) {
+        // Keep only the last battle section (the full-featured one)
+        battleSections.slice(0, -1).forEach(sec => sec.remove());
+    }
+
+    // Remove any placeholder "soon" messages inside the remaining battle section
+    const remainingBattle = document.querySelector('section#battle');
+    if (remainingBattle) {
+        const p = remainingBattle.querySelector('p');
+        if (p && /soon/i.test(p.textContent)) {
+            p.remove();
+        }
+    }
+});
 </script>
