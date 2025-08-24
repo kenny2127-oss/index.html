@@ -11,6 +11,8 @@
             background: #1a202c;
             color: #e6eef8;
             -webkit-tap-highlight-color: transparent;
+            /* Prevents any horizontal scrolling, fixing the blank area issue */
+            overflow-x: hidden;
         }
         .tab-content { display: none; padding-bottom: 5rem; }
         .tab-content.is-active { display: block; }
@@ -79,8 +81,8 @@
         <div class="bg-gray-800 p-6 rounded-xl shadow-lg text-center">
             <h2 class="text-2xl font-semibold mb-2">Explore</h2>
             <p class="text-gray-400 mb-4">Click below to find a new Pokémon!</p>
-            <button onclick="catchPokemon()" class="w-full bg-green-500 text-white font-bold py-3 rounded-lg shadow-md hover:bg-green-600 transition duration-300">Catch Pokémon</button>
-     ,    </div>
+            <button onclick="catchPokemon()" class="w-full bg-green-500,  text-white font-bold py-3 rounded-lg shadow-md hover:bg-green-600 transition duration-300">Catch Pokémon</button>
+        </div>
     </section>
 
     <!-- Gather Tab -->
@@ -134,17 +136,17 @@
 
 <!-- Tab Navigation Footer -->
 <footer class="tab-footer" role="tablist">
-    <button onclick="switchTab('home')" role="tab" data-tab="home" class="is-active" aria-selected="true">Home</button>
-    <button onclick="switchTab('explore')" role="tab" data-tab="explore" aria-selected="false">Explore</button>
-    <button onclick="switchTab('gather')" role="tab" data-tab="gather" aria-selected="false">Gather</button>
-    <button onclick="switchTab('inventory')" role="tab" data-tab="inventory" aria-selected="false">Inventory</button>
-    <button onclick="switchTab('pokemart')" role="tab" data-tab="pokemart" aria-selected="false">Poké Mart</button>
-    <button onclick="switchTab('trade')" role="tab" data-tab="trade" aria-selected="false">Trade</button>
+    <button onclick="switchTab(this)" role="tab" data-tab="home" class="is-active" aria-selected="true">Home</button>
+    <button onclick="switchTab(this)" role="tab" data-tab="explore" aria-selected="false">Explore</button>
+    <button onclick="switchTab(this)" role="tab" data-tab="gather" aria-selected="false">Gather</button>
+    <button onclick="switchTab(this)" role="tab" data-tab="inventory" aria-selected="false">Inventory</button>
+    <button onclick="switchTab(this)" role="tab" data-tab="pokemart" aria-selected="false">Poké Mart</button>
+    <button onclick="switchTab(this)" role="tab" data-tab="trade" aria-selected="false">Trade</button>
 </footer>
 
 <script>
-    // --- Global Data ---
-    const pokemonList =,  ["Bulbasaur","Charmander","Squirtle","Pikachu","Jigglypuff","Meowth"];
+   ,  // --- Global Data ---
+    const pokemonList = ["Bulbasaur","Charmander","Squirtle","Pikachu","Jigglypuff","Meowth"];
     let pokedex = [];
     let items = {Potion:0,"Poké Ball":0,"Rare Candy":0,"Berries":0,"Stones":0};
     let playerState = {level:1,exp:0,money:0};
@@ -161,23 +163,38 @@
     function announceForAccessibility(message) {
         const live = document.getElementById("accessibilityLive");
         live.textContent = '';
-        // Increased the delay to 200ms to improve reliability for screen readers.
         setTimeout(()=>{ live.textContent = message; }, 200);
     }
 
     // --- Tab Switching ---
-    function switchTab(tabId){
+    /**
+     * Switches the active tab and updates accessibility attributes.
+     * This version is more robust for mobile touch events.
+     * @param {HTMLElement} buttonElement The button that was clicked.
+     */
+    function switchTab(buttonElement){
+        // Get the target tab ID from the data attribute of the button
+        const tabId = buttonElement.getAttribute('data-tab');
+
         const sections = document.querySelectorAll(".tab-content");
         const buttons = document.querySelectorAll(".tab-footer button");
-        sections.forEach(s=>s.classList.remove("is-active"));
-        buttons.forEach(b=>b.classList.remove("is-active"));
+        
+        // Remove 'is-active' class and 'aria-selected' for all tabs and buttons
+        sections.forEach(s => s.classList.remove("is-active"));
+        buttons.forEach(b => b.classList.remove("is-active"));
+        buttons.forEach(b => b.setAttribute('aria-selected', 'false'));
+        
+        // Activate the selected tab content and button
         document.getElementById(tabId).classList.add("is-active");
-        const activeButton = document.querySelector(`[data-tab='${tabId}']`);
-        activeButton.classList.add("is-active");
-        const tabNumber = Array.from(buttons).indexOf(activeButton)+1;
+        buttonElement.classList.add("is-active");
+        buttonElement.setAttribute('aria-selected', 'true');
+        
+        const tabNumber = Array.from(buttons).indexOf(buttonElement) + 1;
         const totalTabs = buttons.length;
+        
         // Announce tab changes for screen readers.
-        announceForAccessibility(`${activeButton.textContent} selected, Tab ${tabNumber} of ${totalTabs}`);
+        announceForAccessibility(`${buttonElement.textContent} selected, Tab ${tabNumber} of ${totalTabs}`);
+        
         if(tabId==="inventory") renderInventory();
         if(tabId==="pokemart") renderPokemart();
     }
@@ -212,7 +229,7 @@
         document.getElementById("moneyDisplay").textContent=`💰: ${playerState.money}`;
         for(const i in items){ if(items[i]>0){
             const card=document.createElement("div");
-            card.className="card bg-gray-700 rounded-lg p-3 text-center shadow-inner text-sm";
+            card.className="card,  bg-gray-700 rounded-lg p-3 text-center shadow-inner text-sm";
             card.innerHTML=`<p class="font-bold">${i}</p><p>x${items[i]}</p>`;
             container.appendChild(card);
         }}
@@ -223,7 +240,7 @@
             const card=document.createElement("div");
             card.className="card bg-gray-700 rounded-lg p-3 text-center shadow-inner text-sm";
             card.innerHTML=`
-                <p,  class="font-bold">${i}</p><p>x${items[i]}</p>
+                <p class="font-bold">${i}</p><p>x${items[i]}</p>
                 <p class="text-xs text-gray-400">Value: 💰${ITEM_PRICES[i]}</p>
                 <div class="flex flex-col gap-2 mt-2">
                     <button onclick="sellItem('${i}')" class="w-full bg-yellow-500 text-gray-900 font-bold py-1 rounded-md text-xs hover:bg-yellow-600 transition duration-300">Sell One</button>
@@ -276,8 +293,8 @@
     function sellAllItems(i){ const c=items[i]; if(c>0){ playerState.money+=c*ITEM_PRICES[i]; items[i]=0; saveGame(); renderInventory(); renderPokemart(); showMessage("Items Sold!",`You sold all ${c} ${i} for 💰${c*ITEM_PRICES[i]}!`);} else { showMessage("Can't Sell",`You don't have any ${i} to sell.`); }}
 
     // --- Trading ---
-    function exportPokedex(){ const d=JSON.stringify(pokedex); const e=document.getElementById("exportData"); e.value=d; e.select(); try{document.execCommand('copy'); showMessage("Success!","Trade code copied to clipboard!");}catch(err){showMessage("Failed to Copy","Could not copy to clipboard. Please copy the text manually.");} }
-    function importPokedex(){ const d=document.getElementById("importData").value; try{ const imported=JSON.parse(d); const added=imported.filter(p=>!pokedex.includes(p)).length; imported.forEach(p=>{if(!pokedex.includes(p))pokedex.push(p)}); saveGame(); renderPokedex(); showMessage("Trade Redeemed!",`You received,  ${added} new Pokémon!`);}catch(e){showMessage("Invalid Code","The code you entered is not a valid trade code.");} }
+    function exportPokedex(){ const d=JSON.stringify(pokedex); const,  e=document.getElementById("exportData"); e.value=d; e.select(); try{document.execCommand('copy'); showMessage("Success!","Trade code copied to clipboard!");}catch(err){showMessage("Failed to Copy","Could not copy to clipboard. Please copy the text manually.");} }
+    function importPokedex(){ const d=document.getElementById("importData").value; try{ const imported=JSON.parse(d); const added=imported.filter(p=>!pokedex.includes(p)).length; imported.forEach(p=>{if(!pokedex.includes(p))pokedex.push(p)}); saveGame(); renderPokedex(); showMessage("Trade Redeemed!",`You received ${added} new Pokémon!`);}catch(e){showMessage("Invalid Code","The code you entered is not a valid trade code.");} }
 
     function showMessage(title,text) {
         document.getElementById("messageTitle").innerText = title;
