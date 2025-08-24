@@ -320,4 +320,104 @@ window.addEventListener("load", () => {
   const questSection = document.getElementById("quest");
   if (questSection) setupQuestTab();
 });
+</script><!-- Quest Tab -->
+<section id="quest" class="tab-content">
+  <div class="bg-gray-800 p-6 rounded-xl shadow-lg text-center">
+    <h2 class="text-2xl font-semibold mb-4">Quests</h2>
+    <p class="text-gray-400 mb-4">Complete quests to earn rewards!</p>
+    <div id="questList" class="flex flex-col gap-3"></div>
+  </div>
+</section>
+
+<script>
+// Quest definitions: add as many as you want
+const questPool = [
+  { description: "Catch 1 Pokémon", reward: { exp: 10 } },
+  { description: "Catch 3 Pokémon", reward: { exp: 30 } },
+  { description: "Gather 5 Berries", reward: { exp: 15, items: { Berries: 5 } } },
+  { description: "Sell 2 Potions", reward: { exp: 20, money: 100 } },
+  { description: "Reach Level 2", reward: { exp: 50 } },
+  { description: "Catch a Pikachu", reward: { exp: 50, items: { "Rare Candy": 1 } } },
+  { description: "Gather 10 Stones", reward: { exp: 25, items: { Stones: 10 } } },
+  { description: "Sell 5 Poké Balls", reward: { exp: 30, money: 250 } },
+  { description: "Catch a Charmander", reward: { exp: 40, items: { "Rare Candy": 1 } } },
+  { description: "Reach Level 3", reward: { exp: 100 } }
+];
+
+// Render quests dynamically
+function renderQuests() {
+  const questContainer = document.getElementById("questList");
+  questContainer.innerHTML = "";
+  
+  questPool.forEach((q, index) => {
+    const questDiv = document.createElement("div");
+    questDiv.className = "quest card p-4 flex justify-between items-center";
+
+    const desc = document.createElement("p");
+    desc.textContent = q.description;
+
+    const btn = document.createElement("button");
+    btn.textContent = "Complete";
+    btn.className = "completeBtn bg-blue-500 text-white py-2 px-4 rounded";
+    btn.addEventListener("click", () => completeQuest(index, btn));
+
+    questDiv.appendChild(desc);
+    questDiv.appendChild(btn);
+    questContainer.appendChild(questDiv);
+  });
+}
+
+// Complete quest logic
+function completeQuest(index, btn) {
+  const quest = questPool[index];
+  
+  // Apply rewards
+  if (quest.reward.exp) {
+    playerState.exp += quest.reward.exp;
+    checkLevelUp();
+  }
+  
+  if (quest.reward.money) {
+    playerState.money += quest.reward.money;
+  }
+
+  if (quest.reward.items) {
+    for (const i in quest.reward.items) {
+      if (!items[i]) items[i] = 0;
+      items[i] += quest.reward.items[i];
+    }
+  }
+
+  saveGame();
+  renderInventory();
+  renderGatherUI();
+
+  // Disable button
+  btn.disabled = true;
+  btn.textContent = "Completed";
+  btn.classList.remove("bg-blue-500");
+  btn.classList.add("bg-gray-500");
+
+  // Accessibility announcement
+  announceForAccessibility(`Quest completed: ${quest.description}`);
+}
+
+// Hook quests tab to render quests when selected
+const questTabBtn = document.querySelector('.tab-footer button[data-tab="quest"]');
+if (questTabBtn) {
+  questTabBtn.addEventListener("click", renderQuests);
+}
+</script>
+
+<!-- Add quest tab button to footer -->
+<script>
+const footer = document.querySelector(".tab-footer");
+if (footer && !document.querySelector('[data-tab="quest"]')) {
+  const questBtn = document.createElement("button");
+  questBtn.setAttribute("data-tab", "quest");
+  questBtn.textContent = "Quest";
+  questBtn.onclick = function() { switchTab(this); renderQuests(); };
+  questBtn.setAttribute("aria-selected", "false");
+  footer.appendChild(questBtn);
+}
 </script>
