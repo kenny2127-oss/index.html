@@ -1,85 +1,71 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pokémon Catcher</title>
-    <style>
-        body {
-            font-family: sans-serif;
-            background-color: #333;
-            color: #fff;
-            margin: 0;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            min-height: 100vh;
-            text-align: center;
-        }
-        .container {
-            background-color: #444;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
-            max-width: 400px;
-            width: 100%;
-        }
-        h1 {
-            color: #ffcc00;
-        }
-        button {
-            background-color: #007bff;
-            color: #fff;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 5px;
-            cursor: pointer;
-            margin: 5px;
-            font-size: 16px;
-        }
-        button:hover {
-            opacity: 0.8;
-        }
-        #battle-area, #result-area {
-            display: none;
-            margin-top: 20px;
-        }
-        #pokemon-display {
-            font-size: 24px;
-            font-weight: bold;
-            margin: 10px 0;
-        }
-        #health-bar-container {
-            background-color: #555;
-            border-radius: 5px;
-            height: 20px;
-            width: 100%;
-            margin-top: 10px;
-        }
-        #health-bar {
-            height: 100%;
-            background-color: #28a745;
-            border-radius: 5px;
-            transition: width 0.5s ease-in-out;
-        }
-        #log {
-            border: 1px solid #555;
-            background-color: #222;
-            padding: 10px;
-            margin-top: 20px;
-            max-height: 150px;
-            overflow-y: auto;
-            border-radius: 5px;
-            text-align: left;
-            font-size: 14px;
-        }
-        #log p {
-            margin: 0;
-            padding: 2px 0;
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pokémon Catcher</title>
+<style>
+    body {
+        font-family: sans-serif;
+        background-color: #333;
+        color: #fff;
+        margin: 0;
+        padding: 20px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        min-height: 100vh;
+        text-align: center;
+    }
+    .container {
+        background-color: #444;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 0 10px rgba(0,0,0,0.5);
+        max-width: 400px;
+        width: 100%;
+    }
+    h1 { color: #ffcc00; }
+    button {
+        background-color: #007bff;
+        color: #fff;
+        border: none;
+        padding: 14px 24px;
+        border-radius: 5px;
+        cursor: pointer;
+        margin: 5px;
+        font-size: 18px;
+    }
+    button:hover { opacity: 0.8; }
+    #battle-area, #result-area { display: none; margin-top: 20px; }
+    #pokemon-display { font-size: 24px; font-weight: bold; margin: 10px 0; }
+    #health-bar-container {
+        background-color: #555;
+        border-radius: 5px;
+        height: 20px;
+        width: 100%;
+        margin-top: 10px;
+    }
+    #health-bar {
+        height: 100%;
+        background-color: #28a745;
+        border-radius: 5px;
+        transition: width 0.5s ease-in-out;
+    }
+    #log {
+        border: 1px solid #555;
+        background-color: #222;
+        padding: 10px;
+        margin-top: 20px;
+        max-height: 150px;
+        overflow-y: auto;
+        border-radius: 5px;
+        text-align: left;
+        font-size: 14px;
+    }
+    #log p { margin: 0; padding: 2px 0; }
+</style>
 </head>
 <body>
 
@@ -88,11 +74,11 @@
 
     <!-- Start/Home Screen -->
     <div id="home-area">
-        <button onclick="findPokemon()">Find a Wild Pokémon</button>
+        <button onclick="startGame()" aria-label="Find a Wild Pokémon">Find a Wild Pokémon</button>
         <div id="pokedex-list">
             <h3>Caught Pokémon:</h3>
             <p id="pokedex-message">No Pokémon caught yet.</p>
-            <ul id="pokedex-ul" style="list-style-type: none; padding: 0;"></ul>
+            <ul id="pokedex-ul" style="list-style-type:none;padding:0;"></ul>
         </div>
     </div>
 
@@ -103,19 +89,19 @@
         <div id="health-bar-container">
             <div id="health-bar"></div>
         </div>
-        <button onclick="attack()">Attack!</button>
-        <button onclick="catchPokemon()"><span id="catch-chance">Try to Catch (5%)</span></button>
-        <button onclick="runAway()">Run Away</button>
+        <button onclick="attack()" aria-label="Attack the Pokémon">Attack!</button>
+        <button onclick="catchPokemon()" aria-label="Try to catch the Pokémon"><span id="catch-chance">Try to Catch (5%)</span></button>
+        <button onclick="runAway()" aria-label="Run away from battle">Run Away</button>
     </div>
 
     <!-- Results Screen -->
     <div id="result-area">
         <p id="result-message"></p>
-        <button onclick="resetGame()">Return to Home</button>
+        <button onclick="resetGame()" aria-label="Return to home screen">Return to Home</button>
     </div>
 
-    <!-- Message Log -->
-    <div id="log"></div>
+    <!-- Message Log with ARIA for screen readers -->
+    <div id="log" aria-live="polite"></div>
 </div>
 
 <!-- Sound effects and background music -->
@@ -133,14 +119,12 @@
 </audio>
 
 <script>
-    // --- Global Variables and Data ---
-    const pokemonList = ["Bulbasaur", "Charmander", "Squirtle", "Pikachu", "Jigglypuff", "Meowth"];
+    const pokemonList = ["Bulbasaur","Charmander","Squirtle","Pikachu","Jigglypuff","Meowth"];
     let caughtPokemon = [];
     let currentOpponent = null;
     let opponentMaxHP = 0;
     let opponentCurrentHP = 0;
 
-    // --- DOM Elements ---
     const homeArea = document.getElementById('home-area');
     const battleArea = document.getElementById('battle-area');
     const resultArea = document.getElementById('result-area');
@@ -154,120 +138,110 @@
     const logEl = document.getElementById('log');
     const resultMessageEl = document.getElementById('result-message');
 
-    // Sound effects
     const bgMusic = document.getElementById('bg-music');
     const attackSound = document.getElementById('attack-sound');
     const catchSound = document.getElementById('catch-sound');
     const runSound = document.getElementById('run-sound');
 
-    // --- Game Logic ---
     function loadGame() {
-        const storedPokemon = localStorage.getItem('caughtPokemon');
-        if (storedPokemon) {
-            caughtPokemon = JSON.parse(storedPokemon);
-        }
+        const stored = localStorage.getItem('caughtPokemon');
+        if(stored) caughtPokemon = JSON.parse(stored);
         renderPokedex();
-        bgMusic.play();
     }
 
-    function saveGame() {
-        localStorage.setItem('caughtPokemon', JSON.stringify(caughtPokemon));
+    function startGame() {
+        findPokemon();
+        // Play music on first interaction
+        if(bgMusic.paused) bgMusic.play().catch(()=>{});
     }
+
+    function saveGame() { localStorage.setItem('caughtPokemon', JSON.stringify(caughtPokemon)); }
 
     function renderPokedex() {
         pokedexUl.innerHTML = '';
-        if (caughtPokemon.length === 0) {
-            pokedexMessage.style.display = 'block';
-        } else {
-            pokedexMessage.style.display = 'none';
-            caughtPokemon.forEach(p => {
-                const li = document.createElement('li');
-                li.textContent = p;
+        if(caughtPokemon.length===0) pokedexMessage.style.display='block';
+        else{
+            pokedexMessage.style.display='none';
+            caughtPokemon.forEach(p=>{
+                const li=document.createElement('li');
+                li.textContent=p;
                 pokedexUl.appendChild(li);
             });
         }
     }
 
-    function addLog(message) {
-        const p = document.createElement('p');
-        p.textContent = message;
+    function addLog(msg){
+        const p=document.createElement('p');
+        p.textContent=msg;
         logEl.appendChild(p);
-        logEl.scrollTop = logEl.scrollHeight;
+        logEl.scrollTop=logEl.scrollHeight;
     }
 
-    function findPokemon() {
-        currentOpponent = pokemonList[Math.floor(Math.random() * pokemonList.length)];
-        opponentMaxHP = Math.floor(Math.random() * 50) + 50;
+    function findPokemon(){
+        currentOpponent = pokemonList[Math.floor(Math.random()*pokemonList.length)];
+        opponentMaxHP = Math.floor(Math.random()*50)+50;
         opponentCurrentHP = opponentMaxHP;
 
-        homeArea.style.display = 'none';
-        resultArea.style.display = 'none';
-        battleArea.style.display = 'block';
-        
-        pokemonDisplay.textContent = currentOpponent;
+        homeArea.style.display='none';
+        resultArea.style.display='none';
+        battleArea.style.display='block';
+
+        pokemonDisplay.textContent=currentOpponent;
         updateBattleUI();
         addLog(`A wild ${currentOpponent} appeared!`);
     }
 
-    function updateBattleUI() {
-        currentHpEl.textContent = opponentCurrentHP;
-        maxHpEl.textContent = opponentMaxHP;
-        const healthPercentage = (opponentCurrentHP / opponentMaxHP) * 100;
-        healthBar.style.width = healthPercentage + '%';
-        healthBar.style.backgroundColor = healthPercentage > 50 ? '#28a745' : healthPercentage > 20 ? '#ffc107' : '#dc3545';
-        
-        const baseChance = 5;
-        const damageFactor = 1 - (opponentCurrentHP / opponentMaxHP);
-        const catchChance = baseChance + (damageFactor * 95);
-        catchChanceEl.textContent = `Try to Catch (${Math.round(catchChance)}%)`;
+    function updateBattleUI(){
+        currentHpEl.textContent=opponentCurrentHP;
+        maxHpEl.textContent=opponentMaxHP;
+        const percent = (opponentCurrentHP/opponentMaxHP)*100;
+        healthBar.style.width=percent+'%';
+        healthBar.style.backgroundColor = percent>50?'#28a745':percent>20?'#ffc107':'#dc3545';
+        const base=5;
+        const factor=1-(opponentCurrentHP/opponentMaxHP);
+        catchChanceEl.textContent=`Try to Catch (${Math.round(base+factor*95)}%)`;
     }
 
-    function attack() {
-        const damage = Math.floor(Math.random() * 10) + 5;
-        opponentCurrentHP = Math.max(0, opponentCurrentHP - damage);
-        addLog(`You attacked ${currentOpponent} for ${damage} damage!`);
+    function attack(){
+        const dmg = Math.floor(Math.random()*10)+5;
+        opponentCurrentHP=Math.max(0,opponentCurrentHP-dmg);
+        addLog(`You attacked ${currentOpponent} for ${dmg} damage!`);
         attackSound.play();
         updateBattleUI();
-        if (opponentCurrentHP === 0) {
-            endBattle('You defeated the wild Pokémon!', true);
-        }
+        if(opponentCurrentHP===0) endBattle('You defeated the wild Pokémon!',true);
     }
 
-    function catchPokemon() {
-        const catchChance = parseFloat(catchChanceEl.textContent.match(/\((.*?)%\)/)[1]);
-        addLog(`You threw a Poké Ball...`);
-
-        if (Math.random() * 100 < catchChance) {
+    function catchPokemon(){
+        const chance = parseFloat(catchChanceEl.textContent.match(/\((.*?)%\)/)[1]);
+        addLog('You threw a Poké Ball...');
+        if(Math.random()*100<chance){
             addLog(`Gotcha! You caught ${currentOpponent}!`);
             caughtPokemon.push(currentOpponent);
             saveGame();
             catchSound.play();
-            endBattle('Success! You caught it!', false);
-        } else {
-            addLog(`Aww, ${currentOpponent} broke free!`);
-        }
+            endBattle('Success! You caught it!',false);
+        }else addLog(`Aww, ${currentOpponent} broke free!`);
     }
 
-    function runAway() {
-        addLog(`You ran away from the battle.`);
+    function runAway(){
+        addLog('You ran away from the battle.');
         runSound.play();
-        endBattle('You ran away.', false);
+        endBattle('You ran away.',false);
     }
 
-    function endBattle(message, didWin) {
-        battleArea.style.display = 'none';
-        resultArea.style.display = 'block';
-        resultMessageEl.textContent = message;
+    function endBattle(msg,didWin){
+        battleArea.style.display='none';
+        resultArea.style.display='block';
+        resultMessageEl.textContent=msg;
         renderPokedex();
     }
 
-    function resetGame() {
-        resultArea.style.display = 'none';
-        homeArea.style.display = 'block';
+    function resetGame(){
+        resultArea.style.display='none';
+        homeArea.style.display='block';
     }
 
-    window.onload = loadGame;
+    window.onload=loadGame;
 </script>
-
 </body>
 </html>
