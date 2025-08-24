@@ -174,4 +174,13 @@ window.addEventListener("load", loadGame);
 </script>
 
 </body>
-</html>
+</html><script>
+window.addEventListener("load", () => {
+    // Attach battle buttons
+    const attackBtn = document.getElementById("battleAttackBtn");
+    const runBtn = document.getElementById("battleRunBtn");
+
+    attackBtn?.addEventListener("click", battleAttack);
+    runBtn?.addEventListener("click", battleRun);
+});
+</script>
