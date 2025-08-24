@@ -61,7 +61,7 @@
     <div class="modal-content">
         <h3 id="messageTitle" class="text-xl font-bold mb-4"></h3>
         <p id="messageText" class="mb-6"></p>
-        <button onclick="hideMessage()" class="bg-blue-500 text-white font-bold py-2 px-6 rounded-lg shadow-lg hover:bg-blue-600 transition duration-300 focus:outline-none focus:ring-2 focus:ring-blue-400">OK</button>
+        <button id="modalOkButton" class="bg-blue-500 text-white font-bold py-2 px-6 rounded-lg shadow-lg hover:bg-blue-600 transition duration-300 focus:outline-none focus:ring-2 focus:ring-blue-400">OK</button>
     </div>
 </div>
 
@@ -77,7 +77,7 @@
             <div id="pokedex" class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-3"></div>
         </div>
         <div class="flex flex-col sm:flex-row gap-4 mt-6">
-            <button onclick="catchPokemon()" class="w-full bg-green-500 text-white font-bold py-3,  rounded-lg shadow-md hover:bg-green-600 transition duration-300">Catch Pokémon</button>
+            <button onclick="catchPokemon()" class="w-full bg-green-500 text-white font-bold py-3 rounded-lg,  shadow-md hover:bg-green-600 transition duration-300">Catch Pokémon</button>
             <button onclick="dailyReward()" class="w-full bg-yellow-500 text-gray-900 font-bold py-3 rounded-lg shadow-md hover:bg-yellow-600 transition duration-300">Daily Reward</button>
         </div>
     </section>
@@ -138,18 +138,19 @@
 
             <label for="importData" class="block mb-2 text-sm text-gray-400">Enter Friend's Code:</label>
             <textarea id="importData" class="w-full p-2 bg-gray-700 rounded-lg text-gray-100 border border-gray-600" placeholder="Enter trade code here..."></textarea>
-            <button onclick="importPokedex()" class="w-full bg-purple-500 text-white font-bold py-3 rounded-lg shadow-md mt-4 hover:bg-purple-600,  transition duration-300">Complete Trade</button>
+            <button onclick="importPokedex()" class="w-full bg-purple-500 text-white font-bold py-3 rounded-lg shadow-md mt-4 hover:bg-purple-600 transition,  duration-300">Complete Trade</button>
         </div>
     </section>
 </main>
 
-<footer class="tab-footer" role="tablist">
-    <button onclick="switchTab(this)" role="tab" data-tab="home" class="is-active" aria-selected="true">Home</button>
-    <button onclick="switchTab(this)" role="tab" data-tab="explore" aria-selected="false">Explore</button>
-    <button onclick="switchTab(this)" role="tab" data-tab="gather" aria-selected="false">Gather</button>
-    <button onclick="switchTab(this)" role="tab" data-tab="inventory" aria-selected="false">Inventory</button>
-    <button onclick="switchTab(this)" role="tab" data-tab="pokemart" aria-selected="false">Poké Mart</button>
-    <button onclick="switchTab(this)" role="tab" data-tab="trade" aria-selected="false">Trade</button>
+<!-- IMPORTANT: The onclick attributes have been removed. The logic is now in the main script. -->
+<footer id="tab-footer" class="tab-footer" role="tablist">
+    <button role="tab" data-tab="home" class="is-active" aria-selected="true">Home</button>
+    <button role="tab" data-tab="explore" aria-selected="false">Explore</button>
+    <button role="tab" data-tab="gather" aria-selected="false">Gather</button>
+    <button role="tab" data-tab="inventory" aria-selected="false">Inventory</button>
+    <button role="tab" data-tab="pokemart" aria-selected="false">Poké Mart</button>
+    <button role="tab" data-tab="trade" aria-selected="false">Trade</button>
 </footer>
 
 <script>
@@ -162,10 +163,6 @@
     const GATHER_EXP_GAIN = 10;
     const ITEM_PRICES = { "Potion": 50, "Poké Ball": 100, "Rare Candy": 500, "Berries": 5, "Stones": 20 };
     
-    // --- State Management ---
-    // This variable keeps track of which tab is currently open.
-    let currentActiveTab = 'home';
-
     // --- Modal Message Functions ---
     function showMessage(title, text) {
         document.getElementById('messageTitle').textContent = title;
@@ -186,31 +183,35 @@
     }
 
     // --- Tab Switching ---
-    // FIXED: This function is now more robust and directly targets elements instead of looping.
-    function switchTab(buttonElement) {
-        const newTabId = buttonElement.getAttribute('data-tab');
+    function switchTab(newTabId) {
+        // Find the currently active elements
+        const currentActiveButton = document.querySelector('.tab-footer button.is-active');
+        const currentActiveTabContent = document.querySelector('.tab-content.is-active');
+        
+        // Find the new elements to activate
+        const newButton = document.querySelector(`.tab-footer button[data-tab='${newTabId}']`);
+        const newTabContent = document.getElementById(newTabId);
 
-        // If the clicked tab is already the active one, do nothing.
-        if (newTabId === currentActiveTab) {
-            return;
+        // Deactivate the old tab and button
+        if (currentActiveButton) {
+            currentActiveButton.classList.remove('is-active');
+            currentActiveButton.setAttribute('aria-selected', 'false');
+        }
+        if (currentActiveTabContent) {
+            currentActiveTabContent.classList.remove('is-active');
         }
 
-        // Deactivate the old tab content and footer button
-        document.getElementById(currentActiveTab).classList.remove('is-active');
-        const oldButton = document.querySelector(`.tab-footer button[data-tab='${currentActiveTab}']`);
-        oldButton.classList.remove('is-active');
-        oldButton.setAttribute('aria-selected', 'false');
-
-        // Activate the new tab content and footer button
-        document.getElementById(newTabId).classList.add('is-active');
-        buttonElement.classList.add('is-active');
-        buttonElement.setAttribute('aria-selected', 'true');
-
-        // Update the state to remember the new active tab
-        currentActiveTab = newTabId;
-
+        // Activate the new tab and button
+        if (newButton) {
+            newButton.classList.add('is-active');
+            newButton.setAttribute('aria-selected', 'true');
+        }
+        if (newTabContent) {
+            newTabContent.classList.add('is-active');
+        }
+        
         // Announce the change for screen readers
-        announceForAccessibility(`${buttonElement.textContent} tab selected`);
+        announceForAccessibility(`${newButton.textContent} tab selected`);
 
         // Refresh content if switching to a tab that needs it
         if (newTabId === "inventory") renderInventory();
@@ -225,9 +226,9 @@
     }
 
     function loadGame() {
-        const savedPokedex =,  localStorage.getItem("pokedex_adventure_pokedex");
+        const savedPokedex = localStorage.getItem("pokedex_adventure_pokedex");
         const savedItems = localStorage.getItem("pokedex_adventure_items");
-        const savedPlayerState = localStorage.getItem("pokedex_adventure_playerState");
+       ,  const savedPlayerState = localStorage.getItem("pokedex_adventure_playerState");
 
         if (savedPokedex) pokedex = JSON.parse(savedPokedex);
         if (savedItems) items = JSON.parse(savedItems);
@@ -309,9 +310,9 @@
         const found = pokemonList[Math.floor(Math.random() * pokemonList.length)];
         if (!pokedex.includes(found)) {
             pokedex.push(found);
-            showMessage("New Catch!", `You found a wild,  ${found}! It has been added to your Pokédex.`);
+            showMessage("New Catch!", `You found a wild ${found}! It has been added to your Pokédex.`);
         } else {
-            showMessage("Already Caught!", `You encountered a ${found}, which is already in your Pokédex.`);
+            showMessage("Already Caught!", `You encountered a,  ${found}, which is already in your Pokédex.`);
         }
         saveGame();
         renderPokedex();
@@ -410,12 +411,12 @@
         const importText = document.getElementById('importData').value.trim();
         if (!importText) {
             showMessage("Trade Error", "Please enter a trade code.");
-           ,  return;
+            return;
         }
 
         try {
             const decodedData = atob(importText);
-            const tradeData = JSON.parse(decodedData);
+            const tradeData =,  JSON.parse(decodedData);
 
             if (tradeData && tradeData.pokemon) {
                 if (!pokedex.includes(tradeData.pokemon)) {
@@ -437,9 +438,28 @@
     }
 
     // --- Game Initialization ---
-    window.onload = function() {
+    // This runs when the page content has loaded.
+    document.addEventListener('DOMContentLoaded', () => {
+        // Load any saved game data first.
         loadGame();
-   ,  };
+
+        // Set up the event listener for the modal's OK button.
+        document.getElementById('modalOkButton').addEventListener('click', hideMessage);
+
+        // **NEW TAB LOGIC**
+        // Get the footer element that contains all the tab buttons.
+        const tabFooter = document.getElementById('tab-footer');
+        
+        // Add a single click listener to the footer.
+        tabFooter.addEventListener('click', (event) => {
+            // Check if the clicked element is a button with a 'data-tab' attribute.
+            const clickedButton = event.target.closest('button[data-tab]');
+            if (clickedButton) {
+                const tabId = clickedButton.dataset.tab;
+                switchTab(tabId);
+            }
+        });
+   ,  });
 </script>
 
 </body>
