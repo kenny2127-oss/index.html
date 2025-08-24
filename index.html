@@ -44,7 +44,7 @@
 </head>
 <body>
 
-<!-- Accessibility Live Region -->
+<!-- Accessibility Live Region: This element is used to announce changes to screen readers. -->
 <div id="accessibilityLive" aria-live="polite" class="sr-only"></div>
 
 <!-- Custom Message Modal -->
@@ -80,11 +80,11 @@
             <h2 class="text-2xl font-semibold mb-2">Explore</h2>
             <p class="text-gray-400 mb-4">Click below to find a new Pokémon!</p>
             <button onclick="catchPokemon()" class="w-full bg-green-500 text-white font-bold py-3 rounded-lg shadow-md hover:bg-green-600 transition duration-300">Catch Pokémon</button>
-        </div>
+     ,    </div>
     </section>
 
     <!-- Gather Tab -->
-   ,  <section id="gather" class="tab-content">
+    <section id="gather" class="tab-content">
         <div class="bg-gray-800 p-6 rounded-xl shadow-lg">
             <h2 class="text-2xl font-semibold mb-4 text-center">Gather Resources</h2>
             <p class="text-gray-400 mb-2">Click to gather resources and gain experience.</p>
@@ -144,15 +144,19 @@
 
 <script>
     // --- Global Data ---
-    const pokemonList = ["Bulbasaur","Charmander","Squirtle","Pikachu","Jigglypuff","Meowth"];
+    const pokemonList =,  ["Bulbasaur","Charmander","Squirtle","Pikachu","Jigglypuff","Meowth"];
     let pokedex = [];
-    let,  items = {Potion:0,"Poké Ball":0,"Rare Candy":0,"Berries":0,"Stones":0};
+    let items = {Potion:0,"Poké Ball":0,"Rare Candy":0,"Berries":0,"Stones":0};
     let playerState = {level:1,exp:0,money:0};
     const EXP_PER_LEVEL = 100;
     const GATHER_EXP_GAIN = 10;
     const ITEM_PRICES = {Potion:50,"Poké Ball":100,"Rare Candy":500,Berries:5,Stones:20};
 
     // --- Accessibility ---
+    /**
+     * Announces a message for screen readers.
+     * @param {string} message The text to be announced.
+     */
     function announceForAccessibility(message) {
         const live = document.getElementById("accessibilityLive");
         live.textContent = '';
@@ -170,6 +174,7 @@
         activeButton.classList.add("is-active");
         const tabNumber = Array.from(buttons).indexOf(activeButton)+1;
         const totalTabs = buttons.length;
+        // Announce tab changes for screen readers.
         announceForAccessibility(`${activeButton.textContent} selected, Tab ${tabNumber} of ${totalTabs}`);
         if(tabId==="inventory") renderInventory();
         if(tabId==="pokemart") renderPokemart();
@@ -219,8 +224,8 @@
                 <p class="font-bold">${i}</p><p>x${items[i]}</p>
                 <p class="text-xs text-gray-400">Value: 💰${ITEM_PRICES[i]}</p>
                 <div class="flex flex-col gap-2 mt-2">
-                    <button onclick="sellItem('${i}')" class="w-full bg-yellow-500 text-gray-900 font-bold py-1 rounded-md text-xs hover:bg-yellow-600 transition duration-300">Sell One</button>
-                    <button onclick="sellAllItems('${i}')" class="w-full bg-red-500,  text-white font-bold py-1 rounded-md text-xs hover:bg-red-600 transition duration-300">Sell All</button>
+              ,       <button onclick="sellItem('${i}')" class="w-full bg-yellow-500 text-gray-900 font-bold py-1 rounded-md text-xs hover:bg-yellow-600 transition duration-300">Sell One</button>
+                    <button onclick="sellAllItems('${i}')" class="w-full bg-red-500 text-white font-bold py-1 rounded-md text-xs hover:bg-red-600 transition duration-300">Sell All</button>
                 </div>`;
             container.appendChild(card);
         }}
@@ -245,6 +250,7 @@
         const amt=Math.floor(Math.random()*3)+1;
         items[r]+=amt; playerState.exp+=GATHER_EXP_GAIN; checkLevelUp(); saveGame();
         renderGatherUI(); showMessage("Gathering Complete!",`You found ${amt} ${r}!`);
+        // Announce resource gathering for screen readers.
         announceForAccessibility(`You gathered ${amt} ${r}`);
     }
     function checkLevelUp(){
@@ -272,7 +278,7 @@
     function importPokedex(){ const d=document.getElementById("importData").value; try{ const imported=JSON.parse(d); const added=imported.filter(p=>!pokedex.includes(p)).length; imported.forEach(p=>{if(!pokedex.includes(p))pokedex.push(p)}); saveGame(); renderPokedex(); showMessage("Trade Redeemed!",`You received ${added} new Pokémon!`);}catch(e){showMessage("Invalid Code","The code you entered is not a valid trade code.");} }
 
     function showMessage(title,text) {
-        document.getElementById("messageTitle").innerText = title;
+       ,  document.getElementById("messageTitle").innerText = title;
         document.getElementById("messageText").innerText = text;
         document.getElementById("messageModal").style.display = "block";
     }
@@ -282,7 +288,7 @@
     }
 
     // --- Initial Setup and Game Start ---
-   ,  function initGame() {
+    function initGame() {
         loadGame();
     }
     
