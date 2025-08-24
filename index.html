@@ -244,4 +244,58 @@ function setupBattleButtons() {
 
 // Run once when the page loads
 window.addEventListener("load", setupBattleButtons);
+</script><script>
+// Initialize battle when Battle tab is selected
+function startBattle() {
+    const battlePlayer = document.getElementById("battlePlayer");
+    const battleEnemy = document.getElementById("battleEnemy");
+    const battleLog = document.getElementById("battleLog");
+
+    if (!pokedex.length) {
+        battlePlayer.textContent = "Your Pokémon: ???";
+        battleEnemy.textContent = "Enemy: ???";
+        battleLog.textContent = "You have no Pokémon to fight with!";
+        return;
+    }
+
+    // Pick your first Pokémon
+    const playerPokemon = pokedex[0];
+    battlePlayer.textContent = "Your Pokémon: " + playerPokemon;
+
+    // Pick a random enemy Pokémon
+    const enemyPokemon = pokemonList[Math.floor(Math.random() * pokemonList.length)];
+    battleEnemy.textContent = "Enemy: " + enemyPokemon;
+
+    battleLog.textContent = "A wild " + enemyPokemon + " appeared!";
+}
+
+// Hook up Attack and Run buttons
+function setupBattleButtons() {
+    const attackBtn = document.getElementById("battleAttackBtn");
+    const runBtn = document.getElementById("battleRunBtn");
+
+    attackBtn?.addEventListener("click", () => {
+        if (typeof battleAttack === "function") battleAttack();
+    });
+
+    runBtn?.addEventListener("click", () => {
+        if (typeof battleRun === "function") battleRun();
+    });
+}
+
+// Detect when Battle tab is selected
+function hookBattleTab() {
+    const battleTabBtn = document.querySelector('.tab-footer button[data-tab="battle"]');
+    if (!battleTabBtn) return;
+
+    battleTabBtn.addEventListener("click", () => {
+        startBattle();
+    });
+}
+
+// Run everything after page loads
+window.addEventListener("load", () => {
+    setupBattleButtons();
+    hookBattleTab();
+});
 </script>
