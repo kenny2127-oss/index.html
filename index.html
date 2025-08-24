@@ -204,4 +204,20 @@ window.onload=()=>{ loadGame(); }
 
     // Run after the main game has loaded
     window.addEventListener("load", addInventoryTooltips);
-})();
+})();<!-- --- Battle Tab --- -->
+<section id="battle" class="tab-content">
+    <div class="bg-gray-800 p-6 rounded-xl shadow-lg">
+        <h2 class="text-2xl font-semibold mb-4 text-center">Battle</h2>
+        <p class="text-gray-400 mb-4 text-center">The battle system is under development. For now, you can practice gathering and catching Pokémon while we build it!</p>
+        <button onclick="startBattle()" class="w-full bg-red-500 text-white font-bold py-3 rounded-lg shadow-md hover:bg-red-600 transition duration-300">Start Battle</button>
+        <div id="battleLog" class="mt-4 p-3 bg-gray-700 rounded-lg text-sm text-gray-100"></div>
+    </div>
+</section>
+
+<script>
+function startBattle() {
+    const log = document.getElementById("battleLog");
+    log.innerHTML = "Battles are under development. Stay tuned!";
+    announceForAccessibility("Battle tab selected. Battle system is under development.");
+}
+</script>
