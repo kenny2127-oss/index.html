@@ -184,4 +184,24 @@ window.onload=()=>{ loadGame(); }
 </script>
 
 </body>
-</html>
+</html>(function() {
+    // Self-contained feature: announce inventory items on hover/focus
+    function addInventoryTooltips() {
+        const inventory = document.getElementById("inventoryItems");
+        if (!inventory) return;
+
+        // Handle both hover (mouse) and focus (keyboard/screen reader)
+        inventory.addEventListener("mouseover", announceItem);
+        inventory.addEventListener("focusin", announceItem);
+
+        function announceItem(e) {
+            const itemName = e.target.querySelector("p")?.textContent;
+            if (itemName && items[itemName] !== undefined) {
+                announceForAccessibility(`${itemName}: You have ${items[itemName]}`);
+            }
+        }
+    }
+
+    // Run after the main game has loaded
+    window.addEventListener("load", addInventoryTooltips);
+})();
