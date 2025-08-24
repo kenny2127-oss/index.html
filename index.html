@@ -119,4 +119,73 @@ body { font-family: 'Inter', sans-serif; background: #1a202c; color: #e6eef8; -w
         <button id="battleRunBtn" class="flex-1 bg-gray-500 text-white font-bold py-2 rounded-lg shadow-md hover:bg-gray-600 transition duration-300">Run</button>
       </div>
     </div>
-    <div id="battleLog" class="mt-4 p-3 bg-gray-700 rounded-lg text-sm text-gray-100
+    <div id="battleLog" class="mt-4 p-3 bg-gray-700 rounded-lg text-sm text-gray-100// ===== Battle logic =====
+let currentEnemy = null;
+let playerHP = 100;
+let enemyHP = 100;
+
+function startBattle() {
+    if (!pokedex.length) {
+        document.getElementById("battlePlayer").textContent = "Your Pokémon: ???";
+        document.getElementById("battleEnemy").textContent = "Enemy: ???";
+        document.getElementById("battleLog").textContent = "You have no Pokémon to fight with!";
+        announceForAccessibility("No Pokémon available for battle.");
+        return;
+    }
+
+    // Pick first Pokémon as player Pokémon
+    const playerPokemon = pokedex[0];
+    document.getElementById("battlePlayer").textContent = "Your Pokémon: " + playerPokemon;
+
+    // Random enemy Pokémon
+    const enemyPokemon = pokemonList[Math.floor(Math.random() * pokemonList.length)];
+    document.getElementById("battleEnemy").textContent = "Enemy: " + enemyPokemon;
+
+    // Reset HP
+    playerHP = 100;
+    enemyHP = 100;
+    currentEnemy = enemyPokemon;
+
+    // Clear battle log
+    document.getElementById("battleLog").textContent = "A wild " + enemyPokemon + " appeared!";
+    announceForAccessibility("A wild " + enemyPokemon + " appeared!");
+}
+
+// Handle attack
+function battleAttack() {
+    if (!currentEnemy) return;
+
+    // Player attack
+    const playerDamage = Math.floor(Math.random() * 30) + 10;
+    enemyHP -= playerDamage;
+    let logText = `You attacked ${currentEnemy} for ${playerDamage} damage.\n`;
+
+    if (enemyHP <= 0) {
+        logText += `${currentEnemy} fainted! You win!`;
+        announceForAccessibility(`${currentEnemy} fainted. You won the battle!`);
+        currentEnemy = null;
+    } else {
+        // Enemy counterattack
+        const enemyDamage = Math.floor(Math.random() * 20) + 5;
+        playerHP -= enemyDamage;
+        logText += `${currentEnemy} attacks you for ${enemyDamage} damage.`;
+        announceForAccessibility(`You dealt ${playerDamage} damage. ${currentEnemy} dealt ${enemyDamage} damage.`);
+    }
+
+    document.getElementById("battleLog").textContent = logText;
+}
+
+// Handle run
+function battleRun() {
+    if (!currentEnemy) return;
+    document.getElementById("battleLog").textContent = `You ran away from ${currentEnemy}!`;
+    announceForAccessibility(`You ran away from ${currentEnemy}`);
+    currentEnemy = null;
+}
+
+// Hook buttons
+document.getElementById("battleAttackBtn").addEventListener("click", battleAttack);
+document.getElementById("battleRunBtn").addEventListener("click", battleRun);
+
+// Hook Battle tab
+document.querySelector('[data-tab="battle"]').addEventListener("click", startBattle);
