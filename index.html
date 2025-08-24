@@ -105,6 +105,24 @@ body { font-family: 'Inter', sans-serif; background: #1a202c; color: #e6eef8; -w
 <button onclick="importPokedex()" class="w-full bg-purple-500 text-white font-bold py-3 rounded-lg shadow-md mt-4 hover:bg-purple-600 transition duration-300">Redeem Code</button>
 </div>
 </section>
+
+<!-- Battle Tab -->
+<section id="battle" class="tab-content">
+  <div class="bg-gray-800 p-6 rounded-xl shadow-lg text-center">
+    <h2 class="text-2xl font-semibold mb-4 text-center">Battle</h2>
+    <p class="text-gray-400 mb-4 text-center">Fight wild Pokémon and gain experience!</p>
+    <div class="flex flex-col gap-2">
+      <div id="battleEnemy" class="text-center font-bold text-red-400 mb-2">Enemy: ???</div>
+      <div id="battlePlayer" class="text-center font-bold text-green-400 mb-2">Your Pokémon: ???</div>
+      <div id="battleActions" class="flex flex-col sm:flex-row gap-2">
+        <button id="battleAttackBtn" class="flex-1 bg-red-500 text-white font-bold py-2 rounded-lg shadow-md hover:bg-red-600 transition duration-300">Attack</button>
+        <button id="battleRunBtn" class="flex-1 bg-gray-500 text-white font-bold py-2 rounded-lg shadow-md hover:bg-gray-600 transition duration-300">Run</button>
+      </div>
+    </div>
+    <div id="battleLog" class="mt-4 p-3 bg-gray-700 rounded-lg text-sm text-gray-100 h-32 overflow-auto"></div>
+  </div>
+</section>
+
 </main>
 
 <!-- Footer Tabs -->
@@ -115,6 +133,7 @@ body { font-family: 'Inter', sans-serif; background: #1a202c; color: #e6eef8; -w
 <button onclick="switchTab(this)" data-tab="inventory" aria-selected="false">Inventory</button>
 <button onclick="switchTab(this)" data-tab="pokemart" aria-selected="false">Poké Mart</button>
 <button onclick="switchTab(this)" data-tab="trade" aria-selected="false">Trade</button>
+<button onclick="switchTab(this)" data-tab="battle" aria-selected="false">Battle</button>
 </footer>
 
 <script>
@@ -156,7 +175,7 @@ function renderInventory(){ const c=document.getElementById("inventoryItems"); c
 function renderPokemart(){ const c=document.getElementById("martItems"); c.innerHTML=""; for(const i in items) if(items[i]>0){ const card=document.createElement("div"); card.className="card"; card.innerHTML=`<p>${i}</p><p>x${items[i]}</p><p>💰${ITEM_PRICES[i]}</p><button onclick="sellItem('${i}')">Sell One</button><button onclick="sellAllItems('${i}')">Sell All</button>`; c.appendChild(card);} }
 
 // Game actions
-function catchPokemon(){ const p=pokemonList[Math.floor(Math.random()*pokemonList.length)]; if(!pokedex.includes(p)){ pokedex.push(p); showMessage("New Catch!",`You found a wild ${p}!`); announceForAccessibility(`You caught ${p}`); } else{ showMessage("Already Caught!",`You already have ${p}`); announceForAccessibility(`${p} is already in your Pokédex`); } saveGame(); renderPokedex(); }
+function catchPokemon(){ const p=pokemonList[Math.floor(Math.random()*pokemonList.length)]; if(!pokedex.includes(p)){ showMessage("New Catch!",`You found a wild ${p}!`); announceForAccessibility(`You caught ${p}`); pokedex.push(p); } else{ showMessage("Already Caught!",`You already have ${p}`); announceForAccessibility(`${p} is already in your Pokédex`); } saveGame(); renderPokedex(); }
 function gatherResources(){ const r=["Berries","Stones"][Math.floor(Math.random()*2)]; const amt=Math.floor(Math.random()*3)+1; items[r]+=amt; playerState.exp+=GATHER_EXP_GAIN; checkLevelUp(); saveGame(); renderGatherUI(); showMessage("Gather Complete",`You got ${amt} ${r}`); announceForAccessibility(`You gathered ${amt} ${r}`); }
 function checkLevelUp(){ if(playerState.exp>=EXP_PER_LEVEL*playerState.level){ playerState.level++; playerState.exp=0; showMessage("Level Up!",`You are now level ${playerState.level}`); announceForAccessibility(`Level up to ${playerState.level}`); } }
 function dailyReward(){ const today=new Date().toDateString(); if(localStorage.getItem("lastDaily")===today){ showMessage("Daily Reward","Already claimed"); return; } const p=pokemonList[Math.floor(Math.random()*pokemonList.length)]; if(!pokedex.includes(p)) pokedex.push(p); items.Potion++; localStorage.setItem("lastDaily",today); saveGame(); renderPokedex(); showMessage("Daily Reward","You got "+p+" and 1 Potion"); announceForAccessibility(`You received ${p} and 1 Potion`); }
@@ -173,45 +192,16 @@ function hideMessage(){ document.getElementById("messageModal").style.display="n
 window.addEventListener("load", loadGame);
 </script>
 
-</body>
-</html><script>
-window.addEventListener("load", () => {
-    // Attach battle buttons
-    const attackBtn = document.getElementById("battleAttackBtn");
-    const runBtn = document.getElementById("battleRunBtn");
-
-    attackBtn?.addEventListener("click", battleAttack);
-    runBtn?.addEventListener("click", battleRun);
-});
-</script><!-- Battle Tab -->
-<section id="battle" class="tab-content">
-  <div class="bg-gray-800 p-6 rounded-xl shadow-lg text-center">
-    <h2 class="text-2xl font-semibold mb-4 text-center">Battle</h2>
-    <p class="text-gray-400 mb-4 text-center">Fight wild Pokémon and gain experience!</p>
-    <div class="flex flex-col gap-2">
-      <div id="battleEnemy" class="text-center font-bold text-red-400 mb-2">Enemy: ???</div>
-      <div id="battlePlayer" class="text-center font-bold text-green-400 mb-2">Your Pokémon: ???</div>
-      <div id="battleActions" class="flex flex-col sm:flex-row gap-2">
-        <button id="battleAttackBtn" class="flex-1 bg-red-500 text-white font-bold py-2 rounded-lg shadow-md hover:bg-red-600 transition duration-300">Attack</button>
-        <button id="battleRunBtn" class="flex-1 bg-gray-500 text-white font-bold py-2 rounded-lg shadow-md hover:bg-gray-600 transition duration-300">Run</button>
-      </div>
-    </div>
-    <div id="battleLog" class="mt-4 p-3 bg-gray-700 rounded-lg text-sm text-gray-100 h-32 overflow-auto"></div>
-  </div>
-</section>
-
+<!-- Battle Script -->
 <script>
 (() => {
-  // Battle system connects to your existing battle.js
   const attackBtn = document.getElementById("battleAttackBtn");
   const runBtn = document.getElementById("battleRunBtn");
 
-  attackBtn?.addEventListener("click", () => {
-    if (typeof battleAttack === "function") battleAttack();
-  });
-
-  runBtn?.addEventListener("click", () => {
-    if (typeof battleRun === "function") battleRun();
-  });
+  attackBtn?.addEventListener("click", () => { if(typeof battleAttack==="function") battleAttack(); });
+  runBtn?.addEventListener("click", () => { if(typeof battleRun==="function") battleRun(); });
 })();
 </script>
+
+</body>
+</html>
