@@ -220,4 +220,155 @@ function startBattle() {
     log.innerHTML = "Battles are under development. Stay tuned!";
     announceForAccessibility("Battle tab selected. Battle system is under development.");
 }
+</script><!-- --- Battle System --- -->
+<section id="battle" class="tab-content">
+    <div class="bg-gray-800 p-6 rounded-xl shadow-lg">
+        <h2 class="text-2xl font-semibold mb-4 text-center">Battle</h2>
+        <p class="text-gray-400 mb-4 text-center">Fight wild Pokémon and gain experience!</p>
+        <div class="flex flex-col gap-2">
+            <div id="battleEnemy" class="text-center font-bold text-red-400 mb-2">Enemy: ???</div>
+            <div id="battlePlayer" class="text-center font-bold text-green-400 mb-2">Your Pokémon: ???</div>
+            <div id="battleActions" class="flex flex-col sm:flex-row gap-2">
+                <button onclick="battleAttack()" class="flex-1 bg-red-500 text-white font-bold py-2 rounded-lg shadow-md hover:bg-red-600 transition duration-300">Attack</button>
+                <button onclick="battleRun()" class="flex-1 bg-gray-500 text-white font-bold py-2 rounded-lg shadow-md hover:bg-gray-600 transition duration-300">Run</button>
+            </div>
+        </div>
+        <div id="battleLog" class="mt-4 p-3 bg-gray-700 rounded-lg text-sm text-gray-100 h-32 overflow-auto"></div>
+    </div>
+</section>
+
+<script>
+let battleState = {
+    playerPokemon: null,
+    enemyPokemon: null,
+    inBattle: false
+};
+
+function startBattle() {
+    if (pokedex.length === 0) {
+        showMessage("No Pokémon", "You need at least one Pokémon to battle!");
+        announceForAccessibility("Cannot start battle. You have no Pokémon.");
+        return;
+    }
+
+    // Pick random player Pokémon
+    battleState.playerPokemon = pokedex[Math.floor(Math.random() * pokedex.length)];
+    // Pick random enemy Pokémon
+    const wildPokemon = ["Bulbasaur","Charmander","Squirtle","Pikachu","Jigglypuff","Meowth"];
+    battleState.enemyPokemon = wildPokemon[Math.floor(Math.random() * wildPokemon.length)];
+
+    battleState.inBattle = true;
+
+    document.getElementById("battleEnemy").textContent = `Enemy: ${battleState.enemyPokemon}`;
+    document.getElementById("battlePlayer").textContent = `Your Pokémon: ${battleState.playerPokemon}`;
+    document.getElementById("battleLog").innerHTML = `A wild ${battleState.enemyPokemon} appeared!`;
+
+    announceForAccessibility(`Battle started! Your Pokémon is ${battleState.playerPokemon}. Enemy is ${battleState.enemyPokemon}.`);
+}
+
+function battleAttack() {
+    if (!battleState.inBattle) return;
+
+    const playerHit = Math.floor(Math.random() * 20) + 5;
+    const enemyHit = Math.floor(Math.random() * 15) + 3;
+
+    const log = document.getElementById("battleLog");
+    log.innerHTML = `Your ${battleState.playerPokemon} hits ${battleState.enemyPokemon} for ${playerHit} damage!<br>`;
+    log.innerHTML += `${battleState.enemyPokemon} hits back for ${enemyHit} damage!`;
+
+    announceForAccessibility(`Your Pokémon hits ${battleState.enemyPokemon} for ${playerHit} damage. Enemy hits back for ${enemyHit} damage.`);
+
+    // Randomly end battle
+    if (Math.random() < 0.3) {
+        battleState.inBattle = false;
+        showMessage("Battle Over", `${battleState.enemyPokemon} fled the battle!`);
+        announceForAccessibility(`${battleState.enemyPokemon} fled the battle.`);
+    }
+}
+
+function battleRun() {
+    if (!battleState.inBattle) return;
+    battleState.inBattle = false;
+    showMessage("You ran away!", "You escaped the battle safely.");
+    announceForAccessibility("You ran away from the battle.");
+}
+</script><!-- --- Battle Module --- -->
+<section id="battle" class="tab-content">
+    <div class="bg-gray-800 p-6 rounded-xl shadow-lg text-center">
+        <h2 class="text-2xl font-semibold mb-4 text-center">Battle</h2>
+        <p class="text-gray-400 mb-4 text-center">Fight wild Pokémon and gain experience!</p>
+        <div class="flex flex-col gap-2">
+            <div id="battleEnemy" class="text-center font-bold text-red-400 mb-2">Enemy: ???</div>
+            <div id="battlePlayer" class="text-center font-bold text-green-400 mb-2">Your Pokémon: ???</div>
+            <div id="battleActions" class="flex flex-col sm:flex-row gap-2">
+                <button onclick="battleAttack()" class="flex-1 bg-red-500 text-white font-bold py-2 rounded-lg shadow-md hover:bg-red-600 transition duration-300">Attack</button>
+                <button onclick="battleRun()" class="flex-1 bg-gray-500 text-white font-bold py-2 rounded-lg shadow-md hover:bg-gray-600 transition duration-300">Run</button>
+            </div>
+        </div>
+        <div id="battleLog" class="mt-4 p-3 bg-gray-700 rounded-lg text-sm text-gray-100 h-32 overflow-auto"></div>
+    </div>
+</section>
+
+<script>
+// Self-contained Battle System
+let battleState = {
+    playerPokemon: null,
+    enemyPokemon: null,
+    inBattle: false
+};
+
+function startBattle() {
+    if (pokedex.length === 0) {
+        showMessage("No Pokémon", "You need at least one Pokémon to battle!");
+        announceForAccessibility("Cannot start battle. You have no Pokémon.");
+        return;
+    }
+
+    // Pick random player Pokémon
+    battleState.playerPokemon = pokedex[Math.floor(Math.random() * pokedex.length)];
+    // Pick random enemy Pokémon
+    const wildPokemon = ["Bulbasaur","Charmander","Squirtle","Pikachu","Jigglypuff","Meowth"];
+    battleState.enemyPokemon = wildPokemon[Math.floor(Math.random() * wildPokemon.length)];
+
+    battleState.inBattle = true;
+
+    document.getElementById("battleEnemy").textContent = `Enemy: ${battleState.enemyPokemon}`;
+    document.getElementById("battlePlayer").textContent = `Your Pokémon: ${battleState.playerPokemon}`;
+    document.getElementById("battleLog").innerHTML = `A wild ${battleState.enemyPokemon} appeared!`;
+
+    announceForAccessibility(`Battle started! Your Pokémon is ${battleState.playerPokemon}. Enemy is ${battleState.enemyPokemon}.`);
+}
+
+function battleAttack() {
+    if (!battleState.inBattle) return;
+
+    const playerHit = Math.floor(Math.random() * 20) + 5;
+    const enemyHit = Math.floor(Math.random() * 15) + 3;
+
+    const log = document.getElementById("battleLog");
+    log.innerHTML = `Your ${battleState.playerPokemon} hits ${battleState.enemyPokemon} for ${playerHit} damage!<br>`;
+    log.innerHTML += `${battleState.enemyPokemon} hits back for ${enemyHit} damage!`;
+
+    announceForAccessibility(`Your Pokémon hits ${battleState.enemyPokemon} for ${playerHit} damage. Enemy hits back for ${enemyHit} damage.`);
+
+    // Randomly end battle
+    if (Math.random() < 0.3) {
+        battleState.inBattle = false;
+        showMessage("Battle Over", `${battleState.enemyPokemon} fled the battle!`);
+        announceForAccessibility(`${battleState.enemyPokemon} fled the battle.`);
+    }
+}
+
+function battleRun() {
+    if (!battleState.inBattle) return;
+    battleState.inBattle = false;
+    showMessage("You ran away!", "You escaped the battle safely.");
+    announceForAccessibility("You ran away from the battle.");
+}
+
+// Automatically attach Start Battle button if exists
+window.addEventListener("load", () => {
+    const startBtn = document.querySelector("#battle button[onclick='startBattle()']");
+    if (startBtn) startBtn.addEventListener("click", startBattle);
+});
 </script>
