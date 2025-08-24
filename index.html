@@ -37,7 +37,6 @@ body { font-family: 'Inter', sans-serif; background: #1a202c; color: #e6eef8; -w
 </header>
 
 <main class="container mx-auto p-4">
-
 <!-- Home Tab -->
 <section id="home" class="tab-content is-active">
 <div class="bg-gray-800 p-6 rounded-xl shadow-lg">
@@ -106,7 +105,6 @@ body { font-family: 'Inter', sans-serif; background: #1a202c; color: #e6eef8; -w
 <button onclick="importPokedex()" class="w-full bg-purple-500 text-white font-bold py-3 rounded-lg shadow-md mt-4 hover:bg-purple-600 transition duration-300">Redeem Code</button>
 </div>
 </section>
-
 </main>
 
 <!-- Footer Tabs -->
@@ -125,5 +123,17 @@ const pokemonList=["Bulbasaur","Charmander","Squirtle","Pikachu","Jigglypuff","M
 let pokedex=[], items={Potion:0,"Poké Ball":0,"Rare Candy":0,"Berries":0,"Stones":0}, playerState={level:1,exp:0,money:0};
 const EXP_PER_LEVEL=100, GATHER_EXP_GAIN=10, ITEM_PRICES={Potion:50,"Poké Ball":100,"Rare Candy":500,Berries:5,Stones:20};
 
-// Accessibility
-function announceForAccessibility(msg){ const live=document.getElementById("accessibilityLive"); live.textContent=""; setTimeout(()=>{ live.textContent=msg
+// Accessibility announcements
+function announceForAccessibility(msg){
+    const live=document.getElementById("accessibilityLive");
+    live.textContent="";
+    setTimeout(()=>{ live.textContent=msg; },100);
+}
+
+// Switch tabs
+function switchTab(btn){
+    const tabId = btn.dataset.tab;
+    document.querySelectorAll(".tab-content").forEach(s=>s.classList.remove("is-active"));
+    document.querySelectorAll(".tab-footer button").forEach(b=>{ b.classList.remove("is-active"); b.setAttribute("aria-selected","false"); });
+    document.getElementById(tabId).classList.add("is-active");
+    btn
