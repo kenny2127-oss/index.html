@@ -44,6 +44,9 @@
             background: #4299e1;
             color: #ffffff;
         }
+        .modal { display: none; position: fixed; z-index: 2000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.6); backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px); align-items: center; justify-content: center; }
+        .modal.is-active { display: flex; }
+        .modal-content { background-color: #2d3748; margin: auto; padding: 2rem; border-radius: 1rem; width: 90%; max-width: 400px; text-align: center; box-shadow: 0 5px 15px rgba(0,0,0,0.5); }
     </style>
 </head>
 <body class="antialiased">
@@ -59,6 +62,9 @@
             <h2 class="text-2xl font-semibold mb-4 text-center">Pokédex</h2>
             <div id="pokedex" class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-3"></div>
         </div>
+        <div class="flex flex-col sm:flex-row gap-4 mt-6">
+            <button onclick="catchPokemon()" class="w-full bg-green-500 text-white font-bold py-3 rounded-lg shadow-md hover:bg-green-600 transition duration-300">Catch Pokémon</button>
+        </div>
     </section>
 
     <!-- Explore Tab -->
@@ -66,32 +72,50 @@
         <div class="bg-gray-800 p-6 rounded-xl shadow-lg text-center">
             <h2 class="text-2xl font-semibold mb-2">Explore</h2>
             <p class="text-gray-400 mb-4">You are in the Explore tab!</p>
+            <button onclick="catchPokemon()" class="w-full bg-green-500 text-white font-bold py-3 rounded-lg shadow-md hover:bg-green-600 transition duration-300">Catch Pokémon</button>
         </div>
     </section>
+    
+    <!-- Modal for messages -->
+    <div id="messageModal" class="modal">
+        <div class="modal-content">
+            <h3 id="messageTitle" class="text-xl font-bold mb-4"></h3>
+            <p id="messageText" class="mb-6"></p>
+            <button onclick="hideMessage()" class="bg-blue-500 text-white font-bold py-2 px-6 rounded-lg shadow-lg hover:bg-blue-600 transition duration-300">OK</button>
+        </div>
+    </div>
 
 </main>
 
 <footer class="tab-footer">
     <button onclick="switchTab('home')" class="is-active">Home</button>
-    <button onclick="switchTab('explore')">Explore</button>
+    <button,  onclick="switchTab('explore')">Explore</button>
 </footer>
 
 <script>
-    // --- Game Data (Initial State) ---
-    const pokemonList = ["Bulbasaur", "Charmander", "Squirtle", "Pikachu", "Jigglypuff", "Meowth"];
-    let pokedex = ["Bulbasaur", "Charmander"]; // Pre-populate the Pokédex
+    // --- Game Data ---
+    const pokemonList = ["Bulbasaur", "Charmander", "Squirtle", "Pikachu", "Jigglypuff", "Meowth", "Psyduck", "Snorlax", "Eevee", "Magikarp", "Gengar", "Abra"];
+    let pokedex = []; 
+
+    // --- Modal Message Functions ---
+    function showMessage(title, text) {
+        document.getElementById('messageTitle').textContent = title;
+        document.getElementById('messageText').textContent = text;
+        document.getElementById('messageModal').classList.add('is-active');
+    }
+
+    function hideMessage() {
+        document.getElementById('messageModal').classList.remove('is-active');
+    }
 
     // --- Tab Switching Logic ---
     function switchTab(tabId) {
-        // Deactivate all tabs and buttons
         document.querySelectorAll('.tab-content').forEach(tab => {
             tab.classList.remove('is-active');
         });
         document.querySelectorAll('.tab-footer button').forEach(button => {
             button.classList.remove('is-active');
         });
-
-        // Activate the selected tab and button
         document.getElementById(tabId).classList.add('is-active');
         document.querySelector(`button[onclick="switchTab('${tabId}')"]`).classList.add('is-active');
     }
@@ -106,8 +130,34 @@
         `).join('');
     }
 
+    // --- Game Logic ---
+    function catchPokemon() {
+        const found = pokemonList[Math.floor(Math.random() * pokemonList.length)];
+        if (!pokedex.includes(found)) {
+            pokedex.push(found);
+            showMessage("New Catch!", `You found a wild ${found}! It has been added to your Pokédex.`);
+        } else {
+            showMessage("Already Caught!", `You encountered a ${found}, which is already in your Pokédex.`);
+        }
+        saveGame();
+        renderPokedex();
+    }
+    
+    // --- Game Data Persistence ---
+    function saveGame() {
+        localStorage.setItem("pokemon_pokedex_v4", JSON.stringify(pokedex));
+    }
+
+    function loadGame() {
+        const savedPokedex = localStorage.getItem("pokemon_pokedex_v4");
+        if (savedPokedex) {
+            pokedex = JSON.parse(savedPokedex);
+        }
+        renderPokedex();
+    }
+
     // --- Initial Setup ---
-    window.onload = renderPokedex;
+    window.onload =,  loadGame;
 
 </script>
 
