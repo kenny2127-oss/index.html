@@ -105,22 +105,6 @@ body { font-family: 'Inter', sans-serif; background: #1a202c; color: #e6eef8; -w
       <button onclick="importPokedex()" class="w-full bg-purple-500 text-white font-bold py-3 rounded-lg shadow-md mt-4 hover:bg-purple-600 transition duration-300">Redeem Code</button>
     </div>
   </section>
-
-  <!-- Battle Tab -->
-  <section id="battle" class="tab-content">
-    <div class="bg-gray-800 p-6 rounded-xl shadow-lg text-center">
-      <h2 class="text-2xl font-semibold mb-4 text-center">Battle</h2>
-      <div class="flex flex-col gap-2">
-        <div id="battleEnemy" class="text-center font-bold text-red-400 mb-2">Enemy: ???</div>
-        <div id="battlePlayer" class="text-center font-bold text-green-400 mb-2">Your Pokémon: ???</div>
-        <div id="battleActions" class="flex flex-col sm:flex-row gap-2">
-          <button onclick="battleAttack()" class="flex-1 bg-red-500 text-white font-bold py-2 rounded-lg shadow-md hover:bg-red-600 transition duration-300">Attack</button>
-          <button onclick="battleRun()" class="flex-1 bg-gray-500 text-white font-bold py-2 rounded-lg shadow-md hover:bg-gray-600 transition duration-300">Run</button>
-        </div>
-      </div>
-      <div id="battleLog" class="mt-4 p-3 bg-gray-700 rounded-lg text-sm text-gray-100 h-32 overflow-auto"></div>
-    </div>
-  </section>
 </main>
 
 <!-- Footer Tabs -->
@@ -131,7 +115,6 @@ body { font-family: 'Inter', sans-serif; background: #1a202c; color: #e6eef8; -w
   <button onclick="switchTab(this)" data-tab="inventory" aria-selected="false">Inventory</button>
   <button onclick="switchTab(this)" data-tab="pokemart" aria-selected="false">Poké Mart</button>
   <button onclick="switchTab(this)" data-tab="trade" aria-selected="false">Trade</button>
-  <button onclick="switchTab(this)" data-tab="battle" aria-selected="false">Battle</button>
 </footer>
 
 <script>
@@ -140,12 +123,33 @@ const pokemonList=["Bulbasaur","Charmander","Squirtle","Pikachu","Jigglypuff","M
 let pokedex=[], items={Potion:0,"Poké Ball":0,"Rare Candy":0,"Berries":0,"Stones":0}, playerState={level:1,exp:0,money:0};
 const EXP_PER_LEVEL=100, GATHER_EXP_GAIN=10, ITEM_PRICES={Potion:50,"Poké Ball":100,"Rare Candy":500,Berries:5,Stones:20};
 
-// Accessibility announcements
+// Accessibility
 function announceForAccessibility(msg){const live=document.getElementById("accessibilityLive"); live.textContent=""; setTimeout(()=>{ live.textContent=msg; },100);}
+function switchTab(btn){const tabId=btn.dataset.tab; document.querySelectorAll(".tab-content").forEach(s=>s.classList.remove("is-active")); document.querySelectorAll(".tab-footer button").forEach(b=>{b.classList.remove("is-active"); b.setAttribute("aria-selected","false");}); document.getElementById(tabId).classList.add("is-active"); btn.classList.add("is-active"); btn.setAttribute("aria-selected","true"); announceForAccessibility(`${btn.textContent} selected`); if(tabId==="inventory") renderInventory(); if(tabId==="pokemart") renderPokemart();}
 
-// Switch tabs
-function switchTab(btn){const tabId=btn.dataset.tab; document.querySelectorAll(".tab-content").forEach(s=>s.classList.remove("is-active")); document.querySelectorAll(".tab-footer button").forEach(b=>{b.classList.remove("is-active"); b.setAttribute("aria-selected","false");}); document.getElementById(tabId).classList.add("is-active"); btn.classList.add("is-active"); btn.setAttribute("aria-selected","true"); const tabNumber=Array.from(document.querySelectorAll(".tab-footer button")).indexOf(btn)+1; const totalTabs=document.querySelectorAll(".tab-footer button").length; announceForAccessibility(`${btn.textContent} selected, Tab ${tabNumber} of ${totalTabs}`); if(tabId==="inventory") renderInventory(); if(tabId==="pokemart") renderPokemart();}
-
-// Game save/load
+// Save/load
 function saveGame(){ localStorage.setItem("pokedex",JSON.stringify(pokedex)); localStorage.setItem("items",JSON.stringify(items)); localStorage.setItem("playerState",JSON.stringify(playerState)); }
-function loadGame(){ pokedex=JSON.parse(localStorage.getItem("pokedex"))||[]; items=JSON.parse(localStorage.getItem("items"))||items; playerState=JSON.parse(localStorage.getItem("playerState"))||playerState; renderPokedex
+function loadGame(){ pokedex=JSON.parse(localStorage.getItem("pokedex"))||[]; items=JSON.parse(localStorage.getItem("items"))||items; playerState=JSON.parse(localStorage.getItem("playerState"))||playerState; renderPokedex(); renderGatherUI(); }
+
+// Render
+function renderPokedex(){ const c=document.getElementById("pokedex"); c.innerHTML=pokemonList.map(p=>`<div class="card">${pokedex.includes(p)?p:"???"}</div>`).join(''); }
+function renderGatherUI(){ document.getElementById("playerLevel").textContent=playerState.level; document.getElementById("playerExp").textContent=playerState.exp; document.getElementById("expToNextLevel").textContent=EXP_PER_LEVEL*playerState.level; document.getElementById("expBar").style.width=`${playerState.exp/(EXP_PER_LEVEL*playerState.level)*100}%`; }
+function renderInventory(){ const c=document.getElementById("inventoryItems"); c.innerHTML=""; document.getElementById("moneyDisplay").textContent=`💰: ${playerState.money}`; for(const i in items) if(items[i]>0){ const card=document.createElement("div"); card.className="card"; card.innerHTML=`<p>${i}</p><p>x${items[i]}</p>`; c.appendChild(card);} }
+function renderPokemart(){ const c=document.getElementById("martItems"); c.innerHTML=""; for(const i in items) if(items[i]>0){ const card=document.createElement("div"); card.className="card"; card.innerHTML=`<p>${i}</p><p>x${items[i]}</p><p>💰${ITEM_PRICES[i]}</p>`; c.appendChild(card);} }
+
+// Actions
+function catchPokemon(){ const p=pokemonList[Math.floor(Math.random()*pokemonList.length)]; if(!pokedex.includes(p)){ pokedex.push(p); showMessage("New Catch!",`You found a wild ${p}!`); announceForAccessibility(`You caught ${p}`);} else{ showMessage("Already Caught!",`You already have ${p}`); announceForAccessibility(`${p} is already in your Pokédex`);} saveGame(); renderPokedex(); }
+function gatherResources(){ const r=["Berries","Stones"][Math.floor(Math.random()*2)]; const amt=Math.floor(Math.random()*3)+1; items[r]+=amt; playerState.exp+=GATHER_EXP_GAIN; checkLevelUp(); saveGame(); renderGatherUI(); showMessage("Gather Complete",`You got ${amt} ${r}`); announceForAccessibility(`You gathered ${amt} ${r}`); }
+function checkLevelUp(){ if(playerState.exp>=EXP_PER_LEVEL*playerState.level){ playerState.level++; playerState.exp=0; showMessage("Level Up!",`You are now level ${playerState.level}`); announceForAccessibility(`Level up to ${playerState.level}`); } }
+function dailyReward(){ const today=new Date().toDateString(); if(localStorage.getItem("lastDaily")===today){ showMessage("Daily Reward","Already claimed"); return; } const p=pokemonList[Math.floor(Math.random()*pokemonList.length)]; if(!pokedex.includes(p)) pokedex.push(p); items.Potion++; localStorage.setItem("lastDaily",today); saveGame(); renderPokedex(); showMessage("Daily Reward","You got "+p+" and 1 Potion"); announceForAccessibility(`You received ${p} and 1 Potion`); }
+function exportPokedex(){ const d=JSON.stringify(pokedex); const e=document.getElementById("exportData"); e.value=d; e.select(); document.execCommand('copy'); showMessage("Copied","Trade code copied"); }
+function importPokedex(){ try{ const imported=JSON.parse(document.getElementById("importData").value); let added=0; imported.forEach(p=>{ if(!pokedex.includes(p)){ pokedex.push(p); added++; } }); saveGame(); renderPokedex(); showMessage("Imported",`You got ${added} new Pokémon!`);}catch(e){showMessage("Error","Invalid code");} }
+
+// Modal
+function showMessage(title,text){ document.getElementById("messageTitle").innerText=title; document.getElementById("messageText").innerText=text; document.getElementById("messageModal").style.display="block"; }
+function hideMessage(){ document.getElementById("messageModal").style.display="none"; }
+
+loadGame();
+</script>
+</body>
+</html>
