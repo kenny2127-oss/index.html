@@ -40,99 +40,109 @@ body { font-family: 'Inter', sans-serif; background: #1a202c; color: #e6eef8; -w
 
 <!-- Home Tab -->
 <section id="home" class="tab-content is-active">
-<div class="bg-gray-800 p-6 rounded-xl shadow-lg">
-<h2 class="text-2xl font-semibold mb-4 text-center">Pokédex</h2>
-<div id="pokedex" class="grid grid-cols-4 sm:grid-cols-6 lg:grid-cols-8 gap-3"></div>
-</div>
-<div class="flex flex-col sm:flex-row gap-4 mt-6">
-<button onclick="catchPokemon()" class="w-full bg-green-500 text-white font-bold py-3 rounded-lg shadow-md hover:bg-green-600 transition duration-300">Catch Pokémon</button>
-<button onclick="dailyReward()" class="w-full bg-yellow-500 text-gray-900 font-bold py-3 rounded-lg shadow-md hover:bg-yellow-600 transition duration-300">Daily Reward</button>
-</div>
-<button onclick="showMessage('Transfer Feature','This feature is currently under development.')" class="w-full bg-blue-500 text-white font-bold py-3 rounded-lg shadow-md mt-4 hover:bg-blue-600 transition duration-300">Transfer Pokédex</button>
+  <div class="bg-gray-800 p-6 rounded-xl shadow-lg">
+    <h2 class="text-2xl font-semibold mb-4 text-center">Pokédex</h2>
+    <div id="pokedex" class="grid grid-cols-4 sm:grid-cols-6 lg:grid-cols-8 gap-3"></div>
+  </div>
+  <div class="flex flex-col sm:flex-row gap-4 mt-6">
+    <button onclick="catchPokemon()" class="w-full bg-green-500 text-white font-bold py-3 rounded-lg shadow-md hover:bg-green-600 transition duration-300">Catch Pokémon</button>
+    <button onclick="dailyReward()" class="w-full bg-yellow-500 text-gray-900 font-bold py-3 rounded-lg shadow-md hover:bg-yellow-600 transition duration-300">Daily Reward</button>
+  </div>
+  <button onclick="showMessage('Transfer Feature','This feature is currently under development.')" class="w-full bg-blue-500 text-white font-bold py-3 rounded-lg shadow-md mt-4 hover:bg-blue-600 transition duration-300">Transfer Pokédex</button>
 </section>
 
 <!-- Explore Tab -->
 <section id="explore" class="tab-content">
-<div class="bg-gray-800 p-6 rounded-xl shadow-lg text-center">
-<h2 class="text-2xl font-semibold mb-2">Explore</h2>
-<p class="text-gray-400 mb-4">Click below to find a new Pokémon!</p>
-<button onclick="catchPokemon()" class="w-full bg-green-500 text-white font-bold py-3 rounded-lg shadow-md hover:bg-green-600 transition duration-300">Catch Pokémon</button>
-</div>
+  <div class="bg-gray-800 p-6 rounded-xl shadow-lg text-center">
+    <h2 class="text-2xl font-semibold mb-2">Explore</h2>
+    <p class="text-gray-400 mb-4">Click below to find a new Pokémon!</p>
+    <button onclick="catchPokemon()" class="w-full bg-green-500 text-white font-bold py-3 rounded-lg shadow-md hover:bg-green-600 transition duration-300">Catch Pokémon</button>
+  </div>
 </section>
 
 <!-- Gather Tab -->
 <section id="gather" class="tab-content">
-<div class="bg-gray-800 p-6 rounded-xl shadow-lg">
-<h2 class="text-2xl font-semibold mb-4 text-center">Gather Resources</h2>
-<p class="text-gray-400 mb-2">Click to gather resources and gain experience.</p>
-<div class="flex justify-between items-center text-sm font-semibold mb-2">
-<span>Level: <span id="playerLevel">1</span></span>
-<span>Exp: <span id="playerExp">0</span>/<span id="expToNextLevel">100</span></span>
-</div>
-<div class="w-full bg-gray-600 rounded-full h-4 overflow-hidden">
-<div id="expBar" class="bg-green-500 h-full transition-all duration-500" style="width:0%;"></div>
-</div>
-<button onclick="gatherResources()" class="w-full bg-indigo-500 text-white font-bold py-3 rounded-lg shadow-md mt-4 hover:bg-indigo-600 transition duration-300">Gather</button>
-</div>
+  <div class="bg-gray-800 p-6 rounded-xl shadow-lg">
+    <h2 class="text-2xl font-semibold mb-4 text-center">Gather Resources</h2>
+    <p class="text-gray-400 mb-2">Click to gather resources and gain experience.</p>
+    <div class="flex justify-between items-center text-sm font-semibold mb-2">
+      <span>Level: <span id="playerLevel">1</span></span>
+      <span>Exp: <span id="playerExp">0</span>/<span id="expToNextLevel">100</span></span>
+    </div>
+    <div class="w-full bg-gray-600 rounded-full h-4 overflow-hidden">
+      <div id="expBar" class="bg-green-500 h-full transition-all duration-500" style="width:0%;"></div>
+    </div>
+    <button onclick="gatherResources()" class="w-full bg-indigo-500 text-white font-bold py-3 rounded-lg shadow-md mt-4 hover:bg-indigo-600 transition duration-300">Gather</button>
+  </div>
 </section>
 
 <!-- Inventory Tab -->
 <section id="inventory" class="tab-content">
-<div class="bg-gray-800 p-6 rounded-xl shadow-lg">
-<h2 class="text-2xl font-semibold mb-4 text-center">Inventory</h2>
-<p class="text-gray-400 mb-2 text-center">What's in your bag?</p>
-<div id="moneyDisplay" class="text-center text-lg font-bold mb-4"></div>
-<div id="inventoryItems" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4"></div>
-</div>
+  <div class="bg-gray-800 p-6 rounded-xl shadow-lg">
+    <h2 class="text-2xl font-semibold mb-4 text-center">Inventory</h2>
+    <p class="text-gray-400 mb-2 text-center">What's in your bag?</p>
+    <div id="moneyDisplay" class="text-center text-lg font-bold mb-4"></div>
+    <div id="inventoryItems" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4"></div>
+  </div>
 </section>
 
 <!-- Poké Mart Tab -->
 <section id="pokemart" class="tab-content">
-<div class="bg-gray-800 p-6 rounded-xl shadow-lg">
-<h2 class="text-2xl font-semibold mb-4 text-center">Poké Mart</h2>
-<div id="martItems" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4"></div>
-</div>
+  <div class="bg-gray-800 p-6 rounded-xl shadow-lg">
+    <h2 class="text-2xl font-semibold mb-4 text-center">Poké Mart</h2>
+    <div id="martItems" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4"></div>
+  </div>
 </section>
 
 <!-- Trade Tab -->
 <section id="trade" class="tab-content">
-<div class="bg-gray-800 p-6 rounded-xl shadow-lg">
-<h2 class="text-2xl font-semibold mb-4 text-center">Trade</h2>
-<label class="block mb-2 text-sm text-gray-400">Offer a Pokémon to generate a short code:</label>
-<textarea id="exportData" readonly class="w-full p-2 bg-gray-700 rounded-lg text-gray-100 border border-gray-600"></textarea>
-<button onclick="exportPokedex()" class="w-full bg-blue-500 text-white font-bold py-3 rounded-lg shadow-md mt-4 hover:bg-blue-600 transition duration-300">Generate Trade Code</button>
-<label class="block mt-6 mb-2 text-sm text-gray-400">Enter a code to receive a Pokémon:</label>
-<textarea id="importData" class="w-full p-2 bg-gray-700 rounded-lg text-gray-100 border border-gray-600"></textarea>
-<button onclick="importPokedex()" class="w-full bg-purple-500 text-white font-bold py-3 rounded-lg shadow-md mt-4 hover:bg-purple-600 transition duration-300">Redeem Code</button>
-</div>
+  <div class="bg-gray-800 p-6 rounded-xl shadow-lg">
+    <h2 class="text-2xl font-semibold mb-4 text-center">Trade</h2>
+    <label class="block mb-2 text-sm text-gray-400">Offer a Pokémon to generate a short code:</label>
+    <textarea id="exportData" readonly class="w-full p-2 bg-gray-700 rounded-lg text-gray-100 border border-gray-600"></textarea>
+    <button onclick="exportPokedex()" class="w-full bg-blue-500 text-white font-bold py-3 rounded-lg shadow-md mt-4 hover:bg-blue-600 transition duration-300">Generate Trade Code</button>
+    <label class="block mt-6 mb-2 text-sm text-gray-400">Enter a code to receive a Pokémon:</label>
+    <textarea id="importData" class="w-full p-2 bg-gray-700 rounded-lg text-gray-100 border border-gray-600"></textarea>
+    <button onclick="importPokedex()" class="w-full bg-purple-500 text-white font-bold py-3 rounded-lg shadow-md mt-4 hover:bg-purple-600 transition duration-300">Redeem Code</button>
+  </div>
+</section>
+
+<!-- Quest Tab -->
+<section id="quest" class="tab-content">
+  <div class="bg-gray-800 p-6 rounded-xl shadow-lg text-center">
+    <h2 class="text-2xl font-semibold mb-4 text-center">Quests</h2>
+    <p class="text-gray-400 mb-4 text-center">Complete quests to earn rewards!</p>
+    <div id="activeQuests" class="flex flex-col gap-3"></div>
+  </div>
 </section>
 
 </main>
 
 <!-- Footer Tabs -->
 <footer class="tab-footer" role="tablist">
-<button onclick="switchTab(this)" data-tab="home" class="is-active" aria-selected="true">Home</button>
-<button onclick="switchTab(this)" data-tab="explore" aria-selected="false">Explore</button>
-<button onclick="switchTab(this)" data-tab="gather" aria-selected="false">Gather</button>
-<button onclick="switchTab(this)" data-tab="inventory" aria-selected="false">Inventory</button>
-<button onclick="switchTab(this)" data-tab="pokemart" aria-selected="false">Poké Mart</button>
-<button onclick="switchTab(this)" data-tab="trade" aria-selected="false">Trade</button>
+  <button onclick="switchTab(this)" data-tab="home" class="is-active" aria-selected="true">Home</button>
+  <button onclick="switchTab(this)" data-tab="explore" aria-selected="false">Explore</button>
+  <button onclick="switchTab(this)" data-tab="gather" aria-selected="false">Gather</button>
+  <button onclick="switchTab(this)" data-tab="inventory" aria-selected="false">Inventory</button>
+  <button onclick="switchTab(this)" data-tab="pokemart" aria-selected="false">Poké Mart</button>
+  <button onclick="switchTab(this)" data-tab="trade" aria-selected="false">Trade</button>
+  <button onclick="switchTab(this); renderQuests();" data-tab="quest" aria-selected="false">Quest</button>
 </footer>
 
 <script>
-// Core Variables
-const pokemonList=["Bulbasaur","Charmander","Squirtle","Pikachu","Jigglypuff","Meowth"];
-let pokedex=[], items={Potion:0,"Poké Ball":0,"Rare Candy":0,"Berries":0,"Stones":0}, playerState={level:1,exp:0,money:0};
-const EXP_PER_LEVEL=100, GATHER_EXP_GAIN=10, ITEM_PRICES={Potion:50,"Poké Ball":100,"Rare Candy":500,Berries:5,Stones:20};
+// Core Game Variables
+const pokemonList = ["Bulbasaur","Charmander","Squirtle","Pikachu","Jigglypuff","Meowth"];
+let pokedex = [], items = {Potion:0,"Poké Ball":0,"Rare Candy":0,"Berries":0,"Stones":0}, playerState = {level:1,exp:0,money:0};
+const EXP_PER_LEVEL = 100, GATHER_EXP_GAIN = 10, ITEM_PRICES = {Potion:50,"Poké Ball":100,"Rare Candy":500,Berries:5,Stones:20};
 
-// Accessibility announcements
+// Accessibility
 function announceForAccessibility(msg){
-    const live=document.getElementById("accessibilityLive");
+    const live = document.getElementById("accessibilityLive");
     live.textContent="";
-    setTimeout(()=>{ live.textContent=msg; },100);
+    setTimeout(()=>{ live.textContent = msg; },100);
 }
 
-// Switch tabs
+// Tab Switching
 function switchTab(btn){
     const tabId = btn.dataset.tab;
     document.querySelectorAll(".tab-content").forEach(s=>s.classList.remove("is-active"));
@@ -145,279 +155,67 @@ function switchTab(btn){
     if(tabId==="pokemart") renderPokemart();
 }
 
-// Game save/load
+// Save/Load
 function saveGame(){ localStorage.setItem("pokedex",JSON.stringify(pokedex)); localStorage.setItem("items",JSON.stringify(items)); localStorage.setItem("playerState",JSON.stringify(playerState)); }
-function loadGame(){ pokedex=JSON.parse(localStorage.getItem("pokedex"))||[]; items=JSON.parse(localStorage.getItem("items"))||items; playerState=JSON.parse(localStorage.getItem("playerState"))||playerState; renderPokedex(); renderGatherUI(); }
+function loadGame(){ pokedex=JSON.parse(localStorage.getItem("pokedex"))||[]; items=JSON.parse(localStorage.getItem("items"))||items; playerState=JSON.parse(localStorage.getItem("playerState"))||playerState; renderPokedex(); renderGatherUI(); renderInventory(); }
 
-// Render functions
+// Render Functions
 function renderPokedex(){ const c=document.getElementById("pokedex"); c.innerHTML=pokemonList.map(p=>`<div class="card">${pokedex.includes(p)?p:"???"}</div>`).join(''); }
 function renderGatherUI(){ document.getElementById("playerLevel").textContent=playerState.level; document.getElementById("playerExp").textContent=playerState.exp; document.getElementById("expToNextLevel").textContent=EXP_PER_LEVEL*playerState.level; document.getElementById("expBar").style.width=`${playerState.exp/(EXP_PER_LEVEL*playerState.level)*100}%`; }
 function renderInventory(){ const c=document.getElementById("inventoryItems"); c.innerHTML=""; document.getElementById("moneyDisplay").textContent=`💰: ${playerState.money}`; for(const i in items) if(items[i]>0){ const card=document.createElement("div"); card.className="card"; card.innerHTML=`<p>${i}</p><p>x${items[i]}</p>`; c.appendChild(card);} }
 function renderPokemart(){ const c=document.getElementById("martItems"); c.innerHTML=""; for(const i in items) if(items[i]>0){ const card=document.createElement("div"); card.className="card"; card.innerHTML=`<p>${i}</p><p>x${items[i]}</p><p>💰${ITEM_PRICES[i]}</p><button onclick="sellItem('${i}')">Sell One</button><button onclick="sellAllItems('${i}')">Sell All</button>`; c.appendChild(card);} }
 
-// Game actions
+// Game Actions
 function catchPokemon(){ const p=pokemonList[Math.floor(Math.random()*pokemonList.length)]; if(!pokedex.includes(p)){ showMessage("New Catch!",`You found a wild ${p}!`); announceForAccessibility(`You caught ${p}`); pokedex.push(p); } else{ showMessage("Already Caught!",`You already have ${p}`); announceForAccessibility(`${p} is already in your Pokédex`); } saveGame(); renderPokedex(); }
 function gatherResources(){ const r=["Berries","Stones"][Math.floor(Math.random()*2)]; const amt=Math.floor(Math.random()*3)+1; items[r]+=amt; playerState.exp+=GATHER_EXP_GAIN; checkLevelUp(); saveGame(); renderGatherUI(); showMessage("Gather Complete",`You got ${amt} ${r}`); announceForAccessibility(`You gathered ${amt} ${r}`); }
 function checkLevelUp(){ if(playerState.exp>=EXP_PER_LEVEL*playerState.level){ playerState.level++; playerState.exp=0; showMessage("Level Up!",`You are now level ${playerState.level}`); announceForAccessibility(`Level up to ${playerState.level}`); } }
 function dailyReward(){ const today=new Date().toDateString(); if(localStorage.getItem("lastDaily")===today){ showMessage("Daily Reward","Already claimed"); return; } const p=pokemonList[Math.floor(Math.random()*pokemonList.length)]; if(!pokedex.includes(p)) pokedex.push(p); items.Potion++; localStorage.setItem("lastDaily",today); saveGame(); renderPokedex(); showMessage("Daily Reward","You got "+p+" and 1 Potion"); announceForAccessibility(`You received ${p} and 1 Potion`); }
-
 function sellItem(i){ if(items[i]>0){ items[i]--; playerState.money+=ITEM_PRICES[i]; saveGame(); renderInventory(); renderPokemart(); showMessage("Sold","1 "+i); } }
 function sellAllItems(i){ if(items[i]>0){ playerState.money+=items[i]*ITEM_PRICES[i]; items[i]=0; saveGame(); renderInventory(); renderPokemart(); showMessage("Sold","All "+i); } }
-
 function exportPokedex(){ const d=JSON.stringify(pokedex); const e=document.getElementById("exportData"); e.value=d; e.select(); document.execCommand('copy'); showMessage("Copied","Trade code copied"); }
 function importPokedex(){ try{ const imported=JSON.parse(document.getElementById("importData").value); let added=0; imported.forEach(p=>{ if(!pokedex.includes(p)){ pokedex.push(p); added++; } }); saveGame(); renderPokedex(); showMessage("Imported",`You got ${added} new Pokémon!`);}catch(e){showMessage("Error","Invalid code");} }
-
 function showMessage(title,text){ document.getElementById("messageTitle").innerText=title; document.getElementById("messageText").innerText=text; document.getElementById("messageModal").style.display="block"; }
 function hideMessage(){ document.getElementById("messageModal").style.display="none"; }
 
-window.addEventListener("load", loadGame);
-</script>
-
-</body>
-</html><!-- Quest Tab -->
-<section id="quest" class="tab-content">
-  <div class="bg-gray-800 p-6 rounded-xl shadow-lg text-center">
-    <h2 class="text-2xl font-semibold mb-4 text-center">Quests</h2>
-    <p class="text-gray-400 mb-4 text-center">Complete quests to earn rewards and experience!</p>
-    <div id="questList" class="flex flex-col gap-4">
-      <!-- Example quests -->
-      <div class="card p-3">
-        <p class="font-bold">Catch 3 Pokémon</p>
-        <button onclick="completeQuest('catch3')" class="mt-2 bg-green-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-green-600 transition duration-300">Complete</button>
-      </div>
-      <div class="card p-3">
-        <p class="font-bold">Gather 5 Berries</p>
-        <button onclick="completeQuest('gather5Berries')" class="mt-2 bg-green-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-green-600 transition duration-300">Complete</button>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- Add Quest tab button to footer -->
-<script>
-  const footer = document.querySelector('.tab-footer');
-  if (footer && !document.querySelector('[data-tab="quest"]')) {
-    const btn = document.createElement('button');
-    btn.textContent = 'Quest';
-    btn.dataset.tab = 'quest';
-    btn.setAttribute('aria-selected','false');
-    btn.onclick = function(){ switchTab(this); };
-    footer.appendChild(btn);
-  }
-
-  // Quest completion logic
-  function completeQuest(id) {
-    switch(id) {
-      case 'catch3':
-        showMessage('Quest Complete', 'You caught 3 Pokémon! +50 XP');
-        playerState.exp += 50;
-        break;
-      case 'gather5Berries':
-        showMessage('Quest Complete', 'You gathered 5 Berries! +50 XP');
-        playerState.exp += 50;
-        items.Berries += 5;
-        break;
-    }
-    checkLevelUp();
-    saveGame();
-  }
-</script><!-- Quest Tab -->
-<section id="quest" class="tab-content">
-  <div class="bg-gray-800 p-6 rounded-xl shadow-lg">
-    <h2 class="text-2xl font-semibold mb-4 text-center">Quests</h2>
-    <div id="questList" class="flex flex-col gap-4">
-      <!-- Example Quests -->
-      <div class="quest card p-4">
-        <p class="font-bold">Catch 1 Pokémon</p>
-        <button class="completeBtn bg-green-500 text-white font-bold py-2 px-4 rounded-lg mt-2">Complete</button>
-      </div>
-      <div class="quest card p-4">
-        <p class="font-bold">Gather 3 Berries</p>
-        <button class="completeBtn bg-green-500 text-white font-bold py-2 px-4 rounded-lg mt-2">Complete</button>
-      </div>
-    </div>
-  </div>
-</section>
-
-<script>
-// Quest system setup
-function setupQuestTab() {
-  const completeButtons = document.querySelectorAll("#quest .completeBtn");
-
-  completeButtons.forEach(btn => {
-    btn.addEventListener("click", () => {
-      const questDiv = btn.closest(".quest");
-      const questText = questDiv.querySelector("p").textContent;
-
-      let rewardMsg = "";
-
-      if (questText.includes("Catch 1 Pokémon")) {
-        if (pokedex.length > 0) {
-          playerState.exp += 20;
-          rewardMsg = "You completed the quest and gained 20 XP!";
-        } else {
-          rewardMsg = "You have no Pokémon to complete this quest!";
-        }
-      } else if (questText.includes("Gather 3 Berries")) {
-        if (items.Berries >= 3) {
-          items.Berries -= 3;
-          playerState.money += 50;
-          rewardMsg = "You completed the quest and earned 💰50!";
-        } else {
-          rewardMsg = "You don't have enough Berries!";
-        }
-      }
-
-      showMessage("Quest Complete", rewardMsg);
-      announceForAccessibility(rewardMsg);
-      checkLevelUp();
-      saveGame();
-    });
-  });
-}
-
-// Initialize after page loads
-window.addEventListener("load", setupQuestTab);
-</script><script>
-// Quest system setup
-function setupQuestTab() {
-  const completeButtons = document.querySelectorAll("#quest .completeBtn");
-
-  completeButtons.forEach(btn => {
-    btn.addEventListener("click", () => {
-      const questDiv = btn.closest(".quest");
-      const questText = questDiv.querySelector("p").textContent;
-
-      let rewardMsg = "";
-
-      if (questText.includes("Catch 1 Pokémon")) {
-        if (pokedex.length > 0) {
-          playerState.exp += 20;
-          rewardMsg = "You completed the quest and gained 20 XP!";
-        } else {
-          rewardMsg = "You have no Pokémon to complete this quest!";
-        }
-      } else if (questText.includes("Gather 3 Berries")) {
-        if (items.Berries >= 3) {
-          items.Berries -= 3;
-          playerState.money += 50;
-          rewardMsg = "You completed the quest and earned 💰50!";
-        } else {
-          rewardMsg = "You don't have enough Berries!";
-        }
-      }
-
-      showMessage("Quest Complete", rewardMsg);
-      announceForAccessibility(rewardMsg);
-      checkLevelUp();
-      saveGame();
-    });
-  });
-}
-
-// Ensure the Quest tab exists first, then attach buttons
-window.addEventListener("load", () => {
-  const questSection = document.getElementById("quest");
-  if (questSection) setupQuestTab();
-});
-</script><!-- Quest Tab -->
-<section id="quest" class="tab-content">
-  <div class="bg-gray-800 p-6 rounded-xl shadow-lg text-center">
-    <h2 class="text-2xl font-semibold mb-4">Quests</h2>
-    <p class="text-gray-400 mb-4">Complete quests to earn rewards!</p>
-    <div id="questList" class="flex flex-col gap-3"></div>
-  </div>
-</section>
-
-<script>
-// Quest definitions: add as many as you want
+// Quest System
 const questPool = [
-  { description: "Catch 1 Pokémon", reward: { exp: 10 } },
-  { description: "Catch 3 Pokémon", reward: { exp: 30 } },
-  { description: "Gather 5 Berries", reward: { exp: 15, items: { Berries: 5 } } },
-  { description: "Sell 2 Potions", reward: { exp: 20, money: 100 } },
-  { description: "Reach Level 2", reward: { exp: 50 } },
-  { description: "Catch a Pikachu", reward: { exp: 50, items: { "Rare Candy": 1 } } },
-  { description: "Gather 10 Stones", reward: { exp: 25, items: { Stones: 10 } } },
-  { description: "Sell 5 Poké Balls", reward: { exp: 30, money: 250 } },
-  { description: "Catch a Charmander", reward: { exp: 40, items: { "Rare Candy": 1 } } },
-  { description: "Reach Level 3", reward: { exp: 100 } }
+    { title: "Catch 1 Pokémon", reward: "Potion" },
+    { title: "Gather 3 Berries", reward: "Rare Candy" },
+    { title: "Reach Level 2", reward: "Poké Ball" },
+    { title: "Sell 5 items", reward: "50💰" },
+    { title: "Explore 2 times", reward: "Berries" },
+    { title: "Catch a Pikachu", reward: "100💰" },
+    { title: "Gather 5 Stones", reward: "Potion" },
+    { title: "Reach Level 3", reward: "Rare Candy" },
+    { title: "Catch a Meowth", reward: "Poké Ball" },
+    { title: "Complete 3 trades", reward: "50💰" }
 ];
 
-// Render quests dynamically
-function renderQuests() {
-  const questContainer = document.getElementById("questList");
-  questContainer.innerHTML = "";
-  
-  questPool.forEach((q, index) => {
-    const questDiv = document.createElement("div");
-    questDiv.className = "quest card p-4 flex justify-between items-center";
+let activeQuests = [];
+const ACTIVE_QUEST_LIMIT = 3;
 
-    const desc = document.createElement("p");
-    desc.textContent = q.description;
+function announceQuest(msg){ announceForAccessibility(msg); }
 
-    const btn = document.createElement("button");
-    btn.textContent = "Complete";
-    btn.className = "completeBtn bg-blue-500 text-white py-2 px-4 rounded";
-    btn.addEventListener("click", () => completeQuest(index, btn));
+function addNewQuest(){ const remaining = questPool.filter(q => !activeQuests.includes(q)); if(remaining.length===0) return; const next = remaining[Math.floor(Math.random()*remaining.length)]; activeQuests.push(next); }
 
-    questDiv.appendChild(desc);
-    questDiv.appendChild(btn);
-    questContainer.appendChild(questDiv);
-  });
+function renderQuests(){
+    const container = document.getElementById("activeQuests");
+    container.innerHTML="";
+    while(activeQuests.length<ACTIVE_QUEST_LIMIT) addNewQuest();
+    activeQuests.forEach((q, idx)=>{
+        const div = document.createElement("div");
+        div.className="bg-gray-700 p-3 rounded-lg flex justify-between items-center";
+        div.innerHTML=`<span>${q.title} - Reward: ${q.reward}</span>
+                       <button class="bg-green-500 text-white font-bold py-1 px-3 rounded-lg hover:bg-green-600 transition duration-300" data-index="${idx}">Complete</button>`;
+        container.appendChild(div);
+    });
+    container.querySelectorAll("button").forEach(btn=>{ btn.onclick=()=>completeQuest(parseInt(btn.dataset.index)); });
 }
 
-// Complete quest logic
-function completeQuest(index, btn) {
-  const quest = questPool[index];
-  
-  // Apply rewards
-  if (quest.reward.exp) {
-    playerState.exp += quest.reward.exp;
-    checkLevelUp();
-  }
-  
-  if (quest.reward.money) {
-    playerState.money += quest.reward.money;
-  }
-
-  if (quest.reward.items) {
-    for (const i in quest.reward.items) {
-      if (!items[i]) items[i] = 0;
-      items[i] += quest.reward.items[i];
-    }
-  }
-
-  saveGame();
-  renderInventory();
-  renderGatherUI();
-
-  // Disable button
-  btn.disabled = true;
-  btn.textContent = "Completed";
-  btn.classList.remove("bg-blue-500");
-  btn.classList.add("bg-gray-500");
-
-  // Accessibility announcement
-  announceForAccessibility(`Quest completed: ${quest.description}`);
-}
-
-// Hook quests tab to render quests when selected
-const questTabBtn = document.querySelector('.tab-footer button[data-tab="quest"]');
-if (questTabBtn) {
-  questTabBtn.addEventListener("click", renderQuests);
-}
-</script>
-
-<!-- Add quest tab button to footer -->
-<script>
-const footer = document.querySelector(".tab-footer");
-if (footer && !document.querySelector('[data-tab="quest"]')) {
-  const questBtn = document.createElement("button");
-  questBtn.setAttribute("data-tab", "quest");
-  questBtn.textContent = "Quest";
-  questBtn.onclick = function() { switchTab(this); renderQuests(); };
-  questBtn.setAttribute("aria-selected", "false");
-  footer.appendChild(questBtn);
-}
-</script>
+function completeQuest(idx){
+    const q = activeQuests[idx];
+    if(!q) return;
+    if(q.reward.includes("💰")){ const amount=parseInt(q.reward); playerState.money+=amount; }
+    else if(items[q.reward]!==undefined){ items[q.reward]++; }
+    showMessage("Quest Completed",`You completed: ${q.title} and received: ${q.reward}`);
+    announceQuest(`Quest completed: ${q.title
