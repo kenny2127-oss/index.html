@@ -329,4 +329,72 @@ function battleRun() {
     log.innerHTML += `<p>You ran away from the battle!</p>`;
     log.scrollTop = log.scrollHeight;
 }
+</script><script>
+// --- Global Battle Functions ---
+function battleAttack() {
+    const log = document.getElementById("battleLog");
+    const enemyEl = document.getElementById("battleEnemy");
+    const playerEl = document.getElementById("battlePlayer");
+
+    const enemy = enemyEl.textContent.split(": ")[1];
+    const player = playerEl.textContent.split(": ")[1];
+
+    if (!enemy || enemy === "???") return;
+
+    // Simulate damage
+    const damage = Math.floor(Math.random() * 20) + 5;
+    log.innerHTML += `<p>${player} attacks ${enemy} for ${damage} damage!</p>`;
+
+    // Accessibility announcement
+    announceForAccessibility(`${player} attacks ${enemy} for ${damage} damage`);
+
+    // Simulate enemy faint
+    if (Math.random() < 0.3) {
+        log.innerHTML += `<p>${enemy} fainted! You win the battle!</p>`;
+        announceForAccessibility(`${enemy} fainted! You win the battle`);
+    } else {
+        const enemyDamage = Math.floor(Math.random() * 15) + 3;
+        log.innerHTML += `<p>${enemy} attacks ${player} for ${enemyDamage} damage!</p>`;
+        announceForAccessibility(`${enemy} attacks ${player} for ${enemyDamage} damage`);
+    }
+
+    log.scrollTop = log.scrollHeight;
+}
+
+function battleRun() {
+    const log = document.getElementById("battleLog");
+    log.innerHTML += `<p>You ran away from the battle!</p>`;
+    announceForAccessibility("You ran away from the battle");
+    log.scrollTop = log.scrollHeight;
+}
+
+// --- Setup buttons after DOM loads ---
+function setupBattle() {
+    const attackBtn = document.getElementById("battleAttackBtn");
+    const runBtn = document.getElementById("battleRunBtn");
+
+    if (attackBtn) attackBtn.addEventListener("click", battleAttack);
+    if (runBtn) runBtn.addEventListener("click", battleRun);
+
+    // Initialize battle when tab is selected
+    const battleTabBtn = document.querySelector('[data-tab="battle"]');
+    if (battleTabBtn) {
+        battleTabBtn.addEventListener("click", () => {
+            const battlePlayer = document.getElementById("battlePlayer");
+            const battleEnemy = document.getElementById("battleEnemy");
+            const battleLog = document.getElementById("battleLog");
+
+            const playerPokemon = pokedex.length > 0 ? pokedex[0] : "???";
+            battlePlayer.textContent = "Your Pokémon: " + playerPokemon;
+
+            const enemyPokemon = pokemonList[Math.floor(Math.random() * pokemonList.length)];
+            battleEnemy.textContent = "Enemy: " + enemyPokemon;
+
+            battleLog.innerHTML = `A wild ${enemyPokemon} appeared!`;
+            announceForAccessibility(`A wild ${enemyPokemon} appeared`);
+        });
+    }
+}
+
+window.addEventListener("load", setupBattle);
 </script>
