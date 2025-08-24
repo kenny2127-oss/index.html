@@ -221,4 +221,61 @@ window.addEventListener("load", loadGame);
     checkLevelUp();
     saveGame();
   }
+</script><!-- Quest Tab -->
+<section id="quest" class="tab-content">
+  <div class="bg-gray-800 p-6 rounded-xl shadow-lg">
+    <h2 class="text-2xl font-semibold mb-4 text-center">Quests</h2>
+    <div id="questList" class="flex flex-col gap-4">
+      <!-- Example Quests -->
+      <div class="quest card p-4">
+        <p class="font-bold">Catch 1 Pokémon</p>
+        <button class="completeBtn bg-green-500 text-white font-bold py-2 px-4 rounded-lg mt-2">Complete</button>
+      </div>
+      <div class="quest card p-4">
+        <p class="font-bold">Gather 3 Berries</p>
+        <button class="completeBtn bg-green-500 text-white font-bold py-2 px-4 rounded-lg mt-2">Complete</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+// Quest system setup
+function setupQuestTab() {
+  const completeButtons = document.querySelectorAll("#quest .completeBtn");
+
+  completeButtons.forEach(btn => {
+    btn.addEventListener("click", () => {
+      const questDiv = btn.closest(".quest");
+      const questText = questDiv.querySelector("p").textContent;
+
+      let rewardMsg = "";
+
+      if (questText.includes("Catch 1 Pokémon")) {
+        if (pokedex.length > 0) {
+          playerState.exp += 20;
+          rewardMsg = "You completed the quest and gained 20 XP!";
+        } else {
+          rewardMsg = "You have no Pokémon to complete this quest!";
+        }
+      } else if (questText.includes("Gather 3 Berries")) {
+        if (items.Berries >= 3) {
+          items.Berries -= 3;
+          playerState.money += 50;
+          rewardMsg = "You completed the quest and earned 💰50!";
+        } else {
+          rewardMsg = "You don't have enough Berries!";
+        }
+      }
+
+      showMessage("Quest Complete", rewardMsg);
+      announceForAccessibility(rewardMsg);
+      checkLevelUp();
+      saveGame();
+    });
+  });
+}
+
+// Initialize after page loads
+window.addEventListener("load", setupQuestTab);
 </script>
