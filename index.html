@@ -204,4 +204,23 @@ window.addEventListener("load", loadGame);
 </script>
 
 </body>
-</html>
+</html><script>
+// Update battle tab when it's activated
+const battleTabBtn = document.querySelector('[data-tab="battle"]');
+
+if (battleTabBtn) {
+    battleTabBtn.addEventListener("click", () => {
+        // Pick your first Pokémon as the active one
+        const playerPokemon = pokedex.length > 0 ? pokedex[0] : "???";
+        document.getElementById("battlePlayer").textContent = `Your Pokémon: ${playerPokemon}`;
+
+        // Random enemy Pokémon
+        const enemyPokemon = pokemonList[Math.floor(Math.random() * pokemonList.length)];
+        document.getElementById("battleEnemy").textContent = `Enemy: ${enemyPokemon}`;
+
+        // Clear previous battle log
+        const log = document.getElementById("battleLog");
+        if (log) log.innerHTML = "Battle started!";
+    });
+}
+</script>
