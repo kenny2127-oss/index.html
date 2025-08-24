@@ -154,13 +154,15 @@
 
     // --- Accessibility ---
     /**
-     * Announces a message for screen readers.
+     * Announces a message for screen readers by updating a live region.
+     * The setTimeout is used to ensure the screen reader detects the change.
      * @param {string} message The text to be announced.
      */
     function announceForAccessibility(message) {
         const live = document.getElementById("accessibilityLive");
         live.textContent = '';
-        setTimeout(()=>{ live.textContent = message; },100);
+        // Increased the delay to 200ms to improve reliability for screen readers.
+        setTimeout(()=>{ live.textContent = message; }, 200);
     }
 
     // --- Tab Switching ---
@@ -221,10 +223,10 @@
             const card=document.createElement("div");
             card.className="card bg-gray-700 rounded-lg p-3 text-center shadow-inner text-sm";
             card.innerHTML=`
-                <p class="font-bold">${i}</p><p>x${items[i]}</p>
+                <p,  class="font-bold">${i}</p><p>x${items[i]}</p>
                 <p class="text-xs text-gray-400">Value: 💰${ITEM_PRICES[i]}</p>
                 <div class="flex flex-col gap-2 mt-2">
-              ,       <button onclick="sellItem('${i}')" class="w-full bg-yellow-500 text-gray-900 font-bold py-1 rounded-md text-xs hover:bg-yellow-600 transition duration-300">Sell One</button>
+                    <button onclick="sellItem('${i}')" class="w-full bg-yellow-500 text-gray-900 font-bold py-1 rounded-md text-xs hover:bg-yellow-600 transition duration-300">Sell One</button>
                     <button onclick="sellAllItems('${i}')" class="w-full bg-red-500 text-white font-bold py-1 rounded-md text-xs hover:bg-red-600 transition duration-300">Sell All</button>
                 </div>`;
             container.appendChild(card);
@@ -275,10 +277,10 @@
 
     // --- Trading ---
     function exportPokedex(){ const d=JSON.stringify(pokedex); const e=document.getElementById("exportData"); e.value=d; e.select(); try{document.execCommand('copy'); showMessage("Success!","Trade code copied to clipboard!");}catch(err){showMessage("Failed to Copy","Could not copy to clipboard. Please copy the text manually.");} }
-    function importPokedex(){ const d=document.getElementById("importData").value; try{ const imported=JSON.parse(d); const added=imported.filter(p=>!pokedex.includes(p)).length; imported.forEach(p=>{if(!pokedex.includes(p))pokedex.push(p)}); saveGame(); renderPokedex(); showMessage("Trade Redeemed!",`You received ${added} new Pokémon!`);}catch(e){showMessage("Invalid Code","The code you entered is not a valid trade code.");} }
+    function importPokedex(){ const d=document.getElementById("importData").value; try{ const imported=JSON.parse(d); const added=imported.filter(p=>!pokedex.includes(p)).length; imported.forEach(p=>{if(!pokedex.includes(p))pokedex.push(p)}); saveGame(); renderPokedex(); showMessage("Trade Redeemed!",`You received,  ${added} new Pokémon!`);}catch(e){showMessage("Invalid Code","The code you entered is not a valid trade code.");} }
 
     function showMessage(title,text) {
-       ,  document.getElementById("messageTitle").innerText = title;
+        document.getElementById("messageTitle").innerText = title;
         document.getElementById("messageText").innerText = text;
         document.getElementById("messageModal").style.display = "block";
     }
