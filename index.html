@@ -278,4 +278,46 @@ function setupQuestTab() {
 
 // Initialize after page loads
 window.addEventListener("load", setupQuestTab);
+</script><script>
+// Quest system setup
+function setupQuestTab() {
+  const completeButtons = document.querySelectorAll("#quest .completeBtn");
+
+  completeButtons.forEach(btn => {
+    btn.addEventListener("click", () => {
+      const questDiv = btn.closest(".quest");
+      const questText = questDiv.querySelector("p").textContent;
+
+      let rewardMsg = "";
+
+      if (questText.includes("Catch 1 Pokémon")) {
+        if (pokedex.length > 0) {
+          playerState.exp += 20;
+          rewardMsg = "You completed the quest and gained 20 XP!";
+        } else {
+          rewardMsg = "You have no Pokémon to complete this quest!";
+        }
+      } else if (questText.includes("Gather 3 Berries")) {
+        if (items.Berries >= 3) {
+          items.Berries -= 3;
+          playerState.money += 50;
+          rewardMsg = "You completed the quest and earned 💰50!";
+        } else {
+          rewardMsg = "You don't have enough Berries!";
+        }
+      }
+
+      showMessage("Quest Complete", rewardMsg);
+      announceForAccessibility(rewardMsg);
+      checkLevelUp();
+      saveGame();
+    });
+  });
+}
+
+// Ensure the Quest tab exists first, then attach buttons
+window.addEventListener("load", () => {
+  const questSection = document.getElementById("quest");
+  if (questSection) setupQuestTab();
+});
 </script>
