@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pokémon Adventure - Quest</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+body { font-family: 'Inter', sans-serif; background: #1a202c; color: #e6eef8; margin:0; padding:0; }
+.tab-content { display:none; padding-bottom:5rem; }
+.tab-content.is-active { display:block; }
+.card { border-radius:0.5rem; padding:0.5rem; text-align:center; background:#4a5568; margin-bottom:0.5rem; }
+button { cursor:pointer; }
+</style>
+</head>
+<body>
+
+<section id="quest" class="tab-content">
+  <div class="bg-gray-800 p-6 rounded-xl shadow-lg text-center">
+    <h2 class="text-2xl font-semibold mb-4 text-center">Quests</h2>
+    <p class="text-gray-400 mb-4 text-center">Complete quests to gain rewards and experience!</p>
+    <div id="questList" class="flex flex-col gap-2"></div>
+  </div>
+</section>
+
+<script>
+// Example Quest Data
+const quests = [
+  { id: 1, name: "Catch 3 Pokémon", reward: "100 XP", completed: false },
+  { id: 2, name: "Gather 5 Berries", reward: "50 XP", completed: false },
+  { id: 3, name: "Sell 2 Items", reward: "💰 20", completed: false }
+];
+
+function renderQuests() {
+  const questList = document.getElementById("questList");
+  questList.innerHTML = "";
+  quests.forEach(q => {
+    const card = document.createElement("div");
+    card.className = "card p-3";
+    card.innerHTML = `
+      <p><strong>${q.name}</strong></p>
+      <p>Reward: ${q.reward}</p>
+      <button ${q.completed ? "disabled" : ""} onclick="completeQuest(${q.id})" class="mt-2 w-full bg-green-500 text-white font-bold py-1 rounded-lg hover:bg-green-600 transition duration-300">
+        ${q.completed ? "Completed" : "Complete Quest"}
+      </button>
+    `;
+    questList.appendChild(card);
+  });
+}
+
+function completeQuest(id) {
+  const quest = quests.find(q => q.id === id);
+  if (!quest || quest.completed) return;
+  quest.completed = true;
+  showMessage("Quest Complete!", `You completed "${quest.name}" and earned ${quest.reward}!`);
+  renderQuests();
+}
+
+function showMessage(title, text) {
+  alert(`${title}\n\n${text}`);
+}
+
+// Initial render
+window.addEventListener("load", renderQuests);
+</script>
+
+</body>
+</html>
