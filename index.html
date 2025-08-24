@@ -223,4 +223,25 @@ if (battleTabBtn) {
         if (log) log.innerHTML = "Battle started!";
     });
 }
+</script><script>
+// Attach battle buttons after battle tab content exists
+function setupBattleButtons() {
+    const attackBtn = document.getElementById("battleAttackBtn");
+    const runBtn = document.getElementById("battleRunBtn");
+
+    if (attackBtn) {
+        attackBtn.addEventListener("click", () => {
+            if (typeof battleAttack === "function") battleAttack();
+        });
+    }
+
+    if (runBtn) {
+        runBtn.addEventListener("click", () => {
+            if (typeof battleRun === "function") battleRun();
+        });
+    }
+}
+
+// Run once when the page loads
+window.addEventListener("load", setupBattleButtons);
 </script>
