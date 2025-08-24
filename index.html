@@ -174,4 +174,51 @@ window.addEventListener("load", loadGame);
 </script>
 
 </body>
-</html>
+</html><!-- Quest Tab -->
+<section id="quest" class="tab-content">
+  <div class="bg-gray-800 p-6 rounded-xl shadow-lg text-center">
+    <h2 class="text-2xl font-semibold mb-4 text-center">Quests</h2>
+    <p class="text-gray-400 mb-4 text-center">Complete quests to earn rewards and experience!</p>
+    <div id="questList" class="flex flex-col gap-4">
+      <!-- Example quests -->
+      <div class="card p-3">
+        <p class="font-bold">Catch 3 Pokémon</p>
+        <button onclick="completeQuest('catch3')" class="mt-2 bg-green-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-green-600 transition duration-300">Complete</button>
+      </div>
+      <div class="card p-3">
+        <p class="font-bold">Gather 5 Berries</p>
+        <button onclick="completeQuest('gather5Berries')" class="mt-2 bg-green-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-green-600 transition duration-300">Complete</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Add Quest tab button to footer -->
+<script>
+  const footer = document.querySelector('.tab-footer');
+  if (footer && !document.querySelector('[data-tab="quest"]')) {
+    const btn = document.createElement('button');
+    btn.textContent = 'Quest';
+    btn.dataset.tab = 'quest';
+    btn.setAttribute('aria-selected','false');
+    btn.onclick = function(){ switchTab(this); };
+    footer.appendChild(btn);
+  }
+
+  // Quest completion logic
+  function completeQuest(id) {
+    switch(id) {
+      case 'catch3':
+        showMessage('Quest Complete', 'You caught 3 Pokémon! +50 XP');
+        playerState.exp += 50;
+        break;
+      case 'gather5Berries':
+        showMessage('Quest Complete', 'You gathered 5 Berries! +50 XP');
+        playerState.exp += 50;
+        items.Berries += 5;
+        break;
+    }
+    checkLevelUp();
+    saveGame();
+  }
+</script>
