@@ -16,6 +16,7 @@ body { font-family: 'Inter', sans-serif; background: #1a202c; color: #e6eef8; -w
 .modal-content { background-color:#2d3748; margin:15% auto; padding:2rem; border-radius:1rem; width:80%; max-width:400px; text-align:center; }
 .sr-only { position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0; }
 .card { border-radius:0.5rem; padding:0.5rem; text-align:center; background:#4a5568; }
+button:disabled { opacity:0.5; cursor:not-allowed; }
 </style>
 </head>
 <body>
@@ -29,6 +30,16 @@ body { font-family: 'Inter', sans-serif; background: #1a202c; color: #e6eef8; -w
 <h3 id="messageTitle" class="text-xl font-bold mb-4"></h3>
 <p id="messageText" class="mb-6"></p>
 <button onclick="hideMessage()" class="bg-blue-500 text-white font-bold py-2 px-6 rounded-lg shadow-lg hover:bg-blue-600 transition duration-300">OK</button>
+</div>
+</div>
+
+<!-- Account Prompt -->
+<div id="accountModal" class="modal">
+<div class="modal-content">
+<h3 class="text-xl font-bold mb-4">Welcome to Pokémon Adventure</h3>
+<p class="mb-4">Enter a username to start:</p>
+<input type="text" id="usernameInput" class="w-full p-2 rounded-lg text-gray-900 mb-4" placeholder="Username">
+<button onclick="createAccount()" class="w-full bg-green-500 text-white font-bold py-2 rounded-lg shadow-md hover:bg-green-600 transition duration-300">Start</button>
 </div>
 </div>
 
@@ -116,6 +127,18 @@ body { font-family: 'Inter', sans-serif; background: #1a202c; color: #e6eef8; -w
   </div>
 </section>
 
+<!-- Multiplayer/Battle Tab -->
+<section id="battle" class="tab-content">
+  <div class="bg-gray-800 p-6 rounded-xl shadow-lg text-center">
+    <h2 class="text-2xl font-semibold mb-4">Multiplayer Battle</h2>
+    <p class="text-gray-400 mb-4">Fight another player’s Pokémon!</p>
+    <div id="battleInfo" class="mb-4">No battle yet.</div>
+    <button id="attackBtn" onclick="battleAttack()" class="w-full bg-red-500 text-white font-bold py-3 rounded-lg shadow-md mb-2 hover:bg-red-600 transition duration-300" disabled>Attack</button>
+    <button id="runBtn" onclick="battleRun()" class="w-full bg-gray-500 text-white font-bold py-3 rounded-lg hover:bg-gray-600 transition duration-300" disabled>Run</button>
+    <button onclick="startBattle()" class="w-full bg-green-500 text-white font-bold py-3 rounded-lg mt-4 hover:bg-green-600 transition duration-300">Start Battle</button>
+  </div>
+</section>
+
 </main>
 
 <!-- Footer Tabs -->
@@ -123,99 +146,4 @@ body { font-family: 'Inter', sans-serif; background: #1a202c; color: #e6eef8; -w
   <button onclick="switchTab(this)" data-tab="home" class="is-active" aria-selected="true">Home</button>
   <button onclick="switchTab(this)" data-tab="explore" aria-selected="false">Explore</button>
   <button onclick="switchTab(this)" data-tab="gather" aria-selected="false">Gather</button>
-  <button onclick="switchTab(this)" data-tab="inventory" aria-selected="false">Inventory</button>
-  <button onclick="switchTab(this)" data-tab="pokemart" aria-selected="false">Poké Mart</button>
-  <button onclick="switchTab(this)" data-tab="trade" aria-selected="false">Trade</button>
-  <button onclick="switchTab(this); renderQuests();" data-tab="quest" aria-selected="false">Quest</button>
-</footer>
-
-<script>
-// Core Game Variables
-const pokemonList = ["Bulbasaur","Charmander","Squirtle","Pikachu","Jigglypuff","Meowth"];
-let pokedex = [], items = {Potion:0,"Poké Ball":0,"Rare Candy":0,"Berries":0,"Stones":0}, playerState = {level:1,exp:0,money:0};
-const EXP_PER_LEVEL = 100, GATHER_EXP_GAIN = 10, ITEM_PRICES = {Potion:50,"Poké Ball":100,"Rare Candy":500,Berries:5,Stones:20};
-
-// Accessibility
-function announceForAccessibility(msg){
-    const live = document.getElementById("accessibilityLive");
-    live.textContent="";
-    setTimeout(()=>{ live.textContent = msg; },100);
-}
-
-// Tab Switching
-function switchTab(btn){
-    const tabId = btn.dataset.tab;
-    document.querySelectorAll(".tab-content").forEach(s=>s.classList.remove("is-active"));
-    document.querySelectorAll(".tab-footer button").forEach(b=>{ b.classList.remove("is-active"); b.setAttribute("aria-selected","false"); });
-    document.getElementById(tabId).classList.add("is-active");
-    btn.classList.add("is-active");
-    btn.setAttribute("aria-selected","true");
-    announceForAccessibility(`${btn.textContent} selected`);
-    if(tabId==="inventory") renderInventory();
-    if(tabId==="pokemart") renderPokemart();
-}
-
-// Save/Load
-function saveGame(){ localStorage.setItem("pokedex",JSON.stringify(pokedex)); localStorage.setItem("items",JSON.stringify(items)); localStorage.setItem("playerState",JSON.stringify(playerState)); }
-function loadGame(){ pokedex=JSON.parse(localStorage.getItem("pokedex"))||[]; items=JSON.parse(localStorage.getItem("items"))||items; playerState=JSON.parse(localStorage.getItem("playerState"))||playerState; renderPokedex(); renderGatherUI(); renderInventory(); }
-
-// Render Functions
-function renderPokedex(){ const c=document.getElementById("pokedex"); c.innerHTML=pokemonList.map(p=>`<div class="card">${pokedex.includes(p)?p:"???"}</div>`).join(''); }
-function renderGatherUI(){ document.getElementById("playerLevel").textContent=playerState.level; document.getElementById("playerExp").textContent=playerState.exp; document.getElementById("expToNextLevel").textContent=EXP_PER_LEVEL*playerState.level; document.getElementById("expBar").style.width=`${playerState.exp/(EXP_PER_LEVEL*playerState.level)*100}%`; }
-function renderInventory(){ const c=document.getElementById("inventoryItems"); c.innerHTML=""; document.getElementById("moneyDisplay").textContent=`💰: ${playerState.money}`; for(const i in items) if(items[i]>0){ const card=document.createElement("div"); card.className="card"; card.innerHTML=`<p>${i}</p><p>x${items[i]}</p>`; c.appendChild(card);} }
-function renderPokemart(){ const c=document.getElementById("martItems"); c.innerHTML=""; for(const i in items) if(items[i]>0){ const card=document.createElement("div"); card.className="card"; card.innerHTML=`<p>${i}</p><p>x${items[i]}</p><p>💰${ITEM_PRICES[i]}</p><button onclick="sellItem('${i}')">Sell One</button><button onclick="sellAllItems('${i}')">Sell All</button>`; c.appendChild(card);} }
-
-// Game Actions
-function catchPokemon(){ const p=pokemonList[Math.floor(Math.random()*pokemonList.length)]; if(!pokedex.includes(p)){ showMessage("New Catch!",`You found a wild ${p}!`); announceForAccessibility(`You caught ${p}`); pokedex.push(p); } else{ showMessage("Already Caught!",`You already have ${p}`); announceForAccessibility(`${p} is already in your Pokédex`); } saveGame(); renderPokedex(); }
-function gatherResources(){ const r=["Berries","Stones"][Math.floor(Math.random()*2)]; const amt=Math.floor(Math.random()*3)+1; items[r]+=amt; playerState.exp+=GATHER_EXP_GAIN; checkLevelUp(); saveGame(); renderGatherUI(); showMessage("Gather Complete",`You got ${amt} ${r}`); announceForAccessibility(`You gathered ${amt} ${r}`); }
-function checkLevelUp(){ if(playerState.exp>=EXP_PER_LEVEL*playerState.level){ playerState.level++; playerState.exp=0; showMessage("Level Up!",`You are now level ${playerState.level}`); announceForAccessibility(`Level up to ${playerState.level}`); } }
-function dailyReward(){ const today=new Date().toDateString(); if(localStorage.getItem("lastDaily")===today){ showMessage("Daily Reward","Already claimed"); return; } const p=pokemonList[Math.floor(Math.random()*pokemonList.length)]; if(!pokedex.includes(p)) pokedex.push(p); items.Potion++; localStorage.setItem("lastDaily",today); saveGame(); renderPokedex(); showMessage("Daily Reward","You got "+p+" and 1 Potion"); announceForAccessibility(`You received ${p} and 1 Potion`); }
-function sellItem(i){ if(items[i]>0){ items[i]--; playerState.money+=ITEM_PRICES[i]; saveGame(); renderInventory(); renderPokemart(); showMessage("Sold","1 "+i); } }
-function sellAllItems(i){ if(items[i]>0){ playerState.money+=items[i]*ITEM_PRICES[i]; items[i]=0; saveGame(); renderInventory(); renderPokemart(); showMessage("Sold","All "+i); } }
-function exportPokedex(){ const d=JSON.stringify(pokedex); const e=document.getElementById("exportData"); e.value=d; e.select(); document.execCommand('copy'); showMessage("Copied","Trade code copied"); }
-function importPokedex(){ try{ const imported=JSON.parse(document.getElementById("importData").value); let added=0; imported.forEach(p=>{ if(!pokedex.includes(p)){ pokedex.push(p); added++; } }); saveGame(); renderPokedex(); showMessage("Imported",`You got ${added} new Pokémon!`);}catch(e){showMessage("Error","Invalid code");} }
-function showMessage(title,text){ document.getElementById("messageTitle").innerText=title; document.getElementById("messageText").innerText=text; document.getElementById("messageModal").style.display="block"; }
-function hideMessage(){ document.getElementById("messageModal").style.display="none"; }
-
-// Quest System
-const questPool = [
-    { title: "Catch 1 Pokémon", reward: "Potion" },
-    { title: "Gather 3 Berries", reward: "Rare Candy" },
-    { title: "Reach Level 2", reward: "Poké Ball" },
-    { title: "Sell 5 items", reward: "50💰" },
-    { title: "Explore 2 times", reward: "Berries" },
-    { title: "Catch a Pikachu", reward: "100💰" },
-    { title: "Gather 5 Stones", reward: "Potion" },
-    { title: "Reach Level 3", reward: "Rare Candy" },
-    { title: "Catch a Meowth", reward: "Poké Ball" },
-    { title: "Complete 3 trades", reward: "50💰" }
-];
-
-let activeQuests = [];
-const ACTIVE_QUEST_LIMIT = 3;
-
-function announceQuest(msg){ announceForAccessibility(msg); }
-
-function addNewQuest(){ const remaining = questPool.filter(q => !activeQuests.includes(q)); if(remaining.length===0) return; const next = remaining[Math.floor(Math.random()*remaining.length)]; activeQuests.push(next); }
-
-function renderQuests(){
-    const container = document.getElementById("activeQuests");
-    container.innerHTML="";
-    while(activeQuests.length<ACTIVE_QUEST_LIMIT) addNewQuest();
-    activeQuests.forEach((q, idx)=>{
-        const div = document.createElement("div");
-        div.className="bg-gray-700 p-3 rounded-lg flex justify-between items-center";
-        div.innerHTML=`<span>${q.title} - Reward: ${q.reward}</span>
-                       <button class="bg-green-500 text-white font-bold py-1 px-3 rounded-lg hover:bg-green-600 transition duration-300" data-index="${idx}">Complete</button>`;
-        container.appendChild(div);
-    });
-    container.querySelectorAll("button").forEach(btn=>{ btn.onclick=()=>completeQuest(parseInt(btn.dataset.index)); });
-}
-
-function completeQuest(idx){
-    const q = activeQuests[idx];
-    if(!q) return;
-    if(q.reward.includes("💰")){ const amount=parseInt(q.reward); playerState.money+=amount; }
-    else if(items[q.reward]!==undefined){ items[q.reward]++; }
-    showMessage("Quest Completed",`You completed: ${q.title} and received: ${q.reward}`);
-    announceQuest(`Quest completed: ${q.title
+  <button onclick="switchTab
