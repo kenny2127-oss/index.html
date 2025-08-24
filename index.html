@@ -44,7 +44,7 @@
             color: #ffffff;
         }
         /* Modal styles for pop-up messages */
-        .modal { display: none; position: fixed; z-index: 2000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.6); backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px); align-items: center; justify-content: center; display: none; }
+        .modal { display: none; position: fixed; z-index: 2000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.6); backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px); align-items: center; justify-content: center; }
         .modal.is-active { display: flex; }
         .modal-content { background-color: #2d3748; margin: auto; padding: 2rem; border-radius: 1rem; width: 90%; max-width: 400px; text-align: center; box-shadow: 0 5px 15px rgba(0,0,0,0.5); }
         /* For screen readers */
@@ -77,7 +77,7 @@
             <div id="pokedex" class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-3"></div>
         </div>
         <div class="flex flex-col sm:flex-row gap-4 mt-6">
-            <button onclick="catchPokemon()" class="w-full bg-green-500 text-white font-bold py-3 rounded-lg,  shadow-md hover:bg-green-600 transition duration-300">Catch Pokémon</button>
+            <button onclick="catchPokemon()" class="w-full bg-green-500 text-white font-bold py-3 rounded-lg shadow-md,  hover:bg-green-600 transition duration-300">Catch Pokémon</button>
             <button onclick="dailyReward()" class="w-full bg-yellow-500 text-gray-900 font-bold py-3 rounded-lg shadow-md hover:bg-yellow-600 transition duration-300">Daily Reward</button>
         </div>
     </section>
@@ -143,7 +143,6 @@
     </section>
 </main>
 
-<!-- IMPORTANT: The onclick attributes have been removed. The logic is now in the main script. -->
 <footer id="tab-footer" class="tab-footer" role="tablist">
     <button role="tab" data-tab="home" class="is-active" aria-selected="true">Home</button>
     <button role="tab" data-tab="explore" aria-selected="false">Explore</button>
@@ -164,6 +163,11 @@
     const ITEM_PRICES = { "Potion": 50, "Poké Ball": 100, "Rare Candy": 500, "Berries": 5, "Stones": 20 };
     
     // --- Modal Message Functions ---
+    /**
+     * Shows a modal message with a given title and text.
+     * @param {string} title The title of the message.
+     * @param {string} text The body of the message.
+     */
     function showMessage(title, text) {
         document.getElementById('messageTitle').textContent = title;
         document.getElementById('messageText').textContent = text;
@@ -171,11 +175,18 @@
         announceForAccessibility(`${title}. ${text}`);
     }
 
+    /**
+     * Hides the modal message.
+     */
     function hideMessage() {
         document.getElementById('messageModal').classList.remove('is-active');
     }
 
     // --- Accessibility ---
+    /**
+     * Announces a message for screen readers by updating a live region.
+     * @param {string} message The text to be announced.
+     */
     function announceForAccessibility(message) {
         const liveRegion = document.getElementById("accessibilityLive");
         liveRegion.textContent = ''; 
@@ -183,16 +194,16 @@
     }
 
     // --- Tab Switching ---
+    /**
+     * Switches the active tab based on the provided tab ID.
+     * @param {string} newTabId The data-tab ID of the tab to switch to.
+     */
     function switchTab(newTabId) {
-        // Find the currently active elements
         const currentActiveButton = document.querySelector('.tab-footer button.is-active');
         const currentActiveTabContent = document.querySelector('.tab-content.is-active');
-        
-        // Find the new elements to activate
         const newButton = document.querySelector(`.tab-footer button[data-tab='${newTabId}']`);
         const newTabContent = document.getElementById(newTabId);
 
-        // Deactivate the old tab and button
         if (currentActiveButton) {
             currentActiveButton.classList.remove('is-active');
             currentActiveButton.setAttribute('aria-selected', 'false');
@@ -201,7 +212,6 @@
             currentActiveTabContent.classList.remove('is-active');
         }
 
-        // Activate the new tab and button
         if (newButton) {
             newButton.classList.add('is-active');
             newButton.setAttribute('aria-selected', 'true');
@@ -210,10 +220,8 @@
             newTabContent.classList.add('is-active');
         }
         
-        // Announce the change for screen readers
         announceForAccessibility(`${newButton.textContent} tab selected`);
 
-        // Refresh content if switching to a tab that needs it
         if (newTabId === "inventory") renderInventory();
         if (newTabId === "pokemart") renderPokemart();
     }
@@ -226,9 +234,9 @@
     }
 
     function loadGame() {
-        const savedPokedex = localStorage.getItem("pokedex_adventure_pokedex");
+        const savedPokedex =,  localStorage.getItem("pokedex_adventure_pokedex");
         const savedItems = localStorage.getItem("pokedex_adventure_items");
-       ,  const savedPlayerState = localStorage.getItem("pokedex_adventure_playerState");
+        const savedPlayerState = localStorage.getItem("pokedex_adventure_playerState");
 
         if (savedPokedex) pokedex = JSON.parse(savedPokedex);
         if (savedItems) items = JSON.parse(savedItems);
@@ -310,9 +318,9 @@
         const found = pokemonList[Math.floor(Math.random() * pokemonList.length)];
         if (!pokedex.includes(found)) {
             pokedex.push(found);
-            showMessage("New Catch!", `You found a wild ${found}! It has been added to your Pokédex.`);
+            showMessage("New Catch!", `You found a wild,  ${found}! It has been added to your Pokédex.`);
         } else {
-            showMessage("Already Caught!", `You encountered a,  ${found}, which is already in your Pokédex.`);
+            showMessage("Already Caught!", `You encountered a ${found}, which is already in your Pokédex.`);
         }
         saveGame();
         renderPokedex();
@@ -399,8 +407,12 @@
         
         try {
             const encodedData = btoa(JSON.stringify(tradeData));
-            document.getElementById('exportData').value = encodedData;
-            showMessage("Code Generated!", `Your trade code for a ${pokemonToTrade} is ready. Share it with a friend!`);
+            const exportTextarea = document.getElementById('exportData');
+            exportTextarea.value = encodedData;
+            // Select and copy the text
+            exportTextarea.select();
+            document.execCommand('copy');
+            showMessage("Code Generated!", `Your trade code for a ${pokemonToTrade} has been copied to your clipboard!`);
         } catch (e) {
             console.error("Encoding failed:", e);
             showMessage("Error", "Could not generate trade code.");
@@ -408,7 +420,7 @@
     }
 
     function importPokedex() {
-        const importText = document.getElementById('importData').value.trim();
+        const,  importText = document.getElementById('importData').value.trim();
         if (!importText) {
             showMessage("Trade Error", "Please enter a trade code.");
             return;
@@ -416,7 +428,7 @@
 
         try {
             const decodedData = atob(importText);
-            const tradeData =,  JSON.parse(decodedData);
+            const tradeData = JSON.parse(decodedData);
 
             if (tradeData && tradeData.pokemon) {
                 if (!pokedex.includes(tradeData.pokemon)) {
@@ -440,19 +452,13 @@
     // --- Game Initialization ---
     // This runs when the page content has loaded.
     document.addEventListener('DOMContentLoaded', () => {
-        // Load any saved game data first.
         loadGame();
-
-        // Set up the event listener for the modal's OK button.
+        
         document.getElementById('modalOkButton').addEventListener('click', hideMessage);
 
-        // **NEW TAB LOGIC**
-        // Get the footer element that contains all the tab buttons.
         const tabFooter = document.getElementById('tab-footer');
         
-        // Add a single click listener to the footer.
         tabFooter.addEventListener('click', (event) => {
-            // Check if the clicked element is a button with a 'data-tab' attribute.
             const clickedButton = event.target.closest('button[data-tab]');
             if (clickedButton) {
                 const tabId = clickedButton.dataset.tab;
