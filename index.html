@@ -298,4 +298,35 @@ window.addEventListener("load", () => {
     setupBattleButtons();
     hookBattleTab();
 });
+</script><script>
+// Simple battle logic
+
+function battleAttack() {
+    const log = document.getElementById("battleLog");
+    const enemy = document.getElementById("battleEnemy").textContent.split(": ")[1];
+    const player = document.getElementById("battlePlayer").textContent.split(": ")[1];
+
+    if (!enemy || enemy === "???") return;
+
+    // Simple attack message
+    const damage = Math.floor(Math.random() * 20) + 5;
+    log.innerHTML += `<p>${player} attacks ${enemy} for ${damage} damage!</p>`;
+    log.scrollTop = log.scrollHeight;
+
+    // Simulate enemy faint after random chance
+    if (Math.random() < 0.3) {
+        log.innerHTML += `<p>${enemy} fainted! You win the battle!</p>`;
+    } else {
+        // Enemy attacks back
+        const enemyDamage = Math.floor(Math.random() * 15) + 3;
+        log.innerHTML += `<p>${enemy} attacks ${player} for ${enemyDamage} damage!</p>`;
+        log.scrollTop = log.scrollHeight;
+    }
+}
+
+function battleRun() {
+    const log = document.getElementById("battleLog");
+    log.innerHTML += `<p>You ran away from the battle!</p>`;
+    log.scrollTop = log.scrollHeight;
+}
 </script>
