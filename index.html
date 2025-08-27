@@ -1,550 +1,148 @@
 <!DOCTYPE html>
-, <html lang="en">
-, <head>
-,     <meta charset="UTF-8">
-,     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-,     <title>Accessible Pokémon Game</title>
-,     <style>
-,         * {
-,             box-sizing: border-box;
-,             margin: 0;
-,             padding: 0;
-,             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-,         }
-,         
-,         body {
-,             background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d);
-,             color: #333;
-,             min-height: 100vh;
-,             padding: 20px;
-,             display: flex;
-,             justify-content: center;
-,             align-items: center;
-,         }
-,         
-,         .container {
-,             max-width: 1000px;
-,             width: 100%;
-,             background: rgba(255, 255, 255, 0.95);
-,             border-radius: 20px;
-,             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-,             overflow: hidden;
-,         }
-,         
-,         header {
-,             background: #e61e2a;
-,             padding: 20px;
-,             text-align: center;
-,             position: relative;
-,         }
-,         
-,         h1 {
-,             color: #ffcb05;
-,             text-shadow: 3px 3px 0 #2c70b7, -1px -1px 0 #2c70b7, 1px -1px 0 #2c70b7, -1px 1px 0 #2c70b7;
-,             font-size: 2.5rem;
-,             margin-bottom: 10px;
-,         }
-,         
-,         .tabs {
-,             display: flex;
-,             flex-wrap: wrap;
-,             background: #2c70b7;
-,             border-bottom: 3px solid #ffcb05;
-,         }
-,         
-,         .tab-button {
-,             background: #3d89d4;
-,             color: white;
-,             border: none;
-,             padding: 15px 20px;
-,             cursor: pointer;
-,             font-size: 1rem;
-,             font-weight: bold;
-,             flex-grow: 1;
-,             min-width: 120px;
-,             transition: background 0.3s;
-,         }
-,         
-,         .tab-button:hover, .tab-button:focus {
-,             background: #1c5ca5;
-,             outline: 3px solid #ffcb05;
-,         }
-,         
-,         .tab-button.active {
-,             background: #1c5ca5;
-,             color: #ffcb05;
-,         }
-,         
-,         .tab-content {
-,             padding: 30px;
-,             min-height: 400px;
-,         }
-,         
-,         .tab-pane {
-,             display: none;
-,         }
-,         
-,         .tab-pane.active {
-,             display: block;
-,             animation: fadeIn 0.5s;
-,         }
-,         
-,         @keyframes fadeIn {
-,             from { opacity: 0; }
-,             to { opacity: 1; }
-,         }
-,         
-,         .login-form {
-,             max-width: 400px;
-,             margin: 0 auto;
-,             background: #f5f5f5;
-,             padding: 25px;
-,             border-radius: 10px;
-,             border: 2px solid #2c70b7;
-,         }
-,         
-,         .form-group {
-,             margin-bottom: 20px;
-,         }
-,         
-,         label {
-,             display: block;
-,             margin-bottom: 8px;
-,             font-weight: bold;
-,             color: #2c70b7;
-,         }
-,         
-,         input {
-,             width: 100%;
-,             padding: 12px;
-,             border: 2px solid #ccc;
-,             border-radius: 5px;
-,             font-size: 1rem;
-,         }
-,         
-,         input:focus {
-,             border-color: #2c70b7;
-,             outline: none;
-,             box-shadow: 0 0 5px rgba(44, 112, 183, 0.5);
-,         }
-,         
-,         button {
-,             background: #e61e2a;
-,             color: white;
-,             border: none;
-,             padding: 12px 20px;
-,             border-radius: 5px;
-,             cursor: pointer;
-,             font-size: 1rem;
-,             font-weight: bold;
-,             transition: background 0.3s;
-,         }
-,         
-,         button:hover, button:focus {
-,             background: #ff3b47;
-,             outline: 3px solid #ffcb05;
-,         }
-,         
-,         .stats-grid {
-,             display: grid;
-,             grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-,             gap: 20px;
-,             margin-top: 20px;
-,         }
-,         
-,         .stat-card {
-,             background: #f5f5f5;
-,             padding: 20px;
-,             border-radius: 10px;
-,             border-left: 5px solid #2c70b7;
-,         }
-,         
-,         .pokemon-card {
-,             background: #f5f5f5;
-,             padding: 20px;
-,             border-radius: 10px;
-,             margin-bottom: 20px;
-,             border: 2px solid #ffcb05;
-,         }
-,         
-,         .action-button {
-,             display: block;
-,             width: 100%;
-,             margin: 10px 0;
-,             text-align: left;
-,             padding: 15px;
-,             background: #3d89d4;
-,             color: white;
-,             border-radius: 8px;
-,             border: none;
-,             font-size: 1.1rem;
-,         }
-,         
-,         .inventory-grid {
-,             display: grid;
-,             grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-,             gap: 15px;
-,             margin-top: 20px;
-,         }
-,         
-,         .item-card {
-,             background: #f5f5f5;
-,             padding: 15px;
-,             border-radius: 8px;
-,             text-align: center;
-,             border: 2px solid #2c70b7;
-,         }
-,         
-,         .notification {
-,             position: fixed;
-,             bottom: 20px;
-,             right: 20px;
-,             background: #333;
-,             color: white;
-,             padding: 15px;
-,             border-radius: 8px;
-,             display: none;
-,         }
-,         
-,         .progress-bar {
-,             height: 20px;
-,             background: #ddd;
-,             border-radius: 10px;
-,             margin: 10px 0;
-,             overflow: hidden;
-,         }
-,         
-,         .progress {
-,             height: 100%;
-,             background: #4caf50;
-,             border-radius: 10px;
-,             width: 65%;
-,         }
-,         
-,         .screen-reader-text {
-,             position: absolute;
-,             left: -10000px;
-,             top: auto;
-,             width: 1px;
-,             height: 1px;
-,             overflow: hidden;
-,         }
-,         
-,         @media (max-width: 768px) {
-,             .tabs {
-,                 flex-direction: column;
-,             }
-,             
-,             .tab-button {
-,                 width: 100%;
-,             }
-,             
-,             .stats-grid {
-,                 grid-template-columns: 1fr;
-,             }
-,         }
-,     </style>
-, </head>
-, <body>
-,     <div class="container">
-,         <header>
-,             <h1>Pokémon Adventure</h1>
-,             <p>An accessible game for everyone</p>
-,         </header>
-,         
-,         <div class="tabs" role="tablist" aria-label="Game Sections">
-,             <button class="tab-button active" role="tab" aria-selected="true" aria-controls="home-tab" id="home-btn">Home</button>
-,             <button class="tab-button" role="tab" aria-selected="false" aria-controls="explore-tab" id="explore-btn">Explore</button>
-,             <button class="tab-button" role="tab" aria-selected="false" aria-controls="battle-tab" id="battle-btn">Battle</button>
-,             <button class="tab-button" role="tab" aria-selected="false" aria-controls="market-tab" id="market-btn">Poké Market</button>
-,             <button class="tab-button" role="tab" aria-selected="false" aria-controls="inventory-tab" id="inventory-btn">Inventory</button>
-,             <button class="tab-button" role="tab" aria-selected="false" aria-controls="trade-tab" id="trade-btn">Trade</button>
-,         </div>
-,         
-,         <div class="tab-content">
-,             <!-- Home Tab -->
-,             <div class="tab-pane active" id="home-tab" role="tabpanel" aria-labelledby="home-btn">
-,                 <h2>Welcome to Pokémon Adventure!</h2>
-,                 <p>This is an accessible Pokémon game designed for blind and visually impaired players.</p>
-,                 
-,                 <div class="login-form">
-,                     <h3>Login to Your Account</h3>
-,                     <div class="form-group">
-,                         <label for="username">Username:</label>
-,                         <input type="text" id="username" aria-required="true" placeholder="Enter your username">
-,                     </div>
-,                     <div class="form-group">
-,                         <label for="password">Password:</label>
-,                         <input type="password" id="password" aria-required="true" placeholder="Enter your password">
-,                     </div>
-,                     <button id="login-btn">Login</button>
-,                     <p style="margin-top: 15px;">Don't have an account? <button id="register-btn" style="display: inline; padding: 5px 10px;">Register</button></p>
-,                 </div>
-,                 
-,                 <div class="stats-grid">
-,                     <div class="stat-card">
-,                         <h3>Player Stats</h3>
-,                         <p>Level: 5</p>
-,                         <p>Experience: 65/100</p>
-,                         <div class="progress-bar">
-,                             <div class="progress" role="progressbar" aria-valuenow="65" aria-valuemin="0" aria-valuemax="100"></div>
-,                         </div>
-,                         <p>Poké Dollars: 1,250</p>
-,                     </div>
-,                     
-,                     <div class="stat-card">
-,                         <h3>Your Pokémon</h3>
-,                         <div class="pokemon-card">
-,                             <h4>Pikachu</h4>
-,                             <p>Level: 7</p>
-,                             <p>Health: 42/42</p>
-,                             <p>Status: Healthy</p>
-,                         </div>
-,                         <div class="pokemon-card">
-,                             <h4>Charmander</h4>
-,                             <p>Level: 5</p>
-,                             <p>Health: 35/35</p>
-,                             <p>Status: Healthy</p>
-,                         </div>
-,                     </div>
-,                 </div>
-,             </div>
-,             
-,             <!-- Explore Tab -->
-,             <div class="tab-pane" id="explore-tab" role="tabpanel" aria-labelledby="explore-btn">
-,                 <h2>Explore the Wild</h2>
-,                 <p>Explore different areas to find wild Pokémon and resources.</p>
-,                 
-,                 <button class="action-button" aria-label="Explore Forest - Chance to find Pikachu, Eevee, and berries">Forest</button>
-,                 <button class="action-button" aria-label="Explore Mountains - Chance to find Geodude, Zubat, and minerals">Mountains</button>
-,                 <button class="action-button" aria-label="Explore Beach - Chance to find Tentacool, Krabby, and pearls">Beach</button>
-,                 
-,                 <div class="stats-grid">
-,                     <div class="stat-card">
-,                         <h3>Recent Finds</h3>
-,                         <p>You found a Potion!</p>
-,                         <p>You gathered 10 Berries!</p>
-,                         <p>You encountered a wild Pikachu!</p>
-,                     </div>
-,                 </div>
-,             </div>
-,             
-,             <!-- Battle Tab -->
-,             <div class="tab-pane" id="battle-tab" role="tabpanel" aria-labelledby="battle-btn">
-,                 <h2>Battle Arena</h2>
-,                 <p>Battle against wild Pokémon to earn experience and loot.</p>
-,                 
-,                 <button class="action-button" aria-label="Battle against Wild Pokémon - Easy difficulty">Wild Pokémon (Easy)</button>
-,                 <button class="action-button" aria-label="Battle against Trainer - Medium difficulty">Trainer Battle (Medium)</button>
-,                 <button class="action-button" aria-label="Battle against Gym Leader - Hard difficulty">Gym Leader (Hard)</button>
-,                 
-,                 <div class="pokemon-card">
-,                     <h3>Current Battle</h3>
-,                     <p>Opponent: Wild Pidgey</p>
-,                     <p>Health: 30/30</p>
-,                     <p>Your Pokémon: Pikachu - Health: 42/42</p>
-,                     
-,                     <button class="action-button" aria-label="Use Thunder Shock attack">Thunder Shock</button>
-,                     <button class="action-button" aria-label="Use Quick Attack">Quick Attack</button>
-,                     <button class="action-button" aria-label="Use Potion">Use Potion</button>
-,                     <button class="action-button" aria-label="Attempt to run away">Run Away</button>
-,                 </div>
-,             </div>
-,             
-,             <!-- Market Tab -->
-,             <div class="tab-pane" id="market-tab" role="tabpanel" aria-labelledby="market-btn">
-,                 <h2>Poké Market</h2>
-,                 <p>Buy and sell items here.</p>
-,                 
-,                 <div class="tabs" style="background: #f5f5f5; border-bottom: 2px solid #2c70b7;">
-,                     <button class="tab-button active" style="background: #f5f5f5; color: #2c70b7;">Buy</button>
-,                     <button class="tab-button" style="background: #f5f5f5; color: #2c70b7;">Sell</button>
-,                 </div>
-,                 
-,                 <div class="inventory-grid">
-,                     <div class="item-card">
-,                         <h4>Potion</h4>
-,                         <p>Restores 20 HP</p>
-,                         <p>Price: $200</p>
-,                         <button aria-label="Buy Potion for 200 Poke Dollars">Buy</button>
-,                     </div>
-,                     <div class="item-card">
-,                         <h4>Poké Ball</h4>
-,                         <p>Catches Pokémon</p>
-,                         <p>Price: $300</p>
-,                         <button aria-label="Buy Poke Ball for 300 Poke Dollars">Buy</button>
-,                     </div>
-,                     <div class="item-card">
-,                         <h4>Great Ball</h4>
-,                         <p>Better catch rate</p>
-,                         <p>Price: $600</p>
-,                         <button aria-label="Buy Great Ball for 600 Poke Dollars">Buy</button>
-,                     </div>
-,                     <div class="item-card">
-,                         <h4>Berries</h4>
-,                         <p>Various uses</p>
-,                         <p>Price: $50</p>
-,                         <button aria-label="Buy Berries for 50 Poke Dollars">Buy</button>
-,                     </div>
-,                 </div>
-,             </div>
-,             
-,             <!-- Inventory Tab -->
-,             <div class="tab-pane" id="inventory-tab" role="tabpanel" aria-labelledby="inventory-btn">
-,                 <h2>Your Inventory</h2>
-,                 <p>You have 1,250 Poké Dollars</p>
-,                 
-,                 <h3>Items</h3>
-,                 <div class="inventory-grid">
-,                     <div class="item-card">
-,                         <h4>Potion</h4>
-,                         <p>Quantity: 3</p>
-,                         <button aria-label="Use Potion">Use</button>
-,                     </div>
-,                     <div class="item-card">
-,                         <h4>Poké Ball</h4>
-,                         <p>Quantity: 5</p>
-,                         <button aria-label="Use Poke Ball">Use</button>
-,                     </div>
-,                     <div class="item-card">
-,                         <h4>Berries</h4>
-,                         <p>Quantity: 12</p>
-,                         <button aria-label="Use Berries">Use</button>
-,                     </div>
-,                     <div class="item-card">
-,                         <h4>Rare Candy</h4>
-,                         <p>Quantity: 1</p>
-,                         <button aria-label="Use Rare Candy">Use</button>
-,                     </div>
-,                 </div>
-,                 
-,                 <h3>Resources</h3>
-,                 <div class="inventory-grid">
-,                     <div class="item-card">
-,                         <h4>Wood</h4>
-,                         <p>Quantity: 25</p>
-,                     </div>
-,                     <div class="item-card">
-,                         <h4>Stone</h4>
-,                         <p>Quantity: 18</p>
-,                     </div>
-,                     <div class="item-card">
-,                         <h4>Berries</h4>
-,                         <p>Quantity: 12</p>
-,                     </div>
-,                 </div>
-,             </div>
-,             
-,             <!-- Trade Tab -->
-,             <div class="tab-pane" id="trade-tab" role="tabpanel" aria-labelledby="trade-btn">
-,                 <h2>Trade with Friends</h2>
-,                 <p>Enter a 6-digit trade code to connect with a friend.</p>
-,                 
-,                 <div class="form-group">
-,                     <label for="trade-code">Trade Code:</label>
-,                     <input type="text" id="trade-code" maxlength="6" placeholder="Enter 6-digit code">
-,                 </div>
-,                 
-,                 <button>Connect</button>
-,                 
-,                 <div class="stats-grid" style="margin-top: 20px;">
-,                     <div class="stat-card">
-,                         <h3>Your Pokémon for Trade</h3>
-,                         <div class="pokemon-card">
-,                             <h4>Pidgey</h4>
-,                             <p>Level: 4</p>
-,                             <button aria-label="Select Pidgey for trade">Select</button>
-,                         </div>
-,                         <div class="pokemon-card">
-,                             <h4>Rattata</h4>
-,                             <p>Level: 3</p>
-,                             <button aria-label="Select Rattata for trade">Select</button>
-,                         </div>
-,                     </div>
-,                     
-,                     <div class="stat-card">
-,                         <h3>Friend's Pokémon</h3>
-,                         <p>Not connected</p>
-,                     </div>
-,                 </div>
-,             </div>
-,         </div>
-,     </div>
-,     
-,     <div class="notification" id="notification" aria-live="polite">
-,         Message goes here
-,     </div>
-,     
-,     <span class="screen-reader-text" id="screen-reader-announcement" aria-live="polite"></span>
-, 
-,     <script>
-,         document.addEventListener('DOMContentLoaded', function() {
-,             // Tab switching functionality
-,             const tabButtons = document.querySelectorAll('.tab-button');
-,             const tabPanes = document.querySelectorAll('.tab-pane');
-,             
-,             tabButtons.forEach(button => {
-,                 button.addEventListener('click', () => {
-,                     const tabId = button.id.replace('-btn', '-tab');
-,                     
-,                     // Update buttons
-,                     tabButtons.forEach(btn => {
-,                         btn.classList.remove('active');
-,                         btn.setAttribute('aria-selected', 'false');
-,                     });
-,                     button.classList.add('active');
-,                     button.setAttribute('aria-selected', 'true');
-,                     
-,                     // Update panes
-,                     tabPanes.forEach(pane => {
-,                         pane.classList.remove('active');
-,                     });
-,                     document.getElementById(tabId).classList.add('active');
-,                     
-,                     // Announce tab change for screen readers
-,                     const announcement = document.getElementById('screen-reader-announcement');
-,                     announcement.textContent = `Switched to ${button.textContent} tab`;
-,                 });
-,             });
-,             
-,             // Login button functionality
-,             document.getElementById('login-btn').addEventListener('click', () => {
-,                 showNotification('Login successful! Welcome back, Trainer.');
-,             });
-,             
-,             // Register button functionality
-,             document.getElementById('register-btn').addEventListener('click', () => {
-,                 showNotification('Registration feature coming soon!');
-,             });
-,             
-,             // Function to show notifications
-,             function showNotification(message) {
-,                 const notification = document.getElementById('notification');
-,                 notification.textContent = message;
-,                 notification.style.display = 'block';
-,                 
-,                 // Announce for screen readers
-,                 const announcement = document.getElementById('screen-reader-announcement');
-,                 announcement.textContent = message;
-,                 
-,                 setTimeout(() => {
-,                     notification.style.display = 'none';
-,                 }, 3000);
-,             }
-,             
-,             // Simulate game actions
-,             const actionButtons = document.querySelectorAll('.action-button');
-,             actionButtons.forEach(button => {
-,                 button.addEventListener('click', () => {
-,                     showNotification(`Action: ${button.getAttribute('aria-label')}`);
-,                 });
-,             });
-,             
-,             // Initialize ARIA live region for screen readers
-,             const liveRegion = document.getElementById('screen-reader-announcement');
-,             liveRegion.setAttribute('aria-live', 'polite');
-,             liveRegion.setAttribute('aria-atomic', 'true');
-,         });
-,     </script>
-, </body>
-, </html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Accessible Pokémon-style Game</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="manifest" href="data:application/manifest+json,{&quot;name&quot;:&quot;Accessible Monster Game&quot;,&quot;short_name&quot;:&quot;MonGame&quot;,&quot;start_url&quot;:&quot;.&quot;,&quot;display&quot;:&quot;standalone&quot;,&quot;background_color&quot;:&quot;#000&quot;,&quot;theme_color&quot;:&quot;#111&quot;}">
+  <style>
+    body { font-family: sans-serif; background:#111; color:#eee; margin:0; }
+    header, nav, main { padding: 1em; }
+    nav button { margin:0.25em; padding:0.5em 1em; }
+    .hidden { display:none; }
+    .card { background:#222; padding:1em; margin:1em 0; border-radius:8px; }
+    .contrast { background:#fff; color:#000; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Accessible Monster Game</h1>
+    <p id="status" role="status" aria-live="assertive"></p>
+  </header>
+
+  <nav>
+    <button onclick="showTab('home')">Home</button>
+    <button onclick="showTab('explore')">Explore</button>
+    <button onclick="showTab('gather')">Gather</button>
+    <button onclick="showTab('house')">House</button>
+  </nav>
+
+  <main>
+    <!-- Home -->
+    <section id="home" class="card">
+      <h2>Home</h2>
+      <div id="auth">
+        <input id="email" placeholder="Email">
+        <input id="pw" type="password" placeholder="Password">
+        <button onclick="signUp()">Sign Up</button>
+        <button onclick="signIn()">Login</button>
+        <button onclick="signOut()">Sign Out</button>
+      </div>
+      <div id="stats"></div>
+      <button onclick="showTab('house')">Go to my house</button>
+    </section>
+
+    <!-- Explore -->
+    <section id="explore" class="card hidden">
+      <h2>Explore</h2>
+      <button onclick="searchCreature()">Search for creature</button>
+      <div id="exploreResult"></div>
+    </section>
+
+    <!-- Gather -->
+    <section id="gather" class="card hidden">
+      <h2>Gather</h2>
+      <button onclick="gather('wood')">Gather Wood</button>
+      <button onclick="gather('stone')">Gather Stone</button>
+      <button onclick="gather('nails')">Gather Nails</button>
+    </section>
+
+    <!-- House -->
+    <section id="house" class="card hidden">
+      <h2>House</h2>
+      <div id="houseInfo"></div>
+      <button onclick="upgradeHouse()">Upgrade House</button>
+    </section>
+  </main>
+
+<script>
+// ===== Game State =====
+let player = JSON.parse(localStorage.getItem("player")) || {
+  email:null, level:1, xp:0, wood:0, stone:0, nails:0, creatures:[], house:1
+};
+const CREATURES = Array.from({length:30}, (_,i)=>({name:"Creature "+(i+1), rarity:(i%3)}));
+
+function save(){ localStorage.setItem("player", JSON.stringify(player)); updateUI(); }
+function addXP(n){ player.xp+=n; if(player.xp>=100){ player.level++; player.xp-=100; announce("Level up! You are now level "+player.level); } save(); }
+
+// ===== Auth (local only, Firebase ready if config added) =====
+function signUp(){ player.email=document.getElementById("email").value; announce("Signed up as "+player.email); save(); }
+function signIn(){ player.email=document.getElementById("email").value; announce("Logged in as "+player.email); save(); }
+function signOut(){ player.email=null; announce("Signed out"); save(); }
+
+// ===== Tabs =====
+function showTab(id){
+  document.querySelectorAll("main section").forEach(s=>s.classList.add("hidden"));
+  document.getElementById(id).classList.remove("hidden");
+  document.getElementById(id).querySelector("h2").focus?.();
+  save();
+}
+
+// ===== Explore =====
+function searchCreature(){
+  const c = CREATURES[Math.floor(Math.random()*CREATURES.length)];
+  document.getElementById("exploreResult").innerHTML =
+    `<p>You found ${c.name}. Rarity ${c.rarity}</p>
+     <button onclick="catchCreature('${c.name}',${c.rarity})">Try to catch</button>
+     <button onclick="announce('You let it go')">Let go</button>`;
+}
+function catchCreature(name,rarity){
+ ,  const chance = 0.5 - (rarity*0.1) + (player.house*0.05);
+  if(Math.random()<chance){ player.creatures.push(name); announce("You caught "+name); addXP(10); }
+  else announce(name+" escaped");
+  save();
+}
+
+// ===== Gather =====
+function gather(type){
+  player[type]++; addXP(10); announce("Gathered "+type); save();
+}
+
+// ===== House =====
+function upgradeHouse(){
+  const cost = player.house*2;
+  if(player.wood>=cost && player.stone>=cost && player.nails>=cost){
+    player.wood-=cost; player.stone-=cost; player.nails-=cost; player.house++;
+    announce("House upgraded to level "+player.house);
+  } else announce("Not enough materials");
+  save();
+}
+
+// ===== UI & Accessibility =====
+function updateUI(){
+  document.getElementById("stats").innerText =
+    `Email: ${player.email||'guest'}
+Level: ${player.level} XP: ${player.xp}/100
+Wood: ${player.wood} Stone: ${player.stone} Nails: ${player.nails}
+Creatures: ${player.creatures.length} House: ${player.house}`;
+  document.getElementById("houseInfo").innerText = `House level ${player.house}`;
+}
+function announce(msg){
+  document.getElementById("status").innerText=msg;
+  if(window.speechSynthesis){
+    let u=new SpeechSynthesisUtterance(msg); speechSynthesis.speak(u);
+  }
+}
+updateUI();
+
+// ===== PWA Service Worker =====
+if("serviceWorker" in navigator){
+  navigator.serviceWorker.register(URL.createObjectURL(
+    new Blob([`
+      self.addEventListener('install',e=>e.waitUntil(caches.open('v1').then(c=>c.addAll(['./']))));
+      self.addEventListener('fetch',e=>e.respondWith(caches.match(e.request).then(r=>r||fetch(e.request))));
+    `],{type:"text/javascript"})))
+}
+</script>
+</body>
+</html>, How to use, 1., Save that as index.html in your GitHub repo., 2., Push to GitHub Pages → it runs offline immediately., 3., On phone: open it → “Add to Home Screen” → now it installs like an app., Do you want me to also include Firebase login hooks (so real cloud accounts/saves work) in this same one-file version, or keep it local-only for,  now?
