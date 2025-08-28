@@ -3,79 +3,76 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Accessible Pokémon Game Tabs</title>
+<title>Pokémon Game</title>
 <style>
-  body { font-family: sans-serif; }
-  .tabs { display: flex; border-bottom: 1px solid #ccc; }
-  .tab { padding: 10px 20px; cursor: pointer; }
-  .tab[aria-selected="true"] { border-bottom: 3px solid #007BFF; font-weight: bold; }
-  .tab-content { padding: 20px; display: none; }
-  .tab-content.active { display: block; }
+  body { font-family: Arial, sans-serif; background: #f0f0f0; margin: 0; }
+  .tabs { display: flex; border-bottom: 2px solid #333; background: #fff; }
+  .tab { flex: 1; padding: 15px; text-align: center; cursor: pointer; }
+  .tab.selected { background: #ddd; font-weight: bold; }
+  .tab-content { padding: 20px; }
 </style>
 </head>
 <body>
 
-<div role="tablist" aria-label="Main game tabs" class="tabs">
-  <div role="tab" id="tab-home" aria-selected="true" tabindex="0" aria-controls="panel-home" class="tab">Home</div>
-  <div role="tab" id="tab-gather" aria-selected="false" tabindex="-1" aria-controls="panel-gather" class="tab">Gather</div>
-  <div role="tab" id="tab-battle" aria-selected="false" tabindex="-1" aria-controls="panel-battle" class="tab">Battle</div>
-  <div role="tab" id="tab-pokedex" aria-selected="false" tabindex="-1" aria-controls="panel-pokedex" class="tab">Pokédex</div>
-  <div role="tab" id="tab-other-games" aria-selected="false" tabindex="-1" aria-controls="panel-other-games" class="tab">Other Games</div>
-  <!-- Add more tabs here if needed -->
+<div class="tabs" role="tablist">
+  <div class="tab selected" role="tab" aria-selected="true" aria-controls="home-content" id="home-tab">Home</div>
+  <div class="tab" role="tab" aria-selected="false" aria-controls="pokemon-content" id="pokemon-tab">Pokémon</div>
+  <div class="tab" role="tab" aria-selected="false" aria-controls="gather-content" id="gather-tab">Gather</div>
 </div>
 
-<div id="panel-home" role="tabpanel" aria-labelledby="tab-home" class="tab-content active">
+<div class="tab-content" id="home-content">
   <h2>Home</h2>
-  <p>Welcome to your Pokémon game!</p>
+  <p>Welcome to your Pokémon adventure!</p>
 </div>
 
-<div id="panel-gather" role="tabpanel" aria-labelledby="tab-gather" class="tab-content">
+<div class="tab-content" id="pokemon-content" style="display:none;">
+  <h2>Pokémon</h2>
+  <div id="pokemon-list"></div>
+</div>
+
+<div class="tab-content" id="gather-content" style="display:none;">
   <h2>Gather</h2>
-  <p>Collect Pokémon here.</p>
-</div>
-
-<div id="panel-battle" role="tabpanel" aria-labelledby="tab-battle" class="tab-content">
-  <h2>Battle</h2>
-  <p>Battle Pokémon here.</p>
-</div>
-
-<div id="panel-pokedex" role="tabpanel" aria-labelledby="tab-pokedex" class="tab-content">
-  <h2>Pokédex</h2>
-  <p>View your Pokémon collection.</p>
-</div>
-
-<div id="panel-other-games" role="tabpanel" aria-labelledby="tab-other-games" class="tab-content">
-  <h2>Other Games</h2>
-  <p>Create or load other games here.</p>
+  <p>Collect items and resources here.</p>
 </div>
 
 <script>
-const tabs = document.querySelectorAll('[role="tab"]');
-const panels = document.querySelectorAll('[role="tabpanel"]');
+// Tab navigation
+const tabs = document.querySelectorAll('.tab');
+const contents = document.querySelectorAll('.tab-content');
 
 tabs.forEach(tab => {
-  tab.addEventListener('click', () => activateTab(tab));
-  tab.addEventListener('keydown', e => {
-    let index = Array.prototype.indexOf.call(tabs, tab);
-    if(e.key === 'ArrowRight') tabs[(index + 1) % tabs.length].focus();
-    if(e.key === 'ArrowLeft') tabs[(index - 1 + tabs.length) % tabs.length].focus();
-    if(e.key === 'Enter' || e.key === ' ') activateTab(tab);
+  tab.addEventListener('click', () => {
+    tabs.forEach(t => { t.classList.remove('selected'); t.setAttribute('aria-selected', 'false'); });
+    tab.classList.add('selected');
+    tab.setAttribute('aria-selected', 'true');
+    contents.forEach(c => c.style.display = 'none');
+    document.getElementById(tab.getAttribute('aria-controls')).style.display = 'block';
   });
 });
 
-function activateTab(tab) {
-  tabs.forEach(t => {
-    t.setAttribute('aria-selected', 'false');
-    t.setAttribute('tabindex', '-1');
-  });
-  tab.setAttribute('aria-selected', 'true');
-  tab.setAttribute('tabindex', '0');
-
-  panels.forEach(panel => panel.classList.remove('active'));
-  document.getElementById(tab.getAttribute('aria-controls')).classList.add('active');
-  tab.focus();
-}
-</script>
-
-</body>
-</html>
+// Pokémon data for 54 Pokémon (simplified)
+const pokemonData = [
+  {name: "Bulbasaur", type: "Grass/Poison", level: 5, hp: 45, attack: 49, defense: 49, speed: 45, moves:[{name:"Tackle", power:40},{name:"Vine Whip", power:45}]},
+  {name: "Ivysaur", type: "Grass/Poison", level: 10, hp: 60, attack: 62, defense: 63, speed: 60, moves:[{name:"Tackle", power:40},{name:"Vine Whip", power:45}]},
+  {name: "Venusaur", type: "Grass/Poison", level: 20, hp: 80, attack: 82, defense: 83, speed: 80, moves:[{name:"Tackle", power:40},{name:"Vine Whip", power:45}]},
+  {name: "Charmander", type: "Fire", level: 5, hp: 39, attack: 52, defense: 43, speed: 65, moves:[{name:"Scratch", power:40},{name:"Ember", power:40}]},
+  {name: "Charmeleon", type: "Fire", level: 10, hp: 58, attack: 64, defense: 58, speed: 80, moves:[{name:"Scratch", power:40},{name:"Ember", power:40}]},
+  {name: "Charizard", type: "Fire/Flying", level: 20, hp: 78, attack: 84, defense: 78, speed: 100, moves:[{name:"Scratch", power:40},{name:"Ember", power:40}]},
+  {name: "Squirtle", type: "Water", level: 5, hp: 44, attack: 48, defense: 65, speed: 43, moves:[{name:"Tackle", power:40},{name:"Water Gun", power:40}]},
+  {name: "Wartortle", type: "Water", level: 10, hp: 59, attack: 63, defense: 80, speed: 58, moves:[{name:"Tackle", power:40},{name:"Water Gun", power:40}]},
+  {name: "Blastoise", type: "Water", level: 20, hp: 79, attack: 83, defense: 100, speed: 78, moves:[{name:"Tackle", power:40},{name:"Water Gun", power:40}]},
+  {name: "Caterpie", type: "Bug", level: 3, hp: 45, attack: 30, defense: 35, speed: 45, moves:[{name:"Tackle", power:40},{name:"String Shot", power:0}]},
+  {name: "Metapod", type: "Bug", level: 7, hp: 50, attack: 20, defense: 55, speed: 30, moves:[{name:"Tackle", power:40},{name:"Harden", power:0}]},
+  {name: "Butterfree", type: "Bug/Flying", level: 10, hp: 60, attack: 45, defense: 50, speed: 70, moves:[{name:"Tackle", power:40},{name:"Confusion", power:50}]},
+  {name: "Weedle", type: "Bug/Poison", level: 3, hp: 40, attack: 35, defense: 30, speed: 50, moves:[{name:"Poison Sting", power:15},{name:"String Shot", power:0}]},
+  {name: "Kakuna", type: "Bug/Poison", level: 7, hp: 45, attack: 25, defense: 50, speed: 35, moves:[{name:"Poison Sting", power:15},{name:"Harden", power:0}]},
+  {name: "Beedrill", type: "Bug/Poison", level: 10, hp: 65, attack: 90, defense: 40, speed: 75, moves:[{name:"Poison Sting", power:15},{name:"Twineedle", power:25}]},
+  {name: "Pidgey", type: "Normal/Flying", level: 3, hp: 40, attack: 45, defense: 40, speed: 56, moves:[{name:"Tackle", power:40},{name:"Gust", power:40}]},
+  {name: "Pidgeotto", type: "Normal/Flying", level: 7, hp: 63, attack: 60, defense: 55, speed: 71, moves:[{name:"Tackle", power:40},{name:"Gust", power:40}]},
+  {name: "Pidgeot", type: "Normal/Flying", level: 10, hp: 83, attack: 80, defense: 75, speed: 101, moves:[{name:"Tackle", power:40},{name:"Gust", power:40}]},
+  {name: "Rattata", type: "Normal", level: 3, hp: 30, attack: 56, defense: 35, speed: 72, moves:[{name:"Tackle", power:40},{name:"Tail Whip", power:0}]},
+  {name: "Raticate", type: "Normal", level: 10, hp: 55, attack: 81, defense: 60, speed: 97, moves:[{name:"Tackle", power:40},{name:"Hyper Fang", power:80}]},
+  {name: "Spearow", type: "Normal/Flying", level: 3, hp: 40, attack: 60, defense: 30, speed: 70, moves:[{name:"Peck", power:35},{name:"Fury Attack", power:15}]},
+  {name: "Fearow", type: "Normal/Flying", level: 10, hp: 65, attack: 90, defense: 65, speed: 100, moves:[{name:"Peck", power:35},{name:"Drill Peck", power:80}]},
+  {name: "Ekans", type: "Poison", level: 5, hp: 35, attack: 60, defense: 44, speed: 55, moves:[{name:"Wrap", power:15},{name:"Bite", power:60}]},
+  {name: "Arbok", type: "Poison", level: 10, hp: 60, attack: 85, defense: 69, speed: 80, moves:[
