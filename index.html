@@ -1,137 +1,35 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Pokémon Game</title>
-<style>
-  body { font-family: Arial, sans-serif; background: #f0f0f0; margin: 0; }
-  .tabs { display: flex; border-bottom: 2px solid #333; background: #fff; }
-  .tab { flex: 1; padding: 15px; text-align: center; cursor: pointer; outline: none; border: none; background: #fff; }
-  .tab.selected { background: #ddd; font-weight: bold; }
-  .tab-content { padding: 20px; display: none; }
-  .tab-content.active { display: block; }
-  #pokemon-list div { margin-bottom: 10px; }
-  #gather-list div { margin-bottom: 5px; }
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pokémon Game</title>
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-
-<div class="tabs" role="tablist">
-  <button class="tab selected" role="tab" aria-selected="true" aria-controls="home-content" id="home-tab">Home</button>
-  <button class="tab" role="tab" aria-selected="false" aria-controls="pokemon-content" id="pokemon-tab">Pokémon</button>
-  <button class="tab" role="tab" aria-selected="false" aria-controls="gather-content" id="gather-tab">Gather</button>
-</div>
-
-<div class="tab-content active" id="home-content">
-  <h2>Home</h2>
-  <p>Welcome to your Pokémon adventure!</p>
-</div>
-
-<div class="tab-content" id="pokemon-content">
-  <h2>Pokémon</h2>
-  <div id="pokemon-list"></div>
-</div>
-
-<div class="tab-content" id="gather-content">
-  <h2>Gather</h2>
-  <div id="gather-list"></div>
-</div>
-
-<script>
-// Tab navigation
-const tabs = document.querySelectorAll('.tab');
-const contents = document.querySelectorAll('.tab-content');
-
-tabs.forEach(tab => {
-  const showTab = () => {
-    tabs.forEach(t => {
-      t.classList.remove('selected');
-      t.setAttribute('aria-selected', 'false');
-    });
-    contents.forEach(c => c.classList.remove('active'));
-
-    tab.classList.add('selected');
-    tab.setAttribute('aria-selected', 'true');
-    document.getElementById(tab.getAttribute('aria-controls')).classList.add('active');
-  };
-  
-  tab.addEventListener('click', showTab);
-  tab.addEventListener('keydown', e => {
-    if(e.key === 'Enter' || e.key === ' ') {
-      e.preventDefault();
-      showTab();
-    }
-  });
-});
-
-// Pokémon data (first 54, simplified)
-const pokemonData = [
-  {name: "Bulbasaur", type: "Grass/Poison", level: 5},
-  {name: "Ivysaur", type: "Grass/Poison", level: 10},
-  {name: "Venusaur", type: "Grass/Poison", level: 20},
-  {name: "Charmander", type: "Fire", level: 5},
-  {name: "Charmeleon", type: "Fire", level: 10},
-  {name: "Charizard", type: "Fire/Flying", level: 20},
-  {name: "Squirtle", type: "Water", level: 5},
-  {name: "Wartortle", type: "Water", level: 10},
-  {name: "Blastoise", type: "Water", level: 20},
-  {name: "Caterpie", type: "Bug", level: 3},
-  {name: "Metapod", type: "Bug", level: 7},
-  {name: "Butterfree", type: "Bug/Flying", level: 10},
-  {name: "Weedle", type: "Bug/Poison", level: 3},
-  {name: "Kakuna", type: "Bug/Poison", level: 7},
-  {name: "Beedrill", type: "Bug/Poison", level: 10},
-  {name: "Pidgey", type: "Normal/Flying", level: 3},
-  {name: "Pidgeotto", type: "Normal/Flying", level: 7},
-  {name: "Pidgeot", type: "Normal/Flying", level: 10},
-  {name: "Rattata", type: "Normal", level: 3},
-  {name: "Raticate", type: "Normal", level: 10},
-  {name: "Spearow", type: "Normal/Flying", level: 3},
-  {name: "Fearow", type: "Normal/Flying", level: 10},
-  {name: "Ekans", type: "Poison", level: 5},
-  {name: "Arbok", type: "Poison", level: 10},
-  {name: "Pikachu", type: "Electric", level: 5},
-  {name: "Raichu", type: "Electric", level: 10},
-  {name: "Sandshrew", type: "Ground", level: 5},
-  {name: "Sandslash", type: "Ground", level: 10},
-  {name: "Nidoran♀", type: "Poison", level: 3},
-  {name: "Nidorina", type: "Poison", level: 10},
-  {name: "Nidoqueen", type: "Poison/Ground", level: 20},
-  {name: "Nidoran♂", type: "Poison", level: 3},
-  {name: "Nidorino", type: "Poison", level: 10},
-  {name: "Nidoking", type: "Poison/Ground", level: 20},
-  {name: "Clefairy", type: "Fairy", level: 5},
-  {name: "Clefable", type: "Fairy", level: 10},
-  {name: "Vulpix", type: "Fire", level: 5},
-  {name: "Ninetales", type: "Fire", level: 10},
-  {name: "Jigglypuff", type: "Normal/Fairy", level: 5},
-  {name: "Wigglytuff", type: "Normal/Fairy", level: 10},
-  {name: "Zubat", type: "Poison/Flying", level: 3},
-  {name: "Golbat", type: "Poison/Flying", level: 10},
-  {name: "Oddish", type: "Grass/Poison", level: 5},
-  {name: "Gloom", type: "Grass/Poison", level: 10},
-  {name: "Vileplume", type: "Grass/Poison", level: 20},
-  {name: "Paras", type: "Bug/Grass", level: 5},
-  {name: "Parasect", type: "Bug/Grass", level: 10},
-  {name: "Venonat", type: "Bug/Poison", level: 5},
-  {name: "Venomoth", type: "Bug/Poison", level: 10},
-  {name: "Diglett", type: "Ground", level: 5},
-  {name: "Dugtrio", type: "Ground", level: 10},
-  {name: "Meowth", type: "Normal", level: 5},
-  {name: "Persian", type: "Normal", level: 10},
-  {name: "Psyduck", type: "Water", level: 5},
-  {name: "Golduck", type: "Water", level: 10}
-];
-
-// Display Pokémon list
-const pokemonListDiv = document.getElementById('pokemon-list');
-pokemonData.forEach(p => {
-  const pDiv = document.createElement('div');
-  pDiv.textContent = `${p.name} - Type: ${p.type} - Level: ${p.level}`;
-  pokemonListDiv.appendChild(pDiv);
-});
-
-// Gather items
-const gatherItems = ["Potion", "Poké Ball", "Revive", "Berry"];
-const gatherListDiv
+  <header>
+    <nav>
+      <ul>
+        <li><a href="                                   
+        <li><a href="#pokedex">Pokédex</a></li>
+        <li><a href="                          
+        <li><a href="#gather">Gather</a></li>
+        <li><a href="                        
+        <li><a href="#pokemarket">Poké Market</a>
+          <ul>
+            <li><a href="                    
+            <li><a href="#buy">Buy</a></li>
+          </ul>
+        </li>
+        <li><a href="                              
+        <li><a href="#trade">Trade</a></li>
+        <li><a href="                                 
+      </ul>
+    </nav>
+  </header>
+  <main>
+    <!-- Tab content will go here -->
+  </main>
+  <script src="script.js"></script>
+</body>
+</html>
