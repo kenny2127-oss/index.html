@@ -3,110 +3,78 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Pokémon Game Tabs</title>
+<title>Accessible Pokémon Game Tabs</title>
 <style>
-  body {
-    font-family: sans-serif;
-    margin: 0;
-    padding: 0;
-    background: #f5f5f5;
-  }
-  .tabs {
-    display: flex;
-    justify-content: space-around;
-    background: #333;
-  }
-  .tab {
-    flex: 1;
-    padding: 15px;
-    color: white;
-    text-align: center;
-    cursor: pointer;
-  }
-  .tab.active {
-    background: #555;
-    font-weight: bold;
-  }
-  .tab-content {
-    display: none;
-    padding: 20px;
-    background: white;
-  }
-  .tab-content.active {
-    display: block;
-  }
+  body { font-family: sans-serif; }
+  .tabs { display: flex; border-bottom: 1px solid #ccc; }
+  .tab { padding: 10px 20px; cursor: pointer; }
+  .tab[aria-selected="true"] { border-bottom: 3px solid #007BFF; font-weight: bold; }
+  .tab-content { padding: 20px; display: none; }
+  .tab-content.active { display: block; }
 </style>
 </head>
 <body>
 
-<div class="tabs">
-  <div class="tab active" data-tab="home">Home</div>
-  <div class="tab" data-tab="battle">Battle</div>
-  <div class="tab" data-tab="gather">Gather</div>
-  <div class="tab" data-tab="pokemon">Pokémon</div>
-  <div class="tab" data-tab="inventory">Inventory</div>
-  <div class="tab" data-tab="shop">Shop</div>
-  <div class="tab" data-tab="other-games">Other Games</div>
-  <div class="tab" data-tab="settings">Settings</div>
-  <div class="tab" data-tab="profile">Profile</div>
-  <div class="tab" data-tab="help">Help</div>
+<div role="tablist" aria-label="Main game tabs" class="tabs">
+  <div role="tab" id="tab-home" aria-selected="true" tabindex="0" aria-controls="panel-home" class="tab">Home</div>
+  <div role="tab" id="tab-gather" aria-selected="false" tabindex="-1" aria-controls="panel-gather" class="tab">Gather</div>
+  <div role="tab" id="tab-battle" aria-selected="false" tabindex="-1" aria-controls="panel-battle" class="tab">Battle</div>
+  <div role="tab" id="tab-pokedex" aria-selected="false" tabindex="-1" aria-controls="panel-pokedex" class="tab">Pokédex</div>
+  <div role="tab" id="tab-other-games" aria-selected="false" tabindex="-1" aria-controls="panel-other-games" class="tab">Other Games</div>
+  <!-- Add more tabs here if needed -->
 </div>
 
-<div id="home" class="tab-content active">
+<div id="panel-home" role="tabpanel" aria-labelledby="tab-home" class="tab-content active">
   <h2>Home</h2>
-  <p>Welcome to the Pokémon game!</p>
+  <p>Welcome to your Pokémon game!</p>
 </div>
-<div id="battle" class="tab-content">
-  <h2>Battle</h2>
-  <p>Choose a Pokémon to battle.</p>
-</div>
-<div id="gather" class="tab-content">
+
+<div id="panel-gather" role="tabpanel" aria-labelledby="tab-gather" class="tab-content">
   <h2>Gather</h2>
-  <p>Collect items and Pokémon here.</p>
+  <p>Collect Pokémon here.</p>
 </div>
-<div id="pokemon" class="tab-content">
-  <h2>Pokémon</h2>
+
+<div id="panel-battle" role="tabpanel" aria-labelledby="tab-battle" class="tab-content">
+  <h2>Battle</h2>
+  <p>Battle Pokémon here.</p>
+</div>
+
+<div id="panel-pokedex" role="tabpanel" aria-labelledby="tab-pokedex" class="tab-content">
+  <h2>Pokédex</h2>
   <p>View your Pokémon collection.</p>
 </div>
-<div id="inventory" class="tab-content">
-  <h2>Inventory</h2>
-  <p>Manage your items.</p>
-</div>
-<div id="shop" class="tab-content">
-  <h2>Shop</h2>
-  <p>Buy items and upgrades.</p>
-</div>
-<div id="other-games" class="tab-content">
+
+<div id="panel-other-games" role="tabpanel" aria-labelledby="tab-other-games" class="tab-content">
   <h2>Other Games</h2>
-  <p>Create or play other games here.</p>
-</div>
-<div id="settings" class="tab-content">
-  <h2>Settings</h2>
-  <p>Adjust your game settings.</p>
-</div>
-<div id="profile" class="tab-content">
-  <h2>Profile</h2>
-  <p>View your player profile.</p>
-</div>
-<div id="help" class="tab-content">
-  <h2>Help</h2>
-  <p>Get assistance and tutorials.</p>
+  <p>Create or load other games here.</p>
 </div>
 
 <script>
-const tabs = document.querySelectorAll('.tab');
-const contents = document.querySelectorAll('.tab-content');
+const tabs = document.querySelectorAll('[role="tab"]');
+const panels = document.querySelectorAll('[role="tabpanel"]');
 
 tabs.forEach(tab => {
-  tab.addEventListener('click', () => {
-    tabs.forEach(t => t.classList.remove('active'));
-    tab.classList.add('active');
-
-    contents.forEach(c => c.classList.remove('active'));
-    const selected = document.getElementById(tab.dataset.tab);
-    if (selected) selected.classList.add('active');
+  tab.addEventListener('click', () => activateTab(tab));
+  tab.addEventListener('keydown', e => {
+    let index = Array.prototype.indexOf.call(tabs, tab);
+    if(e.key === 'ArrowRight') tabs[(index + 1) % tabs.length].focus();
+    if(e.key === 'ArrowLeft') tabs[(index - 1 + tabs.length) % tabs.length].focus();
+    if(e.key === 'Enter' || e.key === ' ') activateTab(tab);
   });
 });
+
+function activateTab(tab) {
+  tabs.forEach(t => {
+    t.setAttribute('aria-selected', 'false');
+    t.setAttribute('tabindex', '-1');
+  });
+  tab.setAttribute('aria-selected', 'true');
+  tab.setAttribute('tabindex', '0');
+
+  panels.forEach(panel => panel.classList.remove('active'));
+  document.getElementById(tab.getAttribute('aria-controls')).classList.add('active');
+  tab.focus();
+}
 </script>
 
 </body>
