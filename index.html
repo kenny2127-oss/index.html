@@ -1,148 +1,113 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Accessible Pokémon-style Game</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="manifest" href="data:application/manifest+json,{&quot;name&quot;:&quot;Accessible Monster Game&quot;,&quot;short_name&quot;:&quot;MonGame&quot;,&quot;start_url&quot;:&quot;.&quot;,&quot;display&quot;:&quot;standalone&quot;,&quot;background_color&quot;:&quot;#000&quot;,&quot;theme_color&quot;:&quot;#111&quot;}">
-  <style>
-    body { font-family: sans-serif; background:#111; color:#eee; margin:0; }
-    header, nav, main { padding: 1em; }
-    nav button { margin:0.25em; padding:0.5em 1em; }
-    .hidden { display:none; }
-    .card { background:#222; padding:1em; margin:1em 0; border-radius:8px; }
-    .contrast { background:#fff; color:#000; }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pokémon Game Tabs</title>
+<style>
+  body {
+    font-family: sans-serif;
+    margin: 0;
+    padding: 0;
+    background: #f5f5f5;
+  }
+  .tabs {
+    display: flex;
+    justify-content: space-around;
+    background: #333;
+  }
+  .tab {
+    flex: 1;
+    padding: 15px;
+    color: white;
+    text-align: center;
+    cursor: pointer;
+  }
+  .tab.active {
+    background: #555;
+    font-weight: bold;
+  }
+  .tab-content {
+    display: none;
+    padding: 20px;
+    background: white;
+  }
+  .tab-content.active {
+    display: block;
+  }
+</style>
 </head>
 <body>
-  <header>
-    <h1>Accessible Monster Game</h1>
-    <p id="status" role="status" aria-live="assertive"></p>
-  </header>
 
-  <nav>
-    <button onclick="showTab('home')">Home</button>
-    <button onclick="showTab('explore')">Explore</button>
-    <button onclick="showTab('gather')">Gather</button>
-    <button onclick="showTab('house')">House</button>
-  </nav>
+<div class="tabs">
+  <div class="tab active" data-tab="home">Home</div>
+  <div class="tab" data-tab="battle">Battle</div>
+  <div class="tab" data-tab="gather">Gather</div>
+  <div class="tab" data-tab="pokemon">Pokémon</div>
+  <div class="tab" data-tab="inventory">Inventory</div>
+  <div class="tab" data-tab="shop">Shop</div>
+  <div class="tab" data-tab="other-games">Other Games</div>
+  <div class="tab" data-tab="settings">Settings</div>
+  <div class="tab" data-tab="profile">Profile</div>
+  <div class="tab" data-tab="help">Help</div>
+</div>
 
-  <main>
-    <!-- Home -->
-    <section id="home" class="card">
-      <h2>Home</h2>
-      <div id="auth">
-        <input id="email" placeholder="Email">
-        <input id="pw" type="password" placeholder="Password">
-        <button onclick="signUp()">Sign Up</button>
-        <button onclick="signIn()">Login</button>
-        <button onclick="signOut()">Sign Out</button>
-      </div>
-      <div id="stats"></div>
-      <button onclick="showTab('house')">Go to my house</button>
-    </section>
-
-    <!-- Explore -->
-    <section id="explore" class="card hidden">
-      <h2>Explore</h2>
-      <button onclick="searchCreature()">Search for creature</button>
-      <div id="exploreResult"></div>
-    </section>
-
-    <!-- Gather -->
-    <section id="gather" class="card hidden">
-      <h2>Gather</h2>
-      <button onclick="gather('wood')">Gather Wood</button>
-      <button onclick="gather('stone')">Gather Stone</button>
-      <button onclick="gather('nails')">Gather Nails</button>
-    </section>
-
-    <!-- House -->
-    <section id="house" class="card hidden">
-      <h2>House</h2>
-      <div id="houseInfo"></div>
-      <button onclick="upgradeHouse()">Upgrade House</button>
-    </section>
-  </main>
+<div id="home" class="tab-content active">
+  <h2>Home</h2>
+  <p>Welcome to the Pokémon game!</p>
+</div>
+<div id="battle" class="tab-content">
+  <h2>Battle</h2>
+  <p>Choose a Pokémon to battle.</p>
+</div>
+<div id="gather" class="tab-content">
+  <h2>Gather</h2>
+  <p>Collect items and Pokémon here.</p>
+</div>
+<div id="pokemon" class="tab-content">
+  <h2>Pokémon</h2>
+  <p>View your Pokémon collection.</p>
+</div>
+<div id="inventory" class="tab-content">
+  <h2>Inventory</h2>
+  <p>Manage your items.</p>
+</div>
+<div id="shop" class="tab-content">
+  <h2>Shop</h2>
+  <p>Buy items and upgrades.</p>
+</div>
+<div id="other-games" class="tab-content">
+  <h2>Other Games</h2>
+  <p>Create or play other games here.</p>
+</div>
+<div id="settings" class="tab-content">
+  <h2>Settings</h2>
+  <p>Adjust your game settings.</p>
+</div>
+<div id="profile" class="tab-content">
+  <h2>Profile</h2>
+  <p>View your player profile.</p>
+</div>
+<div id="help" class="tab-content">
+  <h2>Help</h2>
+  <p>Get assistance and tutorials.</p>
+</div>
 
 <script>
-// ===== Game State =====
-let player = JSON.parse(localStorage.getItem("player")) || {
-  email:null, level:1, xp:0, wood:0, stone:0, nails:0, creatures:[], house:1
-};
-const CREATURES = Array.from({length:30}, (_,i)=>({name:"Creature "+(i+1), rarity:(i%3)}));
+const tabs = document.querySelectorAll('.tab');
+const contents = document.querySelectorAll('.tab-content');
 
-function save(){ localStorage.setItem("player", JSON.stringify(player)); updateUI(); }
-function addXP(n){ player.xp+=n; if(player.xp>=100){ player.level++; player.xp-=100; announce("Level up! You are now level "+player.level); } save(); }
+tabs.forEach(tab => {
+  tab.addEventListener('click', () => {
+    tabs.forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
 
-// ===== Auth (local only, Firebase ready if config added) =====
-function signUp(){ player.email=document.getElementById("email").value; announce("Signed up as "+player.email); save(); }
-function signIn(){ player.email=document.getElementById("email").value; announce("Logged in as "+player.email); save(); }
-function signOut(){ player.email=null; announce("Signed out"); save(); }
-
-// ===== Tabs =====
-function showTab(id){
-  document.querySelectorAll("main section").forEach(s=>s.classList.add("hidden"));
-  document.getElementById(id).classList.remove("hidden");
-  document.getElementById(id).querySelector("h2").focus?.();
-  save();
-}
-
-// ===== Explore =====
-function searchCreature(){
-  const c = CREATURES[Math.floor(Math.random()*CREATURES.length)];
-  document.getElementById("exploreResult").innerHTML =
-    `<p>You found ${c.name}. Rarity ${c.rarity}</p>
-     <button onclick="catchCreature('${c.name}',${c.rarity})">Try to catch</button>
-     <button onclick="announce('You let it go')">Let go</button>`;
-}
-function catchCreature(name,rarity){
- ,  const chance = 0.5 - (rarity*0.1) + (player.house*0.05);
-  if(Math.random()<chance){ player.creatures.push(name); announce("You caught "+name); addXP(10); }
-  else announce(name+" escaped");
-  save();
-}
-
-// ===== Gather =====
-function gather(type){
-  player[type]++; addXP(10); announce("Gathered "+type); save();
-}
-
-// ===== House =====
-function upgradeHouse(){
-  const cost = player.house*2;
-  if(player.wood>=cost && player.stone>=cost && player.nails>=cost){
-    player.wood-=cost; player.stone-=cost; player.nails-=cost; player.house++;
-    announce("House upgraded to level "+player.house);
-  } else announce("Not enough materials");
-  save();
-}
-
-// ===== UI & Accessibility =====
-function updateUI(){
-  document.getElementById("stats").innerText =
-    `Email: ${player.email||'guest'}
-Level: ${player.level} XP: ${player.xp}/100
-Wood: ${player.wood} Stone: ${player.stone} Nails: ${player.nails}
-Creatures: ${player.creatures.length} House: ${player.house}`;
-  document.getElementById("houseInfo").innerText = `House level ${player.house}`;
-}
-function announce(msg){
-  document.getElementById("status").innerText=msg;
-  if(window.speechSynthesis){
-    let u=new SpeechSynthesisUtterance(msg); speechSynthesis.speak(u);
-  }
-}
-updateUI();
-
-// ===== PWA Service Worker =====
-if("serviceWorker" in navigator){
-  navigator.serviceWorker.register(URL.createObjectURL(
-    new Blob([`
-      self.addEventListener('install',e=>e.waitUntil(caches.open('v1').then(c=>c.addAll(['./']))));
-      self.addEventListener('fetch',e=>e.respondWith(caches.match(e.request).then(r=>r||fetch(e.request))));
-    `],{type:"text/javascript"})))
-}
+    contents.forEach(c => c.classList.remove('active'));
+    const selected = document.getElementById(tab.dataset.tab);
+    if (selected) selected.classList.add('active');
+  });
+});
 </script>
+
 </body>
-</html>, How to use, 1., Save that as index.html in your GitHub repo., 2., Push to GitHub Pages → it runs offline immediately., 3., On phone: open it → “Add to Home Screen” → now it installs like an app., Do you want me to also include Firebase login hooks (so real cloud accounts/saves work) in this same one-file version, or keep it local-only for,  now?
+</html>
