@@ -11,6 +11,7 @@
   .tab.selected { background: #ddd; font-weight: bold; }
   .tab-content { padding: 20px; display: none; }
   .tab-content.active { display: block; }
+  .pokemon-item { margin-bottom: 10px; }
 </style>
 </head>
 <body>
@@ -19,7 +20,6 @@
   <div class="tab selected" role="tab" aria-selected="true" aria-controls="home-content" id="home-tab" tabindex="0">Home</div>
   <div class="tab" role="tab" aria-selected="false" aria-controls="pokemon-content" id="pokemon-tab" tabindex="0">Pokémon</div>
   <div class="tab" role="tab" aria-selected="false" aria-controls="gather-content" id="gather-tab" tabindex="0">Gather</div>
-  <!-- Add more tabs here, up to 10 -->
 </div>
 
 <div class="tab-content active" id="home-content">
@@ -34,28 +34,44 @@
 
 <div class="tab-content" id="gather-content">
   <h2>Gather</h2>
-  <p>Collect items and resources here.</p>
+  <p>Collect items and resources here:</p>
+  <ul id="gather-list">
+    <li>Pokéball x5</li>
+    <li>Potion x3</li>
+    <li>Berry x4</li>
+  </ul>
 </div>
 
 <script>
-// Tab navigation with accessibility
+// Tab navigation with accessibility for mobile
 const tabs = document.querySelectorAll('.tab');
 const contents = document.querySelectorAll('.tab-content');
 
 tabs.forEach(tab => {
   const showTab = () => {
-    tabs.forEach(t => { t.classList.remove('selected'); t.setAttribute('aria-selected', 'false'); });
+    tabs.forEach(t => {
+      t.classList.remove('selected');
+      t.setAttribute('aria-selected', 'false');
+    });
     contents.forEach(c => c.classList.remove('active'));
+
     tab.classList.add('selected');
     tab.setAttribute('aria-selected', 'true');
     document.getElementById(tab.getAttribute('aria-controls')).classList.add('active');
   };
 
   tab.addEventListener('click', showTab);
-  tab.addEventListener('keydown', e => { if(e.key === 'Enter' || e.key === ' ') { e.preventDefault(); showTab(); } });
+
+  // Keyboard accessibility
+  tab.addEventListener('keydown', e => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      showTab();
+    }
+  });
 });
 
-// Full list of 54 Pokémon (simplified)
+// Pokémon data for 54 Pokémon (simplified)
 const pokemonData = [
   {name: "Bulbasaur", type: "Grass/Poison", level: 5, hp: 45, attack: 49, defense: 49, speed: 45, moves:[{name:"Tackle", power:40},{name:"Vine Whip", power:45}]},
   {name: "Ivysaur", type: "Grass/Poison", level: 10, hp: 60, attack: 62, defense: 63, speed: 60, moves:[{name:"Tackle", power:40},{name:"Vine Whip", power:45}]},
@@ -78,5 +94,4 @@ const pokemonData = [
   {name: "Rattata", type: "Normal", level: 3, hp: 30, attack: 56, defense: 35, speed: 72, moves:[{name:"Tackle", power:40},{name:"Tail Whip", power:0}]},
   {name: "Raticate", type: "Normal", level: 10, hp: 55, attack: 81, defense: 60, speed: 97, moves:[{name:"Tackle", power:40},{name:"Hyper Fang", power:80}]},
   {name: "Spearow", type: "Normal/Flying", level: 3, hp: 40, attack: 60, defense: 30, speed: 70, moves:[{name:"Peck", power:35},{name:"Fury Attack", power:15}]},
-  {name: "Fearow", type: "Normal/Flying", level: 10, hp: 65, attack: 90, defense: 65, speed: 100, moves:[{name:"Peck", power:35},{name:"Drill Peck", power:80}]},
-  {name:
+  {name: "Fearow", type: "Normal/Flying", level: 10, hp:
