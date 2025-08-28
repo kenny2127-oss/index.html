@@ -7,29 +7,72 @@
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <header>
-    <nav>
-      <ul>
-        <li><a href="                                   
-        <li><a href="#pokedex">Pokédex</a></li>
-        <li><a href="                          
-        <li><a href="#gather">Gather</a></li>
-        <li><a href="                        
-        <li><a href="#pokemarket">Poké Market</a>
+  <div class="tab-container">
+    <div class="tab-content">
+      <!-- Tab content will go here -->
+      <div id="home" role="tabpanel" aria-label="Home Tab">
+        <h1>Welcome to Pokémon Game!</h1>
+        <p>Level: <span id="level">1</span></p>
+        <p>Experience: <span id="experience">0</span>/100</p>
+      </div>
+      <div id="pokedex" role="tabpanel" aria-label="Pokédex Tab" hidden>
+        <h1>Pokédex</h1>
+        <!-- Pokédex content will go here -->
+      </div>
+      <div id="explore" role="tabpanel" aria-label="Explore Tab" hidden>
+        <h1>Explore</h1>
+        <!-- Explore content will go here -->
+      </div>
+      <div id="gather" role="tabpanel" aria-label="Gather Tab" hidden>
+        <h1>Gather</h1>
+        <!-- Gather content will go here -->
+      </div>
+      <div id="battle" role="tabpanel" aria-label="Battle Tab" hidden>
+        <h1>Battle</h1>
+        <!-- Battle content will go here -->
+      </div>
+      <div id="inventory" role="tabpanel" aria-label="Inventory Tab" hidden>
+        <h1>Inventory</h1>
+        <!-- Inventory content will go here -->
+      </div>
+      <div id="pokemarket" role="tabpanel" aria-label="Poké Market Tab" hidden>
+        <h1>Poké Market</h1>
+        <nav aria-label="Poké Market navigation">
           <ul>
             <li><a href="                    
             <li><a href="#buy">Buy</a></li>
           </ul>
-        </li>
-        <li><a href="                              
-        <li><a href="#trade">Trade</a></li>
-        <li><a href="                                 
-      </ul>
-    </nav>
-  </header>
-  <main>
-    <!-- Tab content will go here -->
-  </main>
+        </nav>
+        <div id="sell" role="tabpanel" aria-label="Sell Tab">
+          <h2>Sell</h2>
+          <!-- Sell content will go here -->
+        </div>
+        <div id="buy" role="tabpanel" aria-label="Buy Tab" hidden>
+          <h2>Buy</h2>
+          <!-- Buy content will go here -->
+        </div>
+      </div>
+      <div id="trade" role="tabpanel" aria-label="Trade Tab" hidden>
+        <h1>Trade</h1>
+        <!-- Trade content will go here -->
+      </div>
+      <div id="signin" role="tabpanel" aria-label="Sign Up/Sign In Tab" hidden>
+        <h1>Sign Up/Sign In</h1>
+        <!-- Sign Up/Sign In content will go here -->
+      </div>
+    </div>
+    <div class="tab-bar" role="tablist" aria-label="Main Navigation">
+      <button role="tab" aria-controls="home" aria-selected="true">Home</button>
+      <button role="tab" aria-controls="pokedex">Pokédex</button>
+      <button role="tab" aria-controls="explore">Explore</button>
+      <button role="tab" aria-controls="gather">Gather</button>
+      <button role="tab" aria-controls="battle">Battle</button>
+      <button role="tab" aria-controls="inventory">Inventory</button>
+      <button role="tab" aria-controls="pokemarket">Poké Market</button>
+      <button role="tab" aria-controls="trade">Trade</button>
+      <button role="tab" aria-controls="signin">Sign Up/Sign In</button>
+    </div>
+  </div>
   <script src="script.js"></script>
 </body>
 </html>
