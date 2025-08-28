@@ -93,4 +93,89 @@ pokemonData.forEach(p => {
 </script>
 
 </body>
-</html>
+</html><!-- Tabs Navigation (Mobile-Friendly & Accessible) -->
+<div class="tabs" role="tablist">
+  <div class="tab selected" role="tab" aria-selected="true" aria-controls="home-content" id="home-tab" tabindex="0">Home</div>
+  <div class="tab" role="tab" aria-selected="false" aria-controls="pokemon-content" id="pokemon-tab" tabindex="0">Pokémon</div>
+  <div class="tab" role="tab" aria-selected="false" aria-controls="gather-content" id="gather-tab" tabindex="0">Gather</div>
+  <!-- Add more tabs here if needed -->
+</div>
+
+<!-- Tab Contents -->
+<div class="tab-content active" id="home-content">
+  <h2>Home</h2>
+  <p>Welcome to your Pokémon adventure!</p>
+</div>
+
+<div class="tab-content" id="pokemon-content">
+  <h2>Pokémon</h2>
+  <div id="pokemon-list"></div>
+</div>
+
+<div class="tab-content" id="gather-content">
+  <h2>Gather</h2>
+  <p>Collect items and resources here.</p>
+</div>
+
+<script>
+// Tab navigation for mobile
+const tabs = document.querySelectorAll('.tab');
+const contents = document.querySelectorAll('.tab-content');
+
+tabs.forEach(tab => {
+  const showTab = () => {
+    tabs.forEach(t => {
+      t.classList.remove('selected');
+      t.setAttribute('aria-selected', 'false');
+    });
+    contents.forEach(c => c.classList.remove('active'));
+
+    tab.classList.add('selected');
+    tab.setAttribute('aria-selected', 'true');
+    document.getElementById(tab.getAttribute('aria-controls')).classList.add('active');
+  };
+
+  tab.addEventListener('click', showTab);
+
+  // Keyboard/mobile accessibility (Enter/Space)
+  tab.addEventListener('keydown', e => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      showTab();
+    }
+  });
+});
+
+// Pokémon data (54 Pokémon, simplified moves)
+const pokemonData = [
+  {name: "Bulbasaur", type: "Grass/Poison", level: 5, hp: 45, attack: 49, defense: 49, speed: 45, moves:["Tackle","Vine Whip"]},
+  {name: "Ivysaur", type: "Grass/Poison", level: 10, hp: 60, attack: 62, defense: 63, speed: 60, moves:["Tackle","Vine Whip"]},
+  {name: "Venusaur", type: "Grass/Poison", level: 20, hp: 80, attack: 82, defense: 83, speed: 80, moves:["Tackle","Vine Whip"]},
+  {name: "Charmander", type: "Fire", level: 5, hp: 39, attack: 52, defense: 43, speed: 65, moves:["Scratch","Ember"]},
+  {name: "Charmeleon", type: "Fire", level: 10, hp: 58, attack: 64, defense: 58, speed: 80, moves:["Scratch","Ember"]},
+  {name: "Charizard", type: "Fire/Flying", level: 20, hp: 78, attack: 84, defense: 78, speed: 100, moves:["Scratch","Ember"]},
+  {name: "Squirtle", type: "Water", level: 5, hp: 44, attack: 48, defense: 65, speed: 43, moves:["Tackle","Water Gun"]},
+  {name: "Wartortle", type: "Water", level: 10, hp: 59, attack: 63, defense: 80, speed: 58, moves:["Tackle","Water Gun"]},
+  {name: "Blastoise", type: "Water", level: 20, hp: 79, attack: 83, defense: 100, speed: 78, moves:["Tackle","Water Gun"]},
+  {name: "Caterpie", type: "Bug", level: 3, hp: 45, attack: 30, defense: 35, speed: 45, moves:["Tackle","String Shot"]},
+  {name: "Metapod", type: "Bug", level: 7, hp: 50, attack: 20, defense: 55, speed: 30, moves:["Tackle","Harden"]},
+  {name: "Butterfree", type: "Bug/Flying", level: 10, hp: 60, attack: 45, defense: 50, speed: 70, moves:["Tackle","Confusion"]},
+  {name: "Weedle", type: "Bug/Poison", level: 3, hp: 40, attack: 35, defense: 30, speed: 50, moves:["Poison Sting","String Shot"]},
+  {name: "Kakuna", type: "Bug/Poison", level: 7, hp: 45, attack: 25, defense: 50, speed: 35, moves:["Poison Sting","Harden"]},
+  {name: "Beedrill", type: "Bug/Poison", level: 10, hp: 65, attack: 90, defense: 40, speed: 75, moves:["Poison Sting","Twineedle"]},
+  {name: "Pidgey", type: "Normal/Flying", level: 3, hp: 40, attack: 45, defense: 40, speed: 56, moves:["Tackle","Gust"]},
+  {name: "Pidgeotto", type: "Normal/Flying", level: 7, hp: 63, attack: 60, defense: 55, speed: 71, moves:["Tackle","Gust"]},
+  {name: "Pidgeot", type: "Normal/Flying", level: 10, hp: 83, attack: 80, defense: 75, speed: 101, moves:["Tackle","Gust"]},
+  {name: "Rattata", type: "Normal", level: 3, hp: 30, attack: 56, defense: 35, speed: 72, moves:["Tackle","Tail Whip"]},
+  {name: "Raticate", type: "Normal", level: 10, hp: 55, attack: 81, defense: 60, speed: 97, moves:["Tackle","Hyper Fang"]},
+  {name: "Spearow", type: "Normal/Flying", level: 3, hp: 40, attack: 60, defense: 30, speed: 70, moves:["Peck","Fury Attack"]},
+  {name: "Fearow", type: "Normal/Flying", level: 10, hp: 65, attack: 90, defense: 65, speed: 100, moves:["Peck","Drill Peck"]},
+  {name: "Ekans", type: "Poison", level: 5, hp: 35, attack: 60, defense: 44, speed: 55, moves:["Wrap","Bite"]},
+  {name: "Arbok", type: "Poison", level: 10, hp: 60, attack: 85, defense: 69, speed: 80, moves:["Wrap","Bite"]},
+  {name: "Pikachu", type: "Electric", level: 5, hp: 35, attack: 55, defense: 40, speed: 90, moves:["Quick Attack","Thunder Shock"]},
+  {name: "Raichu", type: "Electric", level: 20, hp: 60, attack: 90, defense: 55, speed: 110, moves:["Quick Attack","Thunderbolt"]},
+  {name: "Sandshrew", type: "Ground", level: 5, hp: 50, attack: 75, defense: 85, speed: 40, moves:["Scratch","Sand Attack"]},
+  {name: "Sandslash", type: "Ground", level: 10, hp: 75, attack: 100, defense: 110, speed: 65, moves:["Scratch","Sand Attack"]},
+  {name: "Nidoran♀", type: "Poison", level: 3, hp: 55, attack: 47, defense: 52, speed: 41, moves:["Tackle","Growl"]},
+  {name: "Nidorina", type: "Poison", level: 10, hp: 70, attack: 62, defense: 67, speed: 56, moves:["Tackle","Bite"]},
+  {name: "Nidoqueen", type: "Poison/Ground", level: 20, hp
