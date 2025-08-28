@@ -4,7 +4,47 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Pokémon Game</title>
-  <link rel="stylesheet" href="styles.css">
+  <style>
+    .tab-container {
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+    }
+
+    .tab-content {
+      flex-grow: 1;
+      padding: 20px;
+      overflow-y: auto;
+      padding-bottom: 60px;
+    }
+
+    .tab-bar {
+      display: flex;
+      justify-content: space-around;
+      padding: 10px;
+      background-color: #333;
+      color: #fff;
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+    }
+
+    .tab-bar button {
+      background-color: #333;
+      color: #fff;
+      border: none;
+      padding: 10px;
+    }
+
+    .tab-bar button:hover {
+      background-color: #444;
+    }
+
+    .tab-bar button:active {
+      background-color: #555;
+    }
+  </style>
 </head>
 <body>
   <div class="tab-container">
@@ -70,9 +110,4 @@
       <button role="tab" aria-controls="inventory">Inventory</button>
       <button role="tab" aria-controls="pokemarket">Poké Market</button>
       <button role="tab" aria-controls="trade">Trade</button>
-      <button role="tab" aria-controls="signin">Sign Up/Sign In</button>
-    </div>
-  </div>
-  <script src="script.js"></script>
-</body>
-</html>
+      <button role="tab" aria-controls="signin">Sign Up/Sign In</
