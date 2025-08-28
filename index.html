@@ -7,19 +7,20 @@
 <style>
   body { font-family: Arial, sans-serif; background: #f0f0f0; margin: 0; }
   .tabs { display: flex; border-bottom: 2px solid #333; background: #fff; }
-  .tab { flex: 1; padding: 15px; text-align: center; cursor: pointer; outline: none; }
+  .tab { flex: 1; padding: 15px; text-align: center; cursor: pointer; outline: none; border: none; background: #fff; }
   .tab.selected { background: #ddd; font-weight: bold; }
   .tab-content { padding: 20px; display: none; }
   .tab-content.active { display: block; }
-  .pokemon-item { margin-bottom: 10px; }
+  #pokemon-list div { margin-bottom: 10px; }
+  #gather-list div { margin-bottom: 5px; }
 </style>
 </head>
 <body>
 
 <div class="tabs" role="tablist">
-  <div class="tab selected" role="tab" aria-selected="true" aria-controls="home-content" id="home-tab" tabindex="0">Home</div>
-  <div class="tab" role="tab" aria-selected="false" aria-controls="pokemon-content" id="pokemon-tab" tabindex="0">Pokémon</div>
-  <div class="tab" role="tab" aria-selected="false" aria-controls="gather-content" id="gather-tab" tabindex="0">Gather</div>
+  <button class="tab selected" role="tab" aria-selected="true" aria-controls="home-content" id="home-tab">Home</button>
+  <button class="tab" role="tab" aria-selected="false" aria-controls="pokemon-content" id="pokemon-tab">Pokémon</button>
+  <button class="tab" role="tab" aria-selected="false" aria-controls="gather-content" id="gather-tab">Gather</button>
 </div>
 
 <div class="tab-content active" id="home-content">
@@ -34,16 +35,11 @@
 
 <div class="tab-content" id="gather-content">
   <h2>Gather</h2>
-  <p>Collect items and resources here:</p>
-  <ul id="gather-list">
-    <li>Pokéball x5</li>
-    <li>Potion x3</li>
-    <li>Berry x4</li>
-  </ul>
+  <div id="gather-list"></div>
 </div>
 
 <script>
-// Tab navigation with accessibility for mobile
+// Tab navigation
 const tabs = document.querySelectorAll('.tab');
 const contents = document.querySelectorAll('.tab-content');
 
@@ -59,39 +55,83 @@ tabs.forEach(tab => {
     tab.setAttribute('aria-selected', 'true');
     document.getElementById(tab.getAttribute('aria-controls')).classList.add('active');
   };
-
+  
   tab.addEventListener('click', showTab);
-
-  // Keyboard accessibility
   tab.addEventListener('keydown', e => {
-    if (e.key === 'Enter' || e.key === ' ') {
+    if(e.key === 'Enter' || e.key === ' ') {
       e.preventDefault();
       showTab();
     }
   });
 });
 
-// Pokémon data for 54 Pokémon (simplified)
+// Pokémon data (first 54, simplified)
 const pokemonData = [
-  {name: "Bulbasaur", type: "Grass/Poison", level: 5, hp: 45, attack: 49, defense: 49, speed: 45, moves:[{name:"Tackle", power:40},{name:"Vine Whip", power:45}]},
-  {name: "Ivysaur", type: "Grass/Poison", level: 10, hp: 60, attack: 62, defense: 63, speed: 60, moves:[{name:"Tackle", power:40},{name:"Vine Whip", power:45}]},
-  {name: "Venusaur", type: "Grass/Poison", level: 20, hp: 80, attack: 82, defense: 83, speed: 80, moves:[{name:"Tackle", power:40},{name:"Vine Whip", power:45}]},
-  {name: "Charmander", type: "Fire", level: 5, hp: 39, attack: 52, defense: 43, speed: 65, moves:[{name:"Scratch", power:40},{name:"Ember", power:40}]},
-  {name: "Charmeleon", type: "Fire", level: 10, hp: 58, attack: 64, defense: 58, speed: 80, moves:[{name:"Scratch", power:40},{name:"Ember", power:40}]},
-  {name: "Charizard", type: "Fire/Flying", level: 20, hp: 78, attack: 84, defense: 78, speed: 100, moves:[{name:"Scratch", power:40},{name:"Ember", power:40}]},
-  {name: "Squirtle", type: "Water", level: 5, hp: 44, attack: 48, defense: 65, speed: 43, moves:[{name:"Tackle", power:40},{name:"Water Gun", power:40}]},
-  {name: "Wartortle", type: "Water", level: 10, hp: 59, attack: 63, defense: 80, speed: 58, moves:[{name:"Tackle", power:40},{name:"Water Gun", power:40}]},
-  {name: "Blastoise", type: "Water", level: 20, hp: 79, attack: 83, defense: 100, speed: 78, moves:[{name:"Tackle", power:40},{name:"Water Gun", power:40}]},
-  {name: "Caterpie", type: "Bug", level: 3, hp: 45, attack: 30, defense: 35, speed: 45, moves:[{name:"Tackle", power:40},{name:"String Shot", power:0}]},
-  {name: "Metapod", type: "Bug", level: 7, hp: 50, attack: 20, defense: 55, speed: 30, moves:[{name:"Tackle", power:40},{name:"Harden", power:0}]},
-  {name: "Butterfree", type: "Bug/Flying", level: 10, hp: 60, attack: 45, defense: 50, speed: 70, moves:[{name:"Tackle", power:40},{name:"Confusion", power:50}]},
-  {name: "Weedle", type: "Bug/Poison", level: 3, hp: 40, attack: 35, defense: 30, speed: 50, moves:[{name:"Poison Sting", power:15},{name:"String Shot", power:0}]},
-  {name: "Kakuna", type: "Bug/Poison", level: 7, hp: 45, attack: 25, defense: 50, speed: 35, moves:[{name:"Poison Sting", power:15},{name:"Harden", power:0}]},
-  {name: "Beedrill", type: "Bug/Poison", level: 10, hp: 65, attack: 90, defense: 40, speed: 75, moves:[{name:"Poison Sting", power:15},{name:"Twineedle", power:25}]},
-  {name: "Pidgey", type: "Normal/Flying", level: 3, hp: 40, attack: 45, defense: 40, speed: 56, moves:[{name:"Tackle", power:40},{name:"Gust", power:40}]},
-  {name: "Pidgeotto", type: "Normal/Flying", level: 7, hp: 63, attack: 60, defense: 55, speed: 71, moves:[{name:"Tackle", power:40},{name:"Gust", power:40}]},
-  {name: "Pidgeot", type: "Normal/Flying", level: 10, hp: 83, attack: 80, defense: 75, speed: 101, moves:[{name:"Tackle", power:40},{name:"Gust", power:40}]},
-  {name: "Rattata", type: "Normal", level: 3, hp: 30, attack: 56, defense: 35, speed: 72, moves:[{name:"Tackle", power:40},{name:"Tail Whip", power:0}]},
-  {name: "Raticate", type: "Normal", level: 10, hp: 55, attack: 81, defense: 60, speed: 97, moves:[{name:"Tackle", power:40},{name:"Hyper Fang", power:80}]},
-  {name: "Spearow", type: "Normal/Flying", level: 3, hp: 40, attack: 60, defense: 30, speed: 70, moves:[{name:"Peck", power:35},{name:"Fury Attack", power:15}]},
-  {name: "Fearow", type: "Normal/Flying", level: 10, hp:
+  {name: "Bulbasaur", type: "Grass/Poison", level: 5},
+  {name: "Ivysaur", type: "Grass/Poison", level: 10},
+  {name: "Venusaur", type: "Grass/Poison", level: 20},
+  {name: "Charmander", type: "Fire", level: 5},
+  {name: "Charmeleon", type: "Fire", level: 10},
+  {name: "Charizard", type: "Fire/Flying", level: 20},
+  {name: "Squirtle", type: "Water", level: 5},
+  {name: "Wartortle", type: "Water", level: 10},
+  {name: "Blastoise", type: "Water", level: 20},
+  {name: "Caterpie", type: "Bug", level: 3},
+  {name: "Metapod", type: "Bug", level: 7},
+  {name: "Butterfree", type: "Bug/Flying", level: 10},
+  {name: "Weedle", type: "Bug/Poison", level: 3},
+  {name: "Kakuna", type: "Bug/Poison", level: 7},
+  {name: "Beedrill", type: "Bug/Poison", level: 10},
+  {name: "Pidgey", type: "Normal/Flying", level: 3},
+  {name: "Pidgeotto", type: "Normal/Flying", level: 7},
+  {name: "Pidgeot", type: "Normal/Flying", level: 10},
+  {name: "Rattata", type: "Normal", level: 3},
+  {name: "Raticate", type: "Normal", level: 10},
+  {name: "Spearow", type: "Normal/Flying", level: 3},
+  {name: "Fearow", type: "Normal/Flying", level: 10},
+  {name: "Ekans", type: "Poison", level: 5},
+  {name: "Arbok", type: "Poison", level: 10},
+  {name: "Pikachu", type: "Electric", level: 5},
+  {name: "Raichu", type: "Electric", level: 10},
+  {name: "Sandshrew", type: "Ground", level: 5},
+  {name: "Sandslash", type: "Ground", level: 10},
+  {name: "Nidoran♀", type: "Poison", level: 3},
+  {name: "Nidorina", type: "Poison", level: 10},
+  {name: "Nidoqueen", type: "Poison/Ground", level: 20},
+  {name: "Nidoran♂", type: "Poison", level: 3},
+  {name: "Nidorino", type: "Poison", level: 10},
+  {name: "Nidoking", type: "Poison/Ground", level: 20},
+  {name: "Clefairy", type: "Fairy", level: 5},
+  {name: "Clefable", type: "Fairy", level: 10},
+  {name: "Vulpix", type: "Fire", level: 5},
+  {name: "Ninetales", type: "Fire", level: 10},
+  {name: "Jigglypuff", type: "Normal/Fairy", level: 5},
+  {name: "Wigglytuff", type: "Normal/Fairy", level: 10},
+  {name: "Zubat", type: "Poison/Flying", level: 3},
+  {name: "Golbat", type: "Poison/Flying", level: 10},
+  {name: "Oddish", type: "Grass/Poison", level: 5},
+  {name: "Gloom", type: "Grass/Poison", level: 10},
+  {name: "Vileplume", type: "Grass/Poison", level: 20},
+  {name: "Paras", type: "Bug/Grass", level: 5},
+  {name: "Parasect", type: "Bug/Grass", level: 10},
+  {name: "Venonat", type: "Bug/Poison", level: 5},
+  {name: "Venomoth", type: "Bug/Poison", level: 10},
+  {name: "Diglett", type: "Ground", level: 5},
+  {name: "Dugtrio", type: "Ground", level: 10},
+  {name: "Meowth", type: "Normal", level: 5},
+  {name: "Persian", type: "Normal", level: 10},
+  {name: "Psyduck", type: "Water", level: 5},
+  {name: "Golduck", type: "Water", level: 10}
+];
+
+// Display Pokémon list
+const pokemonListDiv = document.getElementById('pokemon-list');
+pokemonData.forEach(p => {
+  const pDiv = document.createElement('div');
+  pDiv.textContent = `${p.name} - Type: ${p.type} - Level: ${p.level}`;
+  pokemonListDiv.appendChild(pDiv);
+});
+
+// Gather items
+const gatherItems = ["Potion", "Poké Ball", "Revive", "Berry"];
+const gatherListDiv
