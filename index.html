@@ -1,113 +1,168 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Pokémon Game</title>
-  <style>
-    .tab-container {
-      display: flex;
-      flex-direction: column;
-      height: 100vh;
-    }
-
-    .tab-content {
-      flex-grow: 1;
-      padding: 20px;
-      overflow-y: auto;
-      padding-bottom: 60px;
-    }
-
-    .tab-bar {
-      display: flex;
-      justify-content: space-around;
-      padding: 10px;
-      background-color: #333;
-      color: #fff;
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      width: 100%;
-    }
-
-    .tab-bar button {
-      background-color: #333;
-      color: #fff;
-      border: none;
-      padding: 10px;
-    }
-
-    .tab-bar button:hover {
-      background-color: #444;
-    }
-
-    .tab-bar button:active {
-      background-color: #555;
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pokémon Adventure</title>
+<style>
+  body { font-family: Arial, sans-serif; background: #f0f0f0; margin: 0; }
+  .tabs { display: flex; flex-wrap: wrap; border-bottom: 2px solid #333; background: #fff; }
+  .tab { flex: 1 0 20%; padding: 10px; text-align: center; cursor: pointer; outline: none; border-right: 1px solid #ccc; }
+  .tab:last-child { border-right: none; }
+  .tab.selected { background: #ddd; font-weight: bold; }
+  .tab-content { display: none; padding: 20px; }
+  .tab-content.active { display: block; }
+  #pokemon-list div { margin-bottom: 5px; }
+  button { padding: 5px 10px; margin-top: 5px; }
+</style>
 </head>
 <body>
-  <div class="tab-container">
-    <div class="tab-content">
-      <!-- Tab content will go here -->
-      <div id="home" role="tabpanel" aria-label="Home Tab">
-        <h1>Welcome to Pokémon Game!</h1>
-        <p>Level: <span id="level">1</span></p>
-        <p>Experience: <span id="experience">0</span>/100</p>
-      </div>
-      <div id="pokedex" role="tabpanel" aria-label="Pokédex Tab" hidden>
-        <h1>Pokédex</h1>
-        <!-- Pokédex content will go here -->
-      </div>
-      <div id="explore" role="tabpanel" aria-label="Explore Tab" hidden>
-        <h1>Explore</h1>
-        <!-- Explore content will go here -->
-      </div>
-      <div id="gather" role="tabpanel" aria-label="Gather Tab" hidden>
-        <h1>Gather</h1>
-        <!-- Gather content will go here -->
-      </div>
-      <div id="battle" role="tabpanel" aria-label="Battle Tab" hidden>
-        <h1>Battle</h1>
-        <!-- Battle content will go here -->
-      </div>
-      <div id="inventory" role="tabpanel" aria-label="Inventory Tab" hidden>
-        <h1>Inventory</h1>
-        <!-- Inventory content will go here -->
-      </div>
-      <div id="pokemarket" role="tabpanel" aria-label="Poké Market Tab" hidden>
-        <h1>Poké Market</h1>
-        <nav aria-label="Poké Market navigation">
-          <ul>
-            <li><a href="                    
-            <li><a href="#buy">Buy</a></li>
-          </ul>
-        </nav>
-        <div id="sell" role="tabpanel" aria-label="Sell Tab">
-          <h2>Sell</h2>
-          <!-- Sell content will go here -->
-        </div>
-        <div id="buy" role="tabpanel" aria-label="Buy Tab" hidden>
-          <h2>Buy</h2>
-          <!-- Buy content will go here -->
-        </div>
-      </div>
-      <div id="trade" role="tabpanel" aria-label="Trade Tab" hidden>
-        <h1>Trade</h1>
-        <!-- Trade content will go here -->
-      </div>
-      <div id="signin" role="tabpanel" aria-label="Sign Up/Sign In Tab" hidden>
-        <h1>Sign Up/Sign In</h1>
-        <!-- Sign Up/Sign In content will go here -->
-      </div>
-    </div>
-    <div class="tab-bar" role="tablist" aria-label="Main Navigation">
-      <button role="tab" aria-controls="home" aria-selected="true">Home</button>
-      <button role="tab" aria-controls="pokedex">Pokédex</button>
-      <button role="tab" aria-controls="explore">Explore</button>
-      <button role="tab" aria-controls="gather">Gather</button>
-      <button role="tab" aria-controls="battle">Battle</button>
-      <button role="tab" aria-controls="inventory">Inventory</button>
-      <button role="tab" aria-controls="pokemarket">Poké Market</button>
-      <button role="tab" aria-controls="trade">Trade</button>
-      <button role="tab" aria-controls="signin">Sign Up/Sign In</
+
+<!-- Tabs -->
+<div class="tabs" role="tablist">
+  <div class="tab selected" role="tab" aria-selected="true" aria-controls="home-content" id="home-tab" tabindex="0">Home</div>
+  <div class="tab" role="tab" aria-selected="false" aria-controls="explorer-content" id="explorer-tab" tabindex="0">Explorer</div>
+  <div class="tab" role="tab" aria-selected="false" aria-controls="gather-content" id="gather-tab" tabindex="0">Gather</div>
+  <div class="tab" role="tab" aria-selected="false" aria-controls="battle-content" id="battle-tab" tabindex="0">Battle</div>
+  <div class="tab" role="tab" aria-selected="false" aria-controls="pokemon-content" id="pokemon-tab" tabindex="0">Pokémon</div>
+  <div class="tab" role="tab" aria-selected="false" aria-controls="market-content" id="market-tab" tabindex="0">Market</div>
+  <div class="tab" role="tab" aria-selected="false" aria-controls="trade-content" id="trade-tab" tabindex="0">Trade</div>
+  <div class="tab" role="tab" aria-selected="false" aria-controls="quests-content" id="quests-tab" tabindex="0">Quests</div>
+  <div class="tab" role="tab" aria-selected="false" aria-controls="settings-content" id="settings-tab" tabindex="0">Settings</div>
+  <div class="tab" role="tab" aria-selected="false" aria-controls="profile-content" id="profile-tab" tabindex="0">Profile</div>
+</div>
+
+<!-- Tab Contents -->
+<div class="tab-content active" id="home-content">
+  <h2>Home</h2>
+  <p>Welcome to your Pokémon adventure!</p>
+  <p>XP: <span id="xp">0</span> | Level: <span id="level">1</span></p>
+</div>
+
+<div class="tab-content" id="explorer-content">
+  <h2>Explorer</h2>
+  <p>Explore the world to find Pokémon and items.</p>
+</div>
+
+<div class="tab-content" id="gather-content">
+  <h2>Gather</h2>
+  <p>Collect items and resources:</p>
+  <button onclick="gatherItem('Poké Ball')">Poké Ball</button>
+  <button onclick="gatherItem('Potion')">Potion</button>
+  <button onclick="gatherItem('Rare Candy')">Rare Candy</button>
+  <button onclick="gatherItem('Berry')">Berry</button>
+  <button onclick="gatherItem('Stone')">Stone</button>
+  <p>Inventory:</p>
+  <ul id="inventory"></ul>
+</div>
+
+<div class="tab-content" id="battle-content">
+  <h2>Battle</h2>
+  <button onclick="winBattle()">Win Battle</button>
+  <p>Fighting will grant 50 XP on win.</p>
+</div>
+
+<div class="tab-content" id="pokemon-content">
+  <h2>Pokémon</h2>
+  <div id="pokemon-list"></div>
+</div>
+
+<div class="tab-content" id="market-content">
+  <h2>Market</h2>
+  <p>Coming soon: buy/sell items here.</p>
+</div>
+
+<div class="tab-content" id="trade-content">
+  <h2>Trade</h2>
+  <p>Coming soon: trade Pokémon with other trainers.</p>
+</div>
+
+<div class="tab-content" id="quests-content">
+  <h2>Quests</h2>
+  <p>Coming soon: complete quests for rewards.</p>
+</div>
+
+<div class="tab-content" id="settings-content">
+  <h2>Settings</h2>
+  <p>Adjust game settings here.</p>
+</div>
+
+<div class="tab-content" id="profile-content">
+  <h2>Profile</h2>
+  <p>Your trainer info and progress.</p>
+</div>
+
+<script>
+// Tab navigation for mobile devices
+const tabs = document.querySelectorAll('.tab');
+const contents = document.querySelectorAll('.tab-content');
+
+tabs.forEach(tab => {
+  const showTab = () => {
+    tabs.forEach(t => { t.classList.remove('selected'); t.setAttribute('aria-selected','false'); });
+    contents.forEach(c => c.classList.remove('active'));
+    tab.classList.add('selected');
+    tab.setAttribute('aria-selected','true');
+    document.getElementById(tab.getAttribute('aria-controls')).classList.add('active');
+  };
+  tab.addEventListener('click', showTab);
+});
+
+// Player XP & Level
+let xp = 0;
+let level = 1;
+const xpToLevel = 100;
+
+function updateXP() {
+  document.getElementById('xp').textContent = xp;
+  document.getElementById('level').textContent = level;
+}
+
+// Gather tab
+const inventory = {};
+function gatherItem(item) {
+  if(!inventory[item]) inventory[item] = 0;
+  inventory[item]++;
+  xp += 10;
+  updateXP();
+  renderInventory();
+}
+
+function renderInventory() {
+  const inv = document.getElementById('inventory');
+  inv.innerHTML = '';
+  for(const key in inventory){
+    const li = document.createElement('li');
+    li.textContent = `${key}: ${inventory[key]}`;
+    inv.appendChild(li);
+  }
+}
+
+// Battle tab
+function winBattle() {
+  xp += 50;
+  updateXP();
+  alert("You won the battle! +50 XP");
+}
+
+// Pokémon data (54 simplified)
+const pokemonData = [
+  {name:"Bulbasaur",type:"Grass/Poison",level:5},
+  {name:"Ivysaur",type:"Grass/Poison",level:10},
+  {name:"Venusaur",type:"Grass/Poison",level:20},
+  {name:"Charmander",type:"Fire",level:5},
+  {name:"Charmeleon",type:"Fire",level:10},
+  {name:"Charizard",type:"Fire/Flying",level:20},
+  {name:"Squirtle",type:"Water",level:5},
+  {name:"Wartortle",type:"Water",level:10},
+  {name:"Blastoise",type:"Water",level:20},
+  {name:"Caterpie",type:"Bug",level:3},
+  {name:"Metapod",type:"Bug",level:7},
+  {name:"Butterfree",type:"Bug/Flying",level:10},
+  {name:"Weedle",type:"Bug/Poison",level:3},
+  {name:"Kakuna",type:"Bug/Poison",level:7},
+  {name:"Beedrill",type:"Bug/Poison",level:10},
+  {name:"Pidgey",type:"Normal/Flying",level:3},
+  {name:"Pidgeotto",type:"Normal/Flying",level:7},
+  {name:"Pidgeot",type:"Normal/Flying",level:10},
+  {
