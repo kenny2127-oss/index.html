@@ -20,6 +20,8 @@
 <!-- Tabs -->
 <div class="tab-content active" id="home-content">
   <h2>Home</h2>
+  <button id="signup-btn-top">Sign Up</button>
+  <button id="login-btn-top">Log In</button>
   <p>Welcome to Pokémon Adventure!</p>
 </div>
 
@@ -48,22 +50,39 @@
   <div class="tab" role="tab" aria-selected="false" aria-controls="battle-content">Battle</div>
 </div>
 
-<script>
-// Tab navigation
+<!-- Firebase SDK -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/9.25.0/firebase-app.js";
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.25.0/firebase-auth.js";
+import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/9.25.0/firebase-firestore.js";
+
+// --- 1. Initialize Firebase ---
+const firebaseConfig = {
+  apiKey: "AIzaSyDB4XhURDerrLIfb_PdcyDHiBhyzIqRxvY",
+  authDomain: "pokemon-756e7.firebaseapp.com",
+  projectId: "pokemon-756e7",
+  storageBucket: "pokemon-756e7.appspot.com",
+  messagingSenderId: "799827870179",
+  appId: "1:799827870179:web:7cf9995a4c45469b02e0d6"
+};
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+// --- 2. Tabs Navigation ---
 const tabs = document.querySelectorAll('.tab');
 const contents = document.querySelectorAll('.tab-content');
-
 tabs.forEach(tab => {
   const showTab = () => {
-    tabs.forEach(t => { t.classList.remove('selected'); t.setAttribute('aria-selected', 'false'); });
-    tab.classList.add('selected'); tab.setAttribute('aria-selected', 'true');
+    tabs.forEach(t => { t.classList.remove('selected'); t.setAttribute('aria-selected','false'); });
+    tab.classList.add('selected'); tab.setAttribute('aria-selected','true');
     contents.forEach(c => c.classList.remove('active'));
     document.getElementById(tab.getAttribute('aria-controls')).classList.add('active');
   };
   tab.addEventListener('click', showTab);
 });
 
-// Pokémon Data
+// --- 3. Pokémon Data (simplified first 54) ---
 const pokemonData = [
   {name:"Bulbasaur",type:"Grass/Poison",level:5,hp:45,attack:49,defense:49,speed:45,moves:[{name:"Tackle",power:40},{name:"Vine Whip",power:45}]},
   {name:"Ivysaur",type:"Grass/Poison",level:10,hp:60,attack:62,defense:63,speed:60,moves:[{name:"Tackle",power:40},{name:"Vine Whip",power:45}]},
@@ -85,7 +104,7 @@ pokemonData.forEach(p => {
   pokemonListDiv.appendChild(div);
 });
 
-// Gather system
+// --- 4. Gather System ---
 const gatherBtn = document.getElementById('gather-btn');
 const gatherResult = document.getElementById('gather-result');
 const items = ["Pokéball","Potion","Rare Candy","Berry","Stone"];
@@ -97,7 +116,7 @@ gatherBtn.addEventListener('click', () => {
   gatherResult.textContent = `You gathered: ${item}! +10 XP (Total XP: ${playerXP})`;
 });
 
-// Battle system
+// --- 5. Battle System ---
 const startBattleBtn = document.getElementById('start-battle-btn');
 const battleLog = document.getElementById('battle-log');
 
@@ -109,10 +128,11 @@ startBattleBtn.addEventListener('click', () => {
   battleLog.innerHTML = `Battle Start! ${player.name} vs ${enemy.name}<br>`;
 
   const battleInterval = setInterval(() => {
-    if(playerHP <= 0 || enemyHP <= 0){ clearInterval(battleInterval); 
-      if(playerHP>0){ playerXP+=50; battleLog.innerHTML+=`<br>You won! +50 XP (Total XP: ${playerXP})`; } 
-      else battleLog.innerHTML+=`<br>You lost!`; 
-      return; 
+    if(playerHP <= 0 || enemyHP <= 0){
+      clearInterval(battleInterval);
+      if(playerHP>0){ playerXP+=50; battleLog.innerHTML+=`<br>You won! +50 XP (Total XP: ${playerXP})`; }
+      else battleLog.innerHTML+=`<br>You lost!`;
+      return;
     }
     const playerMove = player.moves[Math.floor(Math.random()*player.moves.length)];
     enemyHP -= playerMove.power; if(enemyHP<0) enemyHP=0;
@@ -123,89 +143,67 @@ startBattleBtn.addEventListener('click', () => {
     battleLog.innerHTML += `${enemy.name} used ${enemyMove.name}! Your HP: ${playerHP}<br>`;
   }, 1000);
 });
-</script>
 
-<!-- Firebase SDK & Modular Initialization -->
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/9.25.0/firebase-app.js";
-  import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.25.0/firebase-auth.js";
-  import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/9.25.0/firebase-firestore.js";
+// --- 6. Firebase Auth UI ---
+const authDiv = document.createElement('div');
+authDiv.id = 'auth-container';
+authDiv.style.display = 'none';
+authDiv.innerHTML = `
+  <h3>Account</h3>
+  <input type="email" id="auth-email" placeholder="Email" aria-label="Email" />
+  <input type="password" id="auth-password" placeholder="Password" aria-label="Password" />
+  <button id="signup-btn">Sign Up</button>
+  <button id="login-btn">Log In</button>
+  <button id="google-btn">Sign in with Google</button>
+  <div id="auth-message" style="margin-top:10px;color:green;"></div>
+`;
+document.getElementById('home-content').appendChild(authDiv);
 
-  const firebaseConfig = {
-    apiKey: "AIzaSyDB4XhURDerrLIfb_PdcyDHiBhyzIqRxvY",
-    authDomain: "pokemon-756e7.firebaseapp.com",
-    projectId: "pokemon-756e7",
-    storageBucket: "pokemon-756e7.appspot.com",
-    messagingSenderId: "799827870179",
-    appId: "1:799827870179:web:7cf9995a4c45469b02e0d6"
-  };
+const emailInput = document.getElementById('auth-email');
+const passInput = document.getElementById('auth-password');
+const msgDiv = document.getElementById('auth-message');
 
-  const app = initializeApp(firebaseConfig);
-  const auth = getAuth(app);
-  const db = getFirestore(app);
+// Top buttons open auth UI
+document.getElementById('signup-btn-top').addEventListener('click', () => authDiv.style.display='block');
+document.getElementById('login-btn-top').addEventListener('click', () => authDiv.style.display='block');
 
-  const homeTab = document.getElementById('home-content');
-  const authDiv = document.createElement('div');
-  authDiv.innerHTML = `
-    <h3>Account</h3>
-    <input type="email" id="auth-email" placeholder="Email" aria-label="Email" />
-    <input type="password" id="auth-password" placeholder="Password" aria-label="Password" />
-    <button id="signup-btn">Sign Up</button>
-    <button id="login-btn">Log In</button>
-    <button id="google-btn">Sign in with Google</button>
-    <div id="auth-message" style="margin-top:10px;color:green;"></div>
-  `;
-  homeTab.appendChild(authDiv);
+// Sign Up
+document.getElementById('signup-btn').addEventListener('click', async () => {
+  try {
+    const userCredential = await createUserWithEmailAndPassword(auth, emailInput.value, passInput.value);
+    await setDoc(doc(db,'users',userCredential.user.uid), {pokemon:[]});
+    msgDiv.style.color='green';
+    msgDiv.textContent=`Sign up successful! Welcome, ${userCredential.user.email}`;
+  } catch(err) { msgDiv.style.color='red'; msgDiv.textContent=err.message; }
+});
 
-  const emailInput = document.getElementById('auth-email');
-  const passInput = document.getElementById('auth-password');
-  const msgDiv = document.getElementById('auth-message');
+// Log In
+document.getElementById('login-btn').addEventListener('click', async () => {
+  try {
+    const userCredential = await signInWithEmailAndPassword(auth,emailInput.value,passInput.value);
+    msgDiv.style.color='green';
+    msgDiv.textContent=`Logged in as ${userCredential.user.email}`;
+  } catch(err){ msgDiv.style.color='red'; msgDiv.textContent=err.message; }
+});
 
-  document.getElementById('signup-btn').addEventListener('click', async () => {
-    try {
-      const userCredential = await createUserWithEmailAndPassword(auth, emailInput.value, passInput.value);
-      await setDoc(doc(db, 'users', userCredential.user.uid), { pokemon: [] });
-      msgDiv.style.color = 'green';
-      msgDiv.textContent = `Sign up successful! Welcome, ${userCredential.user.email}`;
-    } catch (err) {
-      msgDiv.style.color = 'red';
-      msgDiv.textContent = err.message;
-    }
-  });
+// Google Sign-In
+document.getElementById('google-btn').addEventListener('click', async () => {
+  try {
+    const provider = new GoogleAuthProvider();
+    const result = await signInWithPopup(auth, provider);
+    const user = result.user;
+    const userRef = doc(db,'users',user.uid);
+    const docSnap = await getDoc(userRef);
+    if(!docSnap.exists()) await setDoc(userRef,{pokemon:[]});
+    msgDiv.style.color='green';
+    msgDiv.textContent=`Google Sign-in successful! Welcome ${user.displayName || user.email}`;
+  } catch(err){ msgDiv.style.color='red'; msgDiv.textContent=err.message; }
+});
 
-  document.getElementById('login-btn').addEventListener('click', async () => {
-    try {
-      const userCredential = await signInWithEmailAndPassword(auth, emailInput.value, passInput.value);
-      msgDiv.style.color = 'green';
-      msgDiv.textContent = `Logged in as ${userCredential.user.email}`;
-    } catch (err) {
-      msgDiv.style.color = 'red';
-      msgDiv.textContent = err.message;
-    }
-  });
-
-  document.getElementById('google-btn').addEventListener('click', async () => {
-    try {
-      const provider = new GoogleAuthProvider();
-      const result = await signInWithPopup(auth, provider);
-      const user = result.user;
-      const userRef = doc(db, 'users', user.uid);
-      const docSnap = await getDoc(userRef);
-      if (!docSnap.exists()) await setDoc(userRef, { pokemon: [] });
-      msgDiv.style.color = 'green';
-      msgDiv.textContent = `Google Sign-in successful! Welcome ${user.displayName || user.email}`;
-    } catch (err) {
-      msgDiv.style.color = 'red';
-      msgDiv.textContent = err.message;
-    }
-  });
-
-  onAuthStateChanged(auth, (user) => {
-    if (user) {
-      msgDiv.setAttribute('aria-live', 'polite');
-      msgDiv.textContent = `Welcome ${user.displayName || user.email}`;
-    }
-  });
+// Auth state change
+onAuthStateChanged(auth, (user) => {
+  if(user){ msgDiv.setAttribute('aria-live','polite'); msgDiv.textContent=`Welcome ${user.displayName || user.email}`; }
+});
 </script>
 
 </body>
