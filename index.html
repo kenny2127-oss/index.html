@@ -371,4 +371,89 @@ startBattleBtn.addEventListener('click', () => {
   });
 
 })();
+</script><!-- Firebase Auth Module -->
+<script type="module">
+  // 1. Import Firebase modules
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+  import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
+
+  // 2. Initialize Firebase
+  const firebaseConfig = {
+    apiKey: "AIzaSyDB4XhURDerrLIfb_PdcyDHiBhyzIqRxvY",
+    authDomain: "pokemon-756e7.firebaseapp.com",
+    projectId: "pokemon-756e7",
+    storageBucket: "pokemon-756e7.appspot.com",
+    messagingSenderId: "799827870179",
+    appId: "1:799827870179:web:7cf9995a4c45469b02e0d6"
+  };
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+
+  // 3. Create container for sign-up/login
+  (function() {
+    const container = document.createElement('div');
+    container.id = 'auth-container';
+    container.style.padding = '15px';
+    container.style.background = '#f9f9f9';
+    container.style.border = '1px solid #ccc';
+    container.style.margin = '10px';
+    container.innerHTML = `
+      <h2>Pokémon Adventure Login / Sign-Up</h2>
+      <div>
+        <input type="email" id="auth-email" placeholder="Email" style="margin:5px;">
+        <input type="password" id="auth-password" placeholder="Password" style="margin:5px;">
+        <button id="signup-btn">Sign Up</button>
+        <button id="login-btn">Log In</button>
+      </div>
+      <div style="margin-top:10px;">
+        <button id="google-btn">Sign In with Google</button>
+      </div>
+      <div id="auth-message" style="margin-top:10px;color:green;"></div>
+    `;
+    document.getElementById('home-content').appendChild(container);
+
+    const emailInput = document.getElementById('auth-email');
+    const passInput = document.getElementById('auth-password');
+    const signupBtn = document.getElementById('signup-btn');
+    const loginBtn = document.getElementById('login-btn');
+    const googleBtn = document.getElementById('google-btn');
+    const authMsg = document.getElementById('auth-message');
+
+    // Sign Up
+    signupBtn.addEventListener('click', () => {
+      createUserWithEmailAndPassword(auth, emailInput.value, passInput.value)
+        .then(userCredential => {
+          authMsg.textContent = `Sign-up successful! Welcome ${userCredential.user.email}`;
+        })
+        .catch(error => {
+          authMsg.style.color = 'red';
+          authMsg.textContent = error.message;
+        });
+    });
+
+    // Log In
+    loginBtn.addEventListener('click', () => {
+      signInWithEmailAndPassword(auth, emailInput.value, passInput.value)
+        .then(userCredential => {
+          authMsg.textContent = `Login successful! Welcome back ${userCredential.user.email}`;
+        })
+        .catch(error => {
+          authMsg.style.color = 'red';
+          authMsg.textContent = error.message;
+        });
+    });
+
+    // Google Sign-In
+    googleBtn.addEventListener('click', () => {
+      const provider = new GoogleAuthProvider();
+      signInWithPopup(auth, provider)
+        .then(result => {
+          authMsg.textContent = `Google Sign-in successful! Welcome ${result.user.email}`;
+        })
+        .catch(error => {
+          authMsg.style.color = 'red';
+          authMsg.textContent = error.message;
+        });
+    });
+  })();
 </script>
