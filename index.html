@@ -1,296 +1,520 @@
 <!DOCTYPE html>
-, <html lang="en">
-, <head>
-, <meta charset="UTF-8" />
-, <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-, <title>Pokémon Adventure</title>
-, <meta name="theme-color" content="#e3350d"/>
-, 
-, <style>
-,   :root{
-,     --bg:#f5f6fa; --panel:#fff; --ink:#222; --ink-muted:#555;
-,     --brand:#e3350d; --brand-2:#2a75bb; --ok:#2ecc71; --warn:#f39c12; --danger:#e74c3c;
-,   }
-,   *{box-sizing:border-box}
-,   body{margin:0;font-family:system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;background:var(--bg);color:var(--ink)}
-,   header{position:sticky;top:0;background:var(--panel);padding:12px 16px;border-bottom:1px solid #ddd;z-index:2}
-,   header h1{margin:0;font-size:18px}
-,   .screen{display:none;padding:16px 16px 84px}
-,   .screen.active{display:block}
-,   .card{background:var(--panel);border:1px solid #e6e6e6;border-radius:12px;padding:12px;margin:8px 0;box-shadow:0 2px 6px rgba(0,0,0,.04)}
-,   .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-,   .row > *{flex:1}
-,   button{border:none;background:var(--brand);color:#fff;padding:10px 12px;border-radius:10px;font-weight:600;cursor:pointer}
-,   button.secondary{background:var(--brand-2)}
-,   button.ghost{background:#eee;color:#000}
-,   button.warn{background:var(--warn);color:#000}
-,   button.ok{background:var(--ok)}
-,   button.danger{background:var(--danger)}
-,   input, select{width:100%;padding:10px;border:1px solid #d9d9d9;border-radius:10px}
-,   .label{font-size:12px;color:var(--ink-muted);margin-top:6px}
-,   .bar{height:8px;background:#eee;border-radius:6px;overflow:hidden}
-,   .bar > span{display:block;height:100%;background:var(--brand-2);width:0%}
-,   .grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
-,   .money{font-weight:700}
-,   .tabs{position:fixed;bottom:0;left:0;right:0;background:var(--panel);border-top:1px solid #ddd;display:flex;z-index:3}
-,   .tab{flex:1;text-align:center;padding:10px 6px;cursor:pointer;font-size:12px;color:var(--ink-muted)}
-,   .tab.active{color:var(--brand);font-weight:700}
-,   .sr{position:absolute;left:-9999px;top:auto;width:1px;height:1px;overflow:hidden}
-, </style>
-, </head>
-, <body>
-, <header>
-,   <h1>Pokémon Adventure</h1>
-,   <div id="profileLine" class="label" aria-live="polite"></div>
-, </header>
-, 
-, <!-- Screens -->
-, <main>
-,   <section id="home" class="screen active">
-,     <div class="card">
-,       <h2>Home</h2>
-,       <div id="authArea" class="row" style="margin-top:8px">
-,         <button id="btnOpenAuth" class="secondary">Sign Up / Log In</button>
-,         <button id="btnGuest" class="ghost">Play as Guest</button>
-,       </div>
-,       <div class="label">Level: <span id="level">1</span> • XP: <span id="xp">0</span> • Money: ₽<span id="money">0</span></div>
-,     </div>
-, 
-,     <div class="card">
-,       <h3>Quick Actions</h3>
-,       <div class="row">
-,         <button id="btnGather" class="ok">Gather (+10 XP)</button>
-,         <button id="btnHeal" class="secondary">Poké Center (Heal)</button>
-,       </div>
-,       <div id="gatherMsg" class="label" aria-live="polite"></div>
-,     </div>
-,   </section>
-, 
-,   <section id="explore" class="screen">
-,     <div class="card">
-,       <h2>Explore & Catch</h2>
-,       <div class="row">
-,         <button id="btnFindWild" class="secondary">Find Wild Pokémon</button>
-,         <button id="btnThrowBall" class="ok">Throw Poké Ball</button>
-,       </div>
-,       <div id="wildArea" class="label" aria-live="polite">No encounter yet.</div>
-,     </div>
-,   </section>
-, 
-,   <section id="pokemon" class="screen">
-,     <div class="card">
-,       <h2>Pokémon</h2>
-,       <div id="partyList" class="grid"></div>
-,     </div>
-,   </section>
-, 
-,   <section id="inventory" class="screen">
-,     <div class="card">
-,       <h2>Inventory</h2>
-,       <div id="bagList"></div>
-,     </div>
-,   </section>
-, 
-,   <section id="market" class="screen">
-,     <div class="card">
-,       <h2>Poké Mart</h2>
-,       <div class="row">
-,         <select id="shopSelect">
-,           <option value="Poké Ball">Poké Ball — ₽200</option>
-,           <option value="Potion">Potion — ₽300</option>
-,           <option value="Super Potion">Super Potion — ₽700</option>
-,           <option value="Antidote">Antidote — ₽100</option>
-,         </select>
-,         <input id="shopQty" type="number" min="1" value="1"/>
-,       </div>
-,       <div class="row" style="margin-top:8px">
-,         <button id="btnBuy" class="ok">Buy</button>
-,         <button id="btnSell" class="warn">Sell</button>
-,       </div>
-,       <div class="label">Balance: ₽<span id="money2">0</span></div>
-,       <div id="shopMsg" class="label" aria-live="polite"></div>
-,     </div>
-,   </section>
-, 
-,   <section id="battle" class="screen">
-,     <div class="card">
-,       <h2>Battle</h2>
-,       <div class="row">
-,         <select id="battlePick"></select>
-,         <button id="btnStartBattle" class="secondary">Start Battle</button>
-,       </div>
-,       <div id="battleUI" style="display:none;margin-top:8px">
-,         <div class="card">
-,           <div><strong>Your</strong> <span id="bYourName"></span> — HP <span id="bYourHP"></span></div>
-,           <div class="bar"><span id="bYourHPBar"></span></div>
-,           <div class="label">Enemy <span id="bEnemyName"></span> — HP <span id="bEnemyHP"></span></div>
-,           <div class="bar"><span id="bEnemyHPBar"></span></div>
-,         </div>
-,         <div id="moveButtons" class="grid"></div>
-,         <div class="row">
-,           <button id="btnRun" class="ghost">Run</button>
-,         </div>
-,         <div id="battleLog" class="label" aria-live="polite"></div>
-,       </div>
-,     </div>
-,   </section>
-, 
-,   <section id="trade" class="screen">
-,     <div class="card">
-,       <h2>Trade</h2>
-,       <div class="row">
-,         <select id="tradePick"></select>
-,         <button id="btnCreateTrade" class="secondary">Create Code</button>
-,       </div>
-,       <div class="label">Your code: <strong id="tradeCode">—</strong></div>
-,       <div class="row" style="margin-top:8px">
-,         <input id="tradeEnter" placeholder="Enter 6-digit code"/>
-,         <button id="btnClaimTrade" class="ok">Claim Trade</button>
-,       </div>
-,       <div id="tradeMsg" class="label" aria-live="polite"></div>
-,     </div>
-,   </section>
-, </main>
-, 
-, <!-- Bottom Tabs -->
-, <nav class="tabs" role="tablist" aria-label="Main">
-,   <div class="tab active" data-target="home" role="tab" aria-selected="true">Home</div>
-,   <div class="tab" data-target="explore" role="tab" aria-selected="false">Explore</div>
-,   <div class="tab" data-target="pokemon" role="tab" aria-selected="false">Pokémon</div>
-,   <div class="tab" data-target="inventory" role="tab" aria-selected="false">Inventory</div>
-,   <div class="tab" data-target="market" role="tab" aria-selected="false">Poké Mart</div>
-,   <div class="tab" data-target="battle" role="tab" aria-selected="false">Battle</div>
-,   <div class="tab" data-target="trade" role="tab" aria-selected="false">Trade</div>
-, </nav>
-, 
-, <!-- Auth Modal (created here so it’s always the latest + unique IDs) -->
-, <div id="authModal" class="sr" aria-live="polite"></div>
-, 
-, <script type="module">
-, /* =========================
-,    0) Helpers & PWA Bits
-, ========================= */
-, // Create a minimal manifest dynamically
-, const manifest = {
-,   name: "Pokémon Adventure",
-,   short_name: "PokeAdv",
-,   start_url: ".",
-,   display: "standalone",
-,   background_color: "#f5f6fa",
-,   theme_color: "#e3350d",
-,   icons: [
-,     { src: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 128 128'%3E%3Ccircle cx='64' cy='64' r='64' fill='%23e3350d'/%3E%3Ccircle cx='64' cy='64' r='40' fill='%23fff'/%3E%3Ccircle cx='64' cy='64' r='16' fill='%232a75bb'/%3E%3C/svg%3E", sizes: "128x128", type: "image/svg+xml" }
-,   ]
-, };
-, const manifestBlob = new Blob([JSON.stringify(manifest)], {type:'application/json'});
-, const manifestURL = URL.createObjectURL(manifestBlob);
-, const link = document.createElement('link');
-, link.rel = 'manifest';
-, link.href = manifestURL;
-, document.head.appendChild(link);
-, 
-, // Simple service worker created at runtime (cache this page for offline)
-, if ('serviceWorker' in navigator) {
-,   const swCode = `
-,     const CACHE='poke-adv-v1';
-,     self.addEventListener('install', e=>{
-,       e.waitUntil(caches.open(CACHE).then(c=>c.addAll(['./'])));
-,       self.skipWaiting();
-,     });
-,     self.addEventListener('activate', e=>{
-,       e.waitUntil(self.clients.claim());
-,     });
-,     self.addEventListener('fetch', e=>{
-,       e.respondWith(
-,         caches.match(e.request).then(r=> r || fetch(e.request).catch(()=>caches.match('./')))
-,       );
-,     });
-,   `;
-,   const swBlob = new Blob([swCode], {type:'text/javascript'});
-,   navigator.serviceWorker.register(URL.createObjectURL(swBlob));
-, }
-, 
-, /* =========================
-,    1) Lightweight Audio (inline)
-,    (No files; uses WebAudio)
-, ========================= */
-, const audioCtx = (typeof AudioContext !== 'undefined') ? new AudioContext() : null;
-, async function playCoin(){ if(!audioCtx) return; const ctx=audioCtx; const o=ctx.createOscillator(); const g=ctx.createGain(); o.connect(g); g.connect(ctx.destination); o.type='triangle'; o.frequency.setValueAtTime(880,ctx.currentTime); g.gain.setValueAtTime(0.001,ctx.currentTime); g.gain.exponentialRampToValueAtTime(0.3,ctx.currentTime+0.01); o.start(); o.frequency.exponentialRampToValueAtTime(1760, ctx.currentTime+0.12); g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime+0.13); o.stop(ctx.currentTime+0.14);}
-, async function playRegister(){ if(!audioCtx) return; const ctx=audioCtx; const o=ctx.createOscillator(); const g=ctx.createGain(); o.connect(g); g.connect(ctx.destination); o.type='square'; o.frequency.setValueAtTime(523,ctx.currentTime); g.gain.setValueAtTime(0.001,ctx.currentTime); g.gain.exponentialRampToValueAtTime(0.25,ctx.currentTime+0.01); o.start(); o.frequency.setValueAtTime(784, ctx.currentTime+0.08); g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime+0.18); o.stop(ctx.currentTime+0.2);}
-, 
-, /* =========================
-,    2) Tiny Data Model
-, ========================= */
-, const $ = sel => document.querySelector(sel);
-, const $$ = sel => [...document.querySelectorAll(sel)];
-, const state = {
-,   user:{ uid:'guest', name:'Guest', email:null, money: 1000, xp:0, party:[], bag:{'Poké Ball':5, 'Potion':2}, healedAt:0 },
-,   wild:null,
-,   firebaseOK:false
-, };
-, function levelFromXP(x){ return Math.floor(x/100)+1; }
-, function save(){ localStorage.setItem('poke-adv-state', JSON.stringify(state)); }
-, function load(){
-,   const raw = localStorage.getItem('poke-adv-state');
-,   if(raw){
-,     try{ const s=JSON.parse(raw); Object.assign(state, s); }catch{}
-,   }
-, }
-, load();
-, 
-, /* =========================
-,    3) Bottom Tabs
-, ========================= */
-, $$('.tab').forEach(tab=>{
-,   tab.addEventListener('click', ()=>{
-,     $$('.tab').forEach(t=>{t.classList.remove('active'); t.setAttribute('aria-selected','false');});
-,     tab.classList.add('active'); tab.setAttribute('aria-selected','true');
-,     const id = tab.dataset.target;
-,     $$('.screen').forEach(sc=>sc.classList.remove('active'));
-,     $('#'+id).classList.add('active');
-,   });
-, });
-, 
-, /* =========================
-,    4) Minimal Pokédex (first 54)
-,    (Stats simplified; 4 moves)
-, ========================= */
-, const POKEDEX = [
-,   {id:1,name:"Bulbasaur",type:"Grass/Poison",hp:45,atk:49,def:49,spd:45,moves:["Tackle","Vine Whip","Growl","Leech Seed"]},
-,   {id:2,name:"Ivysaur",type:"Grass/Poison",hp:60,atk:62,def:63,spd:60,moves:["Tackle","Razor Leaf","Growl","Vine Whip"]},
-,   {id:3,name:"Venusaur",type:"Grass/Poison",hp:80,atk:82,def:83,spd:80,moves:["Vine Whip","Razor Leaf","Growl","Tackle"]},
-,   {id:4,name:"Charmander",type:"Fire",hp:39,atk:52,def:43,spd:65,moves:["Scratch","Ember","Growl","Smokescreen"]},
-,   {id:5,name:"Charmeleon",type:"Fire",hp:58,atk:64,def:58,spd:80,moves:["Scratch","Ember","Smokescreen","Leer"]},
-,   {id:6,name:"Charizard",type:"Fire/Flying",hp:78,atk:84,def:78,spd:100,moves:["Ember","Slash","Smokescreen","Wing Attack"]},
-,   {id:7,name:"Squirtle",type:"Water",hp:44,atk:48,def:65,spd:43,moves:["Tackle","Water Gun","Tail Whip","Withdraw"]},
-,   {id:8,name:"Wartortle",type:"Water",hp:59,atk:63,def:80,spd:58,moves:["Tackle","Water Gun","Tail Whip","Bite"]},
-,   {id:9,name:"Blastoise",type:"Water",hp:79,atk:83,def:100,spd:78,moves:["Water Gun","Bite","Tackle","Withdraw"]},
-,   {id:10,name:"Caterpie",type:"Bug",hp:45,atk:30,def:35,spd:45,moves:["Tackle","String Shot","Harden","Bug Bite"]},
-,   {id:11,name:"Metapod",type:"Bug",hp:50,atk:20,def:55,spd:30,moves:["Harden","Tackle","String Shot","Bug Bite"]},
-,   {id:12,name:"Butterfree",type:"Bug/Flying",hp:60,atk:45,def:50,spd:70,moves:["Gust","Confusion","Stun Spore","Tackle"]},
-,   {id:13,name:"Weedle",type:"Bug/Poison",hp:40,atk:35,def:30,spd:50,moves:["Poison Sting","String Shot","Bug Bite","Tackle"]},
-,   {id:14,name:"Kakuna",type:"Bug/Poison",hp:45,atk:25,def:50,spd:35,moves:["Harden","Poison Sting","Bug Bite","Tackle"]},
-,   {id:15,name:"Beedrill",type:"Bug/Poison",hp:65,atk:90,def:40,spd:75,moves:["Fury Attack","Poison Sting","Twinneedle","Rage"]},
-,   {id:16,name:"Pidgey",type:"Normal/Flying",hp:40,atk:45,def:40,spd:56,moves:["Tackle","Gust","Sand Attack","Quick Attack"]},
-,   {id:17,name:"Pidgeotto",type:"Normal/Flying",hp:63,atk:60,def:55,spd:71,moves:["Gust","Quick Attack","Tackle","Sand Attack"]},
-,   {id:18,name:"Pidgeot",type:"Normal/Flying",hp:83,atk:80,def:75,spd:101,moves:["Gust","Quick Attack","Wing Attack","Sand Attack"]},
-,   {id:19,name:"Rattata",type:"Normal",hp:30,atk:56,def:35,spd:72,moves:["Tackle","Quick Attack","Tail Whip","Bite"]},
-,   {id:20,name:"Raticate",type:"Normal",hp:55,atk:81,def:60,spd:97,moves:["Quick Attack","Bite","Tackle","Hyper Fang"]},
-,   {id:21,name:"Spearow",type:"Normal/Flying",hp:40,atk:60,def:30,spd:70,moves:["Peck","Growl","Quick Attack","Leer"]},
-,   {id:22,name:"Fearow",type:"Normal/Flying",hp:65,atk:90,def:65,spd:100,moves:["Peck","Drill Peck","Quick Attack","Leer"]},
-,   {id:23,name:"Ekans",type:"Poison",hp:35,atk:60,def:44,spd:55,moves:["Wrap","Poison Sting","Bite","Leer"]},
-,   {id:24,name:"Arbok",type:"Poison",hp:60,atk:95,def:69,spd:80,moves:["Wrap","Poison Sting","Bite","Glare"]},
-,   {id:25,name:"Pikachu",type:"Electric",hp:35,atk:55,def:30,spd:90,moves:["Thunder Shock","Quick Attack","Tail Whip","Growl"]},
-,   {id:26,name:"Raichu",type:"Electric",hp:60,atk:90,def:55,spd:110,moves:["Thunder Shock","Quick Attack","Slam","Tail Whip"]},
-,   {id:27,name:"Sandshrew",type:"Ground",hp:50,atk:75,def:85,spd:40,moves:["Scratch","Sand Attack","Slash","Defense Curl"]},
-,   {id:28,name:"Sandslash",type:"Ground",hp:75,atk:100,def:110,spd:65,moves:["Scratch","Slash","Sand Attack","Fury Swipes"]},
-,   {id:29,name:"Nidoran♀",type:"Poison",hp:55,atk:47,def:52,spd:41,moves:["Scratch","Poison Sting","Growl","Bite"]},
-,   {id:30,name:"Nidorina",type:"Poison",hp:70,atk:62,def:67,spd:56,moves:["Scratch","Poison Sting","Bite","Tail Whip"]},
-,   {id:31,name:"Nidoqueen",type:"Poison/Ground",hp:90,atk:92,def:87,spd:76,moves:["Scratch","Poison Sting","Body Slam","Bite"]},
-,   {id:32,name:"Nidoran♂",type:"Poison",hp:46,atk:57,def:40,spd:50,moves:["Peck","Poison Sting","Focus Energy","Horn Attack"]},
-,   {id:33,name:"Nidorino",type:"Poison",hp:61,atk:72,def:57,spd:65,moves:["Horn Attack","Poison Sting","Fury Attack","Leer"]},
-,   {id:34,name:"Nidoking",type:"Poison/Ground",hp:81,atk:102,def:77,spd:85,moves:["Horn Attack","Poison Sting","Thrash","Double Kick"]},
-,   {id:35,name:"Clefairy",type:"Fairy",hp:70,atk:45,def:48,spd:35,moves:["Pound","Sing","Growl","Double Slap"]},
-,   {id:36,name:"Clefable",type:"Fairy",hp:95,atk:70,def:73,spd:60,moves:["Pound","Sing","Double Slap","Minimize"]},
-,   {id:37,name:"Vulpix",type:"Fire",hp:38,atk:41,def:40,spd:65,moves:["Ember","Quick Attack","Tail Whip","Roar"]},
-,   {id:38,name:"Ninetales",type:"Fire",hp:73,atk:76,def:75,spd:100,moves:["Em, In list
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Pokémon Adventure</title>
+<meta name="theme-color" content="#ef5350" />
+<style>
+  :root{
+    --bg:#f5f5f5; --card:#ffffff; --ink:#222; --muted:#666;
+    --brand:#ef5350; --brand-ink:#fff; --tab:#fff; --tab-sel:#e0e0e0;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:var(--bg);color:var(--ink)}
+  h1,h2,h3{margin:.4rem 0}
+  main{padding:16px 16px 86px}
+  .card{background:var(--card);border-radius:14px;box-shadow:0 1px 4px rgba(0,0,0,.08);padding:14px;margin-bottom:12px}
+  button{cursor:pointer;border:0;border-radius:10px;background:var(--brand);color:var(--brand-ink);padding:10px 14px;font-size:16px}
+  button.secondary{background:#e0e0e0;color:#111}
+  button.link{background:transparent;color:var(--brand);padding:0}
+  input,select{width:100%;padding:10px;border:1px solid #ddd;border-radius:10px;margin:6px 0}
+  .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+  .grow{flex:1}
+  .muted{color:var(--muted)}
+  .tabs{position:fixed;inset:auto 0 0 0;display:flex;border-top:1px solid #ddd;background:var(--tab);z-index:50}
+  .tab{flex:1;padding:12px 6px;text-align:center;user-select:none}
+  .tab[aria-selected="true"]{background:var(--tab-sel);font-weight:600}
+  .panel{display:none}
+  .panel.active{display:block}
+  .pill{display:inline-block;background:#ffe0e0;color:#b71c1c;border-radius:999px;padding:2px 10px;font-size:12px;margin-left:6px}
+  /* Modal */
+  .modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;align-items:center;justify-content:center;z-index:1000}
+  .modal{background:#fff;border-radius:14px;max-width:420px;width:92%;padding:16px;outline:0}
+  .modal header{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+  .sr-only{position:absolute;left:-10000px;top:auto;width:1px;height:1px;overflow:hidden}
+</style>
+</head>
+<body>
+<main>
+  <!-- HOME -->
+  <section id="home" class="panel active" aria-labelledby="tab-home">
+    <div class="card">
+      <h2>Welcome to Pokémon Adventure</h2>
+      <p class="muted">Sign up or log in to save your Pokémon and items.</p>
+      <div class="row">
+        <button id="btn-open-auth-signup">Sign Up</button>
+        <button class="secondary" id="btn-open-auth-login">Log In</button>
+        <button class="secondary" id="btn-open-auth-google">Sign in with Google</button>
+      </div>
+      <div id="auth-status" class="muted" aria-live="polite"></div>
+    </div>
+    <div class="card">
+      <h3>Your Trainer</h3>
+      <div class="row">
+        <div class="grow">
+          <div><strong>Level:</strong> <span id="trainer-level">1</span></div>
+          <div><strong>XP:</strong> <span id="trainer-xp">0</span> / <span id="trainer-xp-next">100</span></div>
+        </div>
+        <div><strong>₽</strong> <span id="wallet">500</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- EXPLORE -->
+  <section id="explore" class="panel" aria-labelledby="tab-explore">
+    <div class="card">
+      <h2>Explore</h2>
+      <p class="muted">Search for wild Pokémon or Gather to gain XP.</p>
+      <div class="row">
+        <button id="btn-encounter">Find Wild Pokémon</button>
+        <button class="secondary" id="btn-gather">Gather</button>
+      </div>
+      <div id="explore-log" aria-live="polite"></div>
+    </div>
+    <div class="card" id="encounter-card" style="display:none">
+      <h3>Wild Encounter</h3>
+      <p><strong id="wild-name">???</strong> <span class="muted" id="wild-id"></span></p>
+      <div class="row">
+        <button id="btn-throw-ball">Throw Poké Ball</button>
+        <button class="secondary" id="btn-run">Run</button>
+      </div>
+      <div id="encounter-msg" class="muted" aria-live="polite"></div>
+    </div>
+  </section>
+
+  <!-- INVENTORY -->
+  <section id="inventory" class="panel" aria-labelledby="tab-inventory">
+    <div class="card">
+      <h2>Your Pokémon</h2>
+      <div id="my-pokemon"></div>
+    </div>
+    <div class="card">
+      <h2>Your Items</h2>
+      <div id="my-items"></div>
+    </div>
+  </section>
+
+  <!-- POKÉMARKET -->
+  <section id="market" class="panel" aria-labelledby="tab-market">
+    <div class="card">
+      <h2>PokéMarket <span class="pill">New</span></h2>
+      <p class="muted">Buy essentials or sell your extras. Sounds play on purchase/sale.</p>
+      <div class="row">
+        <button id="btn-open-buy">Buy Items</button>
+        <button class="secondary" id="btn-open-sell">Sell Items</button>
+      </div>
+      <p class="muted">Wallet: <strong>₽</strong> <span id="market-wallet">0</span></p>
+    </div>
+  </section>
+
+  <!-- PLACEHOLDER PANELS (Battle/Trade/Center to be expanded next) -->
+  <section id="battle" class="panel" aria-labelledby="tab-battle">
+    <div class="card"><h2>Battle</h2><p class="muted">Turn-based battle with move selection coming next.</p></div>
+  </section>
+  <section id="trade" class="panel" aria-labelledby="tab-trade">
+    <div class="card"><h2>Trade</h2><p class="muted">6-digit friend code trading coming next.</p></div>
+  </section>
+  <section id="center" class="panel" aria-labelledby="tab-center">
+    <div class="card"><h2>PokéCenter</h2><p class="muted">Rest and heal coming next.</p></div>
+  </section>
+</main>
+
+<!-- TABS -->
+<nav class="tabs" role="tablist" aria-label="Main tabs">
+  <div id="tab-home" class="tab" role="tab" aria-controls="home" aria-selected="true">Home</div>
+  <div id="tab-explore" class="tab" role="tab" aria-controls="explore" aria-selected="false">Explore</div>
+  <div id="tab-inventory" class="tab" role="tab" aria-controls="inventory" aria-selected="false">Inventory</div>
+  <div id="tab-market" class="tab" role="tab" aria-controls="market" aria-selected="false">PokéMarket</div>
+  <div id="tab-battle" class="tab" role="tab" aria-controls="battle" aria-selected="false">Battle</div>
+  <div id="tab-trade" class="tab" role="tab" aria-controls="trade" aria-selected="false">Trade</div>
+  <div id="tab-center" class="tab" role="tab" aria-controls="center" aria-selected="false">PokéCenter</div>
+</nav>
+
+<!-- MARKET MODAL -->
+<div id="market-backdrop" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="market-title">
+  <div class="modal" tabindex="-1">
+    <header>
+      <h3 id="market-title">Shop</h3>
+      <button id="market-close" class="secondary" aria-label="Close dialog">Close</button>
+    </header>
+    <div id="market-body"></div>
+  </div>
+</div>
+
+<!-- AUTH MODAL -->
+<div id="auth-backdrop" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="auth-title">
+  <div class="modal" tabindex="-1">
+    <header>
+      <h3 id="auth-title">Sign Up / Log In</h3>
+      <button id="auth-close" class="secondary" aria-label="Close dialog">Close</button>
+    </header>
+    <label class="sr-only" for="auth-email">Email</label>
+    <input id="auth-email" type="email" placeholder="Email" autocomplete="email" />
+    <label class="sr-only" for="auth-pass">Password</label>
+    <input id="auth-pass" type="password" placeholder="Password" autocomplete="current-password" />
+    <div class="row" style="margin-top:6px">
+      <button id="auth-signup">Sign Up</button>
+      <button id="auth-login" class="secondary">Log In</button>
+      <button id="auth-google" class="secondary">Sign in with Google</button>
+    </div>
+    <div id="auth-msg" class="muted" style="margin-top:6px" aria-live="polite"></div>
+  </div>
+</div>
+
+<script type="module">
+/* =========================
+   Firebase (modular v9)
+   ========================= */
+import { initializeApp } from "https://www.gstatic.com/firebasejs/9.25.0/firebase-app.js";
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.25.0/firebase-auth.js";
+import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/9.25.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDB4XhURDerrLIfb_PdcyDHiBhyzIqRxvY",
+  authDomain: "pokemon-756e7.firebaseapp.com",
+  projectId: "pokemon-756e7",
+  storageBucket: "pokemon-756e7.appspot.com",
+  messagingSenderId: "799827870179",
+  appId: "1:799827870179:web:7cf9995a4c45469b02e0d6"
+};
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+/* =========================
+   Tabs
+   ========================= */
+const panels = [...document.querySelectorAll('.panel')];
+document.querySelectorAll('.tab').forEach(t=>{
+  t.addEventListener('click', ()=>{
+    document.querySelectorAll('.tab').forEach(x=>x.setAttribute('aria-selected','false'));
+    t.setAttribute('aria-selected','true');
+    panels.forEach(p=>p.classList.remove('active'));
+    document.getElementById(t.getAttribute('aria-controls')).classList.add('active');
+  });
+});
+
+/* =========================
+   Simple Data Stores
+   ========================= */
+let wallet = 500;
+let xp = 0;
+let level = 1;
+const xpNext = ()=> 100 + (level-1)*50;
+
+const items = { "Poké Ball": 3, "Potion": 1 };
+const bagPrices = { // shop prices
+  "Poké Ball": {buy:200, sell:100},
+  "Great Ball": {buy:600, sell:300},
+  "Ultra Ball": {buy:1200, sell:600},
+  "Potion": {buy:300, sell:150},
+  "Super Potion": {buy:700, sell:350}
+};
+const myPokemon = []; // {id, name}
+
+/* =========================
+   Helpers & UI Binders
+   ========================= */
+const $ = s=>document.querySelector(s);
+const authStatus = $('#auth-status');
+const trainerLevel = $('#trainer-level');
+const trainerXP = $('#trainer-xp');
+const trainerXPNext = $('#trainer-xp-next');
+const walletEls = [$('#wallet'), $('#market-wallet')];
+
+function renderTrainer(){
+  trainerLevel.textContent = level;
+  trainerXP.textContent = xp;
+  trainerXPNext.textContent = xpNext();
+  walletEls.forEach(el => el.textContent = wallet);
+}
+function addXP(amount, announceEl){
+  xp += amount;
+  while (xp >= xpNext()){ xp -= xpNext(); level++; }
+  renderTrainer();
+  if(announceEl){ announceEl.textContent = `+${amount} XP. Level ${level}.`; }
+}
+function renderInventory(){
+  // Pokémon list
+  const listP = $('#my-pokemon');
+  listP.innerHTML = myPokemon.length ? '' : '<p class="muted">No Pokémon yet.</p>';
+  myPokemon.forEach(p=>{
+    const row = document.createElement('div');
+    row.className = 'row';
+    row.innerHTML = `<div class="grow">${p.name} <span class="muted">#${p.id}</span></div>`;
+    listP.appendChild(row);
+  });
+  // Items list
+  const listI = $('#my-items');
+  listI.innerHTML = '';
+  Object.entries(items).forEach(([k,v])=>{
+    const row = document.createElement('div');
+    row.className='row';
+    row.innerHTML = `<div class="grow">${k}</div><div>x${v}</div>`;
+    listI.appendChild(row);
+  });
+}
+renderTrainer(); renderInventory();
+
+/* =========================
+   Explore (wild + gather)
+   ========================= */
+const exploreLog = $('#explore-log');
+const encounterCard = $('#encounter-card');
+const wildName = $('#wild-name');
+const wildId = $('#wild-id');
+const btnEncounter = $('#btn-encounter');
+const btnGather = $('#btn-gather');
+const btnThrow = $('#btn-throw-ball');
+const btnRun = $('#btn-run');
+const encounterMsg = $('#encounter-msg');
+
+const demoDex = [
+  {id:1,name:"Bulbasaur"},{id:4,name:"Charmander"},{id:7,name:"Squirtle"},
+  {id:25,name:"Pikachu"},{id:39,name:"Jigglypuff"},{id:133,name:"Eevee"}
+];
+let currentWild = null;
+
+btnEncounter.addEventListener('click', ()=>{
+  currentWild = demoDex[Math.floor(Math.random()*demoDex.length)];
+  wildName.textContent = currentWild.name;
+  wildId.textContent = `#${currentWild.id}`;
+  encounterMsg.textContent = '';
+  encounterCard.style.display = 'block';
+  exploreLog.textContent = `A wild ${currentWild.name} appeared!`;
+});
+btnRun.addEventListener('click', ()=>{
+  encounterCard.style.display = 'none';
+  exploreLog.textContent = `You ran away safely.`;
+});
+btnThrow.addEventListener('click', ()=>{
+  if((items["Poké Ball"]||0) <= 0){
+    encounterMsg.textContent = "You're out of Poké Balls!";
+    return;
+  }
+  items["Poké Ball"]--; renderInventory();
+  const caught = Math.random() < 0.6;
+  if(caught){
+    myPokemon.push(currentWild);
+    encounterMsg.textContent = `Gotcha! ${currentWild.name} was caught!`;
+    exploreLog.textContent = `Caught ${currentWild.name}.`;
+    encounterCard.style.display = 'none';
+  }else{
+    encounterMsg.textContent = `${currentWild.name} broke free!`;
+  }
+});
+btnGather.addEventListener('click', ()=>{
+  addXP(10, exploreLog);
+  exploreLog.textContent = `You gathered materials. +10 XP — Level ${level}.`;
+});
+
+/* =========================
+   PokéMarket (modal + sounds)
+   ========================= */
+const marketBackdrop = $('#market-backdrop');
+const marketBody = $('#market-body');
+$('#btn-open-buy').addEventListener('click', ()=> openShop('buy'));
+$('#btn-open-sell').addEventListener('click', ()=> openShop('sell'));
+$('#market-close').addEventListener('click', ()=> closeShop());
+
+function closeShop(){ marketBackdrop.style.display='none'; }
+function openShop(mode){
+  $('#market-title').textContent = mode==='buy' ? 'Buy Items' : 'Sell Items';
+  marketBody.innerHTML = '';
+  if(mode === 'buy'){
+    Object.entries(bagPrices).forEach(([name,pr])=>{
+      const row = document.createElement('div');
+      row.className='row';
+      row.innerHTML = `
+        <div class="grow">${name}</div>
+        <div class="muted">₽${pr.buy}</div>
+        <button data-name="${name}" class="btn-buy">Buy</button>`;
+      marketBody.appendChild(row);
+    });
+  }else{
+    const have = Object.keys(items).filter(k => items[k] > 0);
+    if(!have.length){
+      marketBody.innerHTML = `<p class="muted">Nothing to sell.</p>`;
+    }else{
+      have.forEach(name=>{
+        const row = document.createElement('div');
+        row.className='row';
+        row.innerHTML = `
+          <div class="grow">${name} <span class="muted">x${items[name]}</span></div>
+          <div class="muted">₽${bagPrices[name]?.sell ?? 0}</div>
+          <button data-name="${name}" class="btn-sell secondary">Sell</button>`;
+        marketBody.appendChild(row);
+      });
+    }
+  }
+  marketBackdrop.style.display='flex';
+  marketBody.querySelector('button')?.focus();
+
+  marketBody.addEventListener('click', (e)=>{
+    const btn = e.target.closest('button');
+    if(!btn) return;
+    const name = btn.getAttribute('data-name');
+    if(btn.classList.contains('btn-buy')){
+      const cost = bagPrices[name].buy;
+      if(wallet >= cost){
+        wallet -= cost;
+        items[name] = (items[name]||0)+1;
+        renderTrainer(); renderInventory();
+        playCashRegister();
+      }else{
+        toast('Not enough money.');
+      }
+    }else if(btn.classList.contains('btn-sell')){
+      if((items[name]||0) > 0){
+        items[name]--;
+        wallet += (bagPrices[name]?.sell ?? 0);
+        renderTrainer(); renderInventory();
+        playCoinDrop();
+      }
+    }
+  }, { once:true }); // rebind per open
+}
+function toast(msg){
+  const p = document.createElement('p');
+  p.textContent = msg; p.className='muted';
+  marketBody.prepend(p);
+  setTimeout(()=>p.remove(), 1400);
+}
+
+/* =========================
+   Inline Sounds (WebAudio)
+   ========================= */
+let audioCtx;
+function ctx(){ return audioCtx || (audioCtx = new (window.AudioContext||window.webkitAudioContext)()); }
+function beep(freq, time, type='sine', gain=0.04){
+  const a = ctx();
+  const o = a.createOscillator(); const g = a.createGain();
+  o.type = type; o.frequency.value = freq;
+  g.gain.setValueAtTime(0, a.currentTime);
+  g.gain.linearRampToValueAtTime(gain, a.currentTime + 0.01);
+  g.gain.exponentialRampToValueAtTime(0.0001, a.currentTime + time);
+  o.connect(g).connect(a.destination); o.start(); o.stop(a.currentTime + time);
+}
+function playCashRegister(){ // purchase: "ding"
+  beep(880, .12, 'square', .06);
+  setTimeout(()=>beep(1318.5, .10, 'square', .05), 90);
+}
+function playCoinDrop(){ // sell: coins landing
+  beep(660, .08, 'triangle', .05);
+  setTimeout(()=>beep(523.25, .09, 'triangle', .04), 70);
+  setTimeout(()=>beep(392, .1, 'triangle', .04), 120);
+}
+
+/* =========================
+   Auth Modal (Email + Google)
+   ========================= */
+const authBackdrop = $('#auth-backdrop');
+const authEmail = $('#auth-email');
+const authPass = $('#auth-pass');
+const authMsg = $('#auth-msg');
+$('#auth-close').addEventListener('click', ()=> authBackdrop.style.display='none');
+
+$('#btn-open-auth-signup').addEventListener('click', ()=>{
+  $('#auth-title').textContent = 'Sign Up';
+  authMsg.textContent = '';
+  authBackdrop.style.display='flex';
+  authEmail.focus();
+});
+$('#btn-open-auth-login').addEventListener('click', ()=>{
+  $('#auth-title').textContent = 'Log In';
+  authMsg.textContent = '';
+  authBackdrop.style.display='flex';
+  authEmail.focus();
+});
+$('#btn-open-auth-google').addEventListener('click', ()=> doGoogle());
+
+$('#auth-signup').addEventListener('click', async ()=>{
+  try{
+    const cred = await createUserWithEmailAndPassword(auth, authEmail.value, authPass.value);
+    await ensureUserDoc(cred.user.uid);
+    authMsg.style.color='green';
+    authMsg.textContent = `Welcome, ${cred.user.email}`;
+    authBackdrop.style.display='none';
+  }catch(e){ showAuthError(e); }
+});
+$('#auth-login').addEventListener('click', async ()=>{
+  try{
+    const cred = await signInWithEmailAndPassword(auth, authEmail.value, authPass.value);
+    authMsg.style.color='green';
+    authMsg.textContent = `Logged in as ${cred.user.email}`;
+    authBackdrop.style.display='none';
+  }catch(e){ showAuthError(e); }
+});
+async function doGoogle(){
+  try{
+    const prov = new GoogleAuthProvider();
+    const res = await signInWithPopup(auth, prov);
+    await ensureUserDoc(res.user.uid);
+    authMsg.style.color='green';
+    authMsg.textContent = `Signed in with Google: ${res.user.displayName || res.user.email}`;
+    authBackdrop.style.display='none';
+  }catch(e){ showAuthError(e); }
+}
+function showAuthError(e){
+  authMsg.style.color='red';
+  authMsg.textContent = e.message;
+}
+async function ensureUserDoc(uid){
+  const ref = doc(db,'users',uid);
+  const snap = await getDoc(ref);
+  if(!snap.exists()) await setDoc(ref, { pokemon: [], items: {}, wallet: 500, level: 1, xp: 0 });
+}
+onAuthStateChanged(auth, (user)=>{
+  if(user){
+    authStatus.textContent = `Signed in as ${user.displayName || user.email}`;
+  }else{
+    authStatus.textContent = `Not signed in.`;
+  }
+});
+
+/* =========================
+   PWA: manifest + service worker (inlined)
+   ========================= */
+const manifest = {
+  "name": "Pokémon Adventure",
+  "short_name": "PkmnAdv",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#f5f5f5",
+  "theme_color": "#ef5350",
+  "icons": []
+};
+const manifestBlob = new Blob([JSON.stringify(manifest)], {type:'application/json'});
+const manifestURL = URL.createObjectURL(manifestBlob);
+const link = document.createElement('link'); link.rel='manifest'; link.href=manifestURL; document.head.appendChild(link);
+
+// Inline SW
+const swCode = `
+self.addEventListener('install', e=>{
+  e.waitUntil(caches.open('pkmn-v1').then(c=>c.addAll(['./'])));
+  self.skipWaiting();
+});
+self.addEventListener('activate', e=>{ e.waitUntil(self.clients.claim()); });
+self.addEventListener('fetch', e=>{
+  const req = e.request;
+  e.respondWith(
+    caches.match(req).then(cached=> cached || fetch(req).then(res=>{
+      if(req.method==='GET' && res.ok){
+        const copy = res.clone();
+        caches.open('pkmn-v1').then(c=>c.put(req, copy));
+      }
+      return res;
+    }).catch(()=> cached))
+  );
+});
+`;
+if('serviceWorker' in navigator){
+  const swBlob = new Blob([swCode], {type:'text/javascript'});
+  const swUrl = URL.createObjectURL(swBlob);
+  navigator.serviceWorker.register(swUrl).catch(()=>{});
+}
+</script>
+</body>
+</html>
+```0
