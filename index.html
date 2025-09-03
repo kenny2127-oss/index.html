@@ -1,216 +1,476 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Accessible Pokémon Game</title>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Accessible Pokémon Game — Merged Base</title>
 <style>
-body {font-family: Arial,sans-serif;margin:0;padding:0;background:#f0f8ff;display:flex;flex-direction:column;}
-nav {display:flex;justify-content:space-around;background:#333;}
-nav button {flex:1;padding:1em;color:white;background:#333;border:none;font-size:1em;cursor:pointer;}
-nav button:focus {outline:3px solid #ff0;}
-.tab-content {padding:1em;display:none;}
-.tab-content.active {display:block;}
-button.action-btn {padding:1em;margin:0.5em;font-size:1em;}
-.resource-btn {background-color:#90ee90;}
-ul {padding-left:20px;}
-#move-buttons button {display:block;margin:0.3em 0;}
+  :root{--nav:#333;--accent:#90ee90;--bg:#f0f8ff}
+  html,body{height:100%;margin:0;font-family:Arial,Helvetica,sans-serif;background:var(--bg);color:#111}
+  header,nav{background:var(--nav);color:#fff}
+  nav{display:flex;gap:0}
+  nav button{flex:1;padding:14px;border:0;background:transparent;color:inherit;font-size:16px;cursor:pointer}
+  nav button.active{background:#222;outline:3px solid #ff0}
+  main{padding:12px;flex:1;min-height:0}
+  .tab{display:none}
+  .tab.active{display:block}
+  .btn{display:inline-block;padding:10px 14px;margin:6px 4px;border:0;border-radius:8px;background:#1976d2;color:#fff;font-size:14px;cursor:pointer}
+  .btn.alt{background:var(--accent);color:#000}
+  .btn.ghost{background:transparent;border:1px solid #ccc;color:#000}
+  ul{padding-left:18px}
+  #pokedex-list{max-height:240px;overflow:auto;border:1px solid #ddd;padding:8px;background:#fff;}
+  #inventory-list{max-height:200px;overflow:auto;border:1px solid #ddd;padding:8px;background:#fff;}
+  #move-buttons button{display:block;width:100%;margin:6px 0;padding:10px}
+  .panel{border:1px solid #ddd;padding:8px;background:#fff;border-radius:8px}
+  .flex{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+  label{display:block;margin:6px 0}
+  @media(min-width:720px){main{padding:20px}nav button{font-size:18px}}
 </style>
 </head>
 <body>
+<header>
+  <nav role="tablist" aria-label="Main tabs">
+    <button class="tab-btn active" data-target="home" role="tab" aria-controls="home">Home</button>
+    <button class="tab-btn" data-target="explore" role="tab" aria-controls="explore">Explore</button>
+    <button class="tab-btn" data-target="gather" role="tab" aria-controls="gather">Gather</button>
+    <button class="tab-btn" data-target="battle" role="tab" aria-controls="battle">Battle</button>
+    <button class="tab-btn" data-target="trade" role="tab" aria-controls="trade">Trade</button>
+  </nav>
+</header>
 
-<nav role="tablist">
-  <button role="tab" aria-controls="home" class="tab-btn active">Home</button>
-  <button role="tab" aria-controls="explore" class="tab-btn">Explore</button>
-  <button role="tab" aria-controls="gather" class="tab-btn">Gather</button>
-  <button role="tab" aria-controls="battle" class="tab-btn">Battle</button>
-  <button role="tab" aria-controls="trade" class="tab-btn">Trade</button>
-</nav>
+<main>
+  <!-- HOME -->
+  <section id="home" class="tab active" role="tabpanel">
+    <h1>Home</h1>
+    <p id="player-info" aria-live="polite">Level: 1 | Money: $1000</p>
+    <div class="flex">
+      <button id="open-pokedex" class="btn alt" aria-expanded="false">Open Pokedex</button>
+      <button id="save-manual" class="btn ghost">Save Now</button>
+      <button id="reset-game" class="btn ghost">Reset Save</button>
+    </div>
 
-<div id="home" class="tab-content active" role="tabpanel">
-  <h2>Home</h2>
-  <p id="player-info">Level: 1 | Money: $1000</p>
-  <button id="open-pokedex" class="action-btn">Open Pokedex</button>
-  <ul id="pokedex-list" style="display:none;"></ul>
-</div>
+    <h2>Pokedex</h2>
+    <div id="pokedex-list" class="panel" style="display:none" aria-live="polite"></div>
+  </section>
 
-<div id="explore" class="tab-content" role="tabpanel">
-  <h2>Explore</h2>
-  <button class="action-btn" id="catch-pokemon">Catch Pokémon</button>
-  <p id="explore-log" aria-live="polite"></p>
-</div>
+  <!-- EXPLORE -->
+  <section id="explore" class="tab" role="tabpanel">
+    <h1>Explore</h1>
+    <p>Search the wilds and try to catch Pokémon.</p>
+    <div class="flex">
+      <button id="catch-pokemon" class="btn alt">Search & Catch</button>
+    </div>
+    <p id="explore-log" aria-live="polite"></p>
+  </section>
 
-<div id="gather" class="tab-content" role="tabpanel">
-  <h2>Gather Resources</h2>
-  <button class="action-btn resource-btn" id="gather-resource">Gather</button>
-  <p id="gather-log" aria-live="polite"></p>
-</div>
+  <!-- GATHER -->
+  <section id="gather" class="tab" role="tabpanel">
+    <h1>Gather</h1>
+    <p>Gather resources used for healing, evolving, and trading.</p>
+    <div class="flex">
+      <button id="gather-resource" class="btn alt">Gather Resource</button>
+    </div>
+    <p id="gather-log" aria-live="polite"></p>
+  </section>
 
-<div id="battle" class="tab-content" role="tabpanel">
-  <h2>Battle</h2>
-  <button class="action-btn" id="start-battle">Start Battle</button>
-  <div id="move-buttons"></div>
-  <p id="battle-log" aria-live="polite"></p>
-</div>
+  <!-- BATTLE -->
+  <section id="battle" class="tab" role="tabpanel">
+    <h1>Battle</h1>
+    <p>Start turn-based battles. You'll choose which Pokémon to send and which move to use each turn.</p>
 
-<div id="trade" class="tab-content" role="tabpanel">
-  <h2>Trade</h2>
-  <button class="action-btn" id="view-inventory">Inventory</button>
-  <button class="action-btn" id="view-market">Market</button>
-  <ul id="inventory-list"></ul>
-</div>
+    <div class="flex">
+      <button id="start-battle" class="btn alt">Start Battle</button>
+      <div id="battle-controls" style="display:none;">
+        <label for="select-player-poke">Choose your Pokémon:</label>
+        <select id="select-player-poke" aria-label="Choose your Pokémon to send"></select>
+        <button id="send-out" class="btn">Send Out</button>
+      </div>
+    </div>
+
+    <div id="battle-area" style="margin-top:12px;display:none;">
+      <div class="panel" id="battle-stats" aria-live="polite"></div>
+      <div id="move-buttons" style="margin-top:10px;"></div>
+    </div>
+
+    <p id="battle-log" aria-live="assertive" style="white-space:pre-wrap;margin-top:10px;"></p>
+  </section>
+
+  <!-- TRADE -->
+  <section id="trade" class="tab" role="tabpanel">
+    <h1>Trade</h1>
+    <div class="flex">
+      <button id="market-tab" class="btn">Market</button>
+      <button id="inventory-tab" class="btn">Inventory</button>
+    </div>
+
+    <div id="market-panel" class="panel" style="margin-top:10px;display:none;">
+      <h3>Market — Buy</h3>
+      <div id="market-items"></div>
+    </div>
+
+    <div id="sell-panel" class="panel" style="margin-top:10px;display:none;">
+      <h3>Inventory — Sell</h3>
+      <div id="inventory-list"></div>
+    </div>
+  </section>
+
+  <footer style="margin-top:18px;font-size:13px;color:#444">Accessible Pokémon Game — merged base (local file)</footer>
+</main>
 
 <script>
-// --- TAB LOGIC ---
-const tabs = document.querySelectorAll('.tab-btn');
-const contents = document.querySelectorAll('.tab-content');
-tabs.forEach(tab => {
-  tab.addEventListener('click', () => {
-    tabs.forEach(t=>t.classList.remove('active'));
-    tab.classList.add('active');
-    contents.forEach(c=>c.classList.remove('active'));
-    document.getElementById(tab.getAttribute('aria-controls')).classList.add('active');
-  });
-});
+/* ===========================
+   Persistent player state
+   =========================== */
+const DEFAULT_PLAYER = { level:1, money:1000, inventory:[], pokemon:[] }; // pokemon holds names
+let player = loadPlayer();
 
-// --- PLAYER DATA ---
-let player = JSON.parse(localStorage.getItem('player')) || {level:1,money:1000,inventory:[],pokemon:[]};
-function savePlayer(){ localStorage.setItem('player',JSON.stringify(player)); }
-function updatePlayerUI(){ document.getElementById('player-info').innerText=`Level: ${player.level} | Money: $${player.money}`; }
-updatePlayerUI();
+/* helpers */
+function savePlayer(){ localStorage.setItem('pkm_player_v1', JSON.stringify(player)); updateUI(); }
+function loadPlayer(){ try{ const s=localStorage.getItem('pkm_player_v1'); return s?JSON.parse(s): structuredClone(DEFAULT_PLAYER);}catch(e){return structuredClone(DEFAULT_PLAYER);} }
+function resetPlayer(){ if(confirm('Reset save? This will clear progress.')){ player = structuredClone(DEFAULT_PLAYER); savePlayer(); location.reload(); } }
+function updateUI(){ document.getElementById('player-info').innerText=`Level: ${player.level} | Money: $${player.money}`; updateInventoryUI(); }
 
-// --- POKEMON DATA (just first 10 + Diglett for demo) ---
+/* wire save/reset */
+document.getElementById('save-manual').addEventListener('click', ()=>{ savePlayer(); alert('Saved.'); });
+document.getElementById('reset-game').addEventListener('click', resetPlayer);
+
+/* ===========================
+   Basic dataset (subset)
+   - You can expand the pokemonData array later.
+   =========================== */
 const pokemonData = [
-  {"id":1,"name":"Bulbasaur","types":["Grass","Poison"],"baseStats":{"hp":45,"attack":49,"defense":49,"speed":45,"special":65},"moves":[{"name":"Tackle","type":"Normal","power":35,"accuracy":95},{"name":"Growl","type":"Normal","power":0,"accuracy":100},{"name":"Leech Seed","type":"Grass","power":0,"accuracy":90},{"name":"Vine Whip","type":"Grass","power":45,"accuracy":100}]},
-  {"id":4,"name":"Charmander","types":["Fire"],"baseStats":{"hp":39,"attack":52,"defense":43,"speed":65,"special":50},"moves":[{"name":"Scratch","type":"Normal","power":40,"accuracy":100},{"name":"Growl","type":"Normal","power":0,"accuracy":100},{"name":"Ember","type":"Fire","power":40,"accuracy":100},{"name":"Smokescreen","type":"Normal","power":0,"accuracy":100}]},
-  {"id":7,"name":"Squirtle","types":["Water"],"baseStats":{"hp":44,"attack":48,"defense":65,"speed":43,"special":50},"moves":[{"name":"Tackle","type":"Normal","power":35,"accuracy":95},{"name":"Tail Whip","type":"Normal","power":0,"accuracy":100},{"name":"Water Gun","type":"Water","power":40,"accuracy":100},{"name":"Withdraw","type":"Normal","power":0,"accuracy":100}]},
-  {"id":10,"name":"Caterpie","types":["Bug"],"baseStats":{"hp":45,"attack":30,"defense":35,"speed":45,"special":20},"moves":[{"name":"Tackle","type":"Normal","power":35,"accuracy":95},{"name":"String Shot","type":"Bug","power":0,"accuracy":95},{"name":"Wrap","type":"Normal","power":15,"accuracy":90},{"name":"Poison Sting","type":"Poison","power":15,"accuracy":100}]},
-  {"id":50,"name":"Diglett","types":["Ground"],"baseStats":{"hp":10,"attack":55,"defense":25,"speed":95,"special":45},"moves":[{"name":"Scratch","type":"Normal","power":40,"accuracy":100},{"name":"Growl","type":"Normal","power":0,"accuracy":100},{"name":"Dig","type":"Ground","power":60,"accuracy":100},{"name":"Sand Attack","type":"Ground","power":0,"accuracy":100}]}
+  {"id":1,"name":"Bulbasaur","types":["Grass","Poison"],"baseStats":{"hp":45,"attack":49,"defense":49,"speed":45,"special":65},"moves":[{"name":"Tackle","type":"Normal","power":35,"accuracy":95},{"name":"Growl","type":"Status","power":0,"accuracy":100},{"name":"Leech Seed","type":"Grass","power":0,"accuracy":90},{"name":"Vine Whip","type":"Grass","power":45,"accuracy":100}]},
+  {"id":2,"name":"Ivysaur","types":["Grass","Poison"],"baseStats":{"hp":60,"attack":62,"defense":63,"speed":60,"special":80},"moves":[{"name":"Tackle","type":"Normal","power":35,"accuracy":95},{"name":"Growl","type":"Status","power":0,"accuracy":100},{"name":"Leech Seed","type":"Grass","power":0,"accuracy":90},{"name":"Vine Whip","type":"Grass","power":45,"accuracy":100}]},
+  {"id":3,"name":"Venusaur","types":["Grass","Poison"],"baseStats":{"hp":80,"attack":82,"defense":83,"speed":80,"special":100},"moves":[{"name":"Tackle","type":"Normal","power":35,"accuracy":95},{"name":"Growl","type":"Status","power":0,"accuracy":100},{"name":"Leech Seed","type":"Grass","power":0,"accuracy":90},{"name":"Vine Whip","type":"Grass","power":45,"accuracy":100}]},
+  {"id":4,"name":"Charmander","types":["Fire"],"baseStats":{"hp":39,"attack":52,"defense":43,"speed":65,"special":50},"moves":[{"name":"Scratch","type":"Normal","power":40,"accuracy":100},{"name":"Growl","type":"Status","power":0,"accuracy":100},{"name":"Ember","type":"Fire","power":40,"accuracy":100},{"name":"Smokescreen","type":"Status","power":0,"accuracy":100}]},
+  {"id":5,"name":"Charmeleon","types":["Fire"],"baseStats":{"hp":58,"attack":64,"defense":58,"speed":80,"special":65},"moves":[{"name":"Scratch","type":"Normal","power":40,"accuracy":100},{"name":"Growl","type":"Status","power":0,"accuracy":100},{"name":"Ember","type":"Fire","power":40,"accuracy":100},{"name":"Smokescreen","type":"Status","power":0,"accuracy":100}]},
+  {"id":6,"name":"Charizard","types":["Fire","Flying"],"baseStats":{"hp":78,"attack":84,"defense":78,"speed":100,"special":85},"moves":[{"name":"Scratch","type":"Normal","power":40,"accuracy":100},{"name":"Wing Attack","type":"Flying","power":60,"accuracy":100},{"name":"Ember","type":"Fire","power":40,"accuracy":100},{"name":"Smokescreen","type":"Status","power":0,"accuracy":100}]},
+  {"id":7,"name":"Squirtle","types":["Water"],"baseStats":{"hp":44,"attack":48,"defense":65,"speed":43,"special":50},"moves":[{"name":"Tackle","type":"Normal","power":35,"accuracy":95},{"name":"Tail Whip","type":"Status","power":0,"accuracy":100},{"name":"Water Gun","type":"Water","power":40,"accuracy":100},{"name":"Withdraw","type":"Status","power":0,"accuracy":100}]},
+  {"id":8,"name":"Wartortle","types":["Water"],"baseStats":{"hp":59,"attack":63,"defense":80,"speed":58,"special":65},"moves":[{"name":"Tackle","type":"Normal","power":35,"accuracy":95},{"name":"Tail Whip","type":"Status","power":0,"accuracy":100},{"name":"Water Gun","type":"Water","power":40,"accuracy":100},{"name":"Withdraw","type":"Status","power":0,"accuracy":100}]},
+  {"id":9,"name":"Blastoise","types":["Water"],"baseStats":{"hp":79,"attack":83,"defense":100,"speed":78,"special":85},"moves":[{"name":"Tackle","type":"Normal","power":35,"accuracy":95},{"name":"Tail Whip","type":"Status","power":0,"accuracy":100},{"name":"Water Gun","type":"Water","power":40,"accuracy":100},{"name":"Withdraw","type":"Status","power":0,"accuracy":100}]},
+  {"id":10,"name":"Caterpie","types":["Bug"],"baseStats":{"hp":45,"attack":30,"defense":35,"speed":45,"special":20},"moves":[{"name":"Tackle","type":"Normal","power":35,"accuracy":95},{"name":"String Shot","type":"Status","power":0,"accuracy":95},{"name":"Wrap","type":"Normal","power":15,"accuracy":90},{"name":"Poison Sting","type":"Poison","power":15,"accuracy":100}]},
+  {"id":11,"name":"Metapod","types":["Bug"],"baseStats":{"hp":50,"attack":20,"defense":55,"speed":30,"special":25},"moves":[{"name":"Harden","type":"Status","power":0,"accuracy":100},{"name":"Tackle","type":"Normal","power":35,"accuracy":95},{"name":"String Shot","type":"Status","power":0,"accuracy":95},{"name":"Confuse Ray","type":"Ghost","power":0,"accuracy":100}]},
+  {"id":12,"name":"Butterfree","types":["Bug","Flying"],"baseStats":{"hp":60,"attack":45,"defense":50,"speed":70,"special":80},"moves":[{"name":"Tackle","type":"Normal","power":35,"accuracy":95},{"name":"Confusion","type":"Psychic","power":50,"accuracy":100},{"name":"Sleep Powder","type":"Grass","power":0,"accuracy":75},{"name":"Gust","type":"Flying","power":40,"accuracy":100}]},
+  {"id":13,"name":"Weedle","types":["Bug","Poison"],"baseStats":{"hp":40,"attack":35,"defense":30,"speed":50,"special":20},"moves":[{"name":"Poison Sting","type":"Poison","power":15,"accuracy":100},{"name":"String Shot","type":"Status","power":0,"accuracy":95},{"name":"Tackle","type":"Normal","power":35,"accuracy":95},{"name":"Wrap","type":"Normal","power":15,"accuracy":90}]},
+  {"id":14,"name":"Kakuna","types":["Bug","Poison"],"baseStats":{"hp":45,"attack":25,"defense":50,"speed":35,"special":25},"moves":[{"name":"Harden","type":"Status","power":0,"accuracy":100},{"name":"Poison Sting","type":"Poison","power":15,"accuracy":100},{"name":"Tackle","type":"Normal","power":35,"accuracy":95},{"name":"String Shot","type":"Status","power":0,"accuracy":95}]},
+  {"id":15,"name":"Beedrill","types":["Bug","Poison"],"baseStats":{"hp":65,"attack":80,"defense":40,"speed":75,"special":45},"moves":[{"name":"Twineedle","type":"Bug","power":25,"accuracy":100},{"name":"Poison Sting","type":"Poison","power":15,"accuracy":100},{"name":"Fury Attack","type":"Normal","power":15,"accuracy":95},{"name":"Swords Dance","type":"Status","power":0,"accuracy":100}]},
+  {"id":16,"name":"Pidgey","types":["Normal","Flying"],"baseStats":{"hp":40,"attack":45,"defense":40,"speed":56,"special":35},"moves":[{"name":"Tackle","type":"Normal","power":35,"accuracy":95},{"name":"Gust","type":"Flying","power":40,"accuracy":100},{"name":"Sand Attack","type":"Ground","power":0,"accuracy":100},{"name":"Quick Attack","type":"Normal","power":40,"accuracy":100}]},
+  {"id":17,"name":"Pidgeotto","types":["Normal","Flying"],"baseStats":{"hp":63,"attack":60,"defense":55,"speed":71,"special":50},"moves":[{"name":"Gust","type":"Flying","power":40,"accuracy":100},{"name":"Quick Attack","type":"Normal","power":40,"accuracy":100},{"name":"Wing Attack","type":"Flying","power":60,"accuracy":100},{"name":"Sand Attack","type":"Ground","power":0,"accuracy":100}]},
+  {"id":18,"name":"Pidgeot","types":["Normal","Flying"],"baseStats":{"hp":83,"attack":80,"defense":75,"speed":101,"special":70},"moves":[{"name":"Wing Attack","type":"Flying","power":60,"accuracy":100},{"name":"Gust","type":"Flying","power":40,"accuracy":100},{"name":"Quick Attack","type":"Normal","power":40,"accuracy":100},{"name":"Feather Dance","type":"Flying","power":0,"accuracy":100}]},
+  {"id":19,"name":"Rattata","types":["Normal"],"baseStats":{"hp":30,"attack":56,"defense":35,"speed":72,"special":25},"moves":[{"name":"Tackle","type":"Normal","power":35,"accuracy":95},{"name":"Quick Attack","type":"Normal","power":40,"accuracy":100},{"name":"Tail Whip","type":"Status","power":0,"accuracy":100},{"name":"Hyper Fang","type":"Normal","power":80,"accuracy":90}]},
+  {"id":20,"name":"Raticate","types":["Normal"],"baseStats":{"hp":55,"attack":81,"defense":60,"speed":97,"special":50},"moves":[{"name":"Hyper Fang","type":"Normal","power":80,"accuracy":90},{"name":"Bite","type":"Dark","power":60,"accuracy":100},{"name":"Quick Attack","type":"Normal","power":40,"accuracy":100},{"name":"Tail Whip","type":"Status","power":0,"accuracy":100}]},
+  {"id":21,"name":"Spearow","types":["Normal","Flying"],"baseStats":{"hp":40,"attack":60,"defense":30,"speed":70,"special":31},"moves":[{"name":"Peck","type":"Flying","power":35,"accuracy":100},{"name":"Fury Attack","type":"Normal","power":15,"accuracy":95},{"name":"Growl","type":"Status","power":0,"accuracy":100},{"name":"Drill Peck","type":"Flying","power":80,"accuracy":95}]},
+  {"id":22,"name":"Fearow","types":["Normal","Flying"],"baseStats":{"hp":65,"attack":90,"defense":65,"speed":100,"special":61},"moves":[{"name":"Drill Peck","type":"Flying","power":80,"accuracy":95},{"name":"Peck","type":"Flying","power":35,"accuracy":100},{"name":"Quick Attack","type":"Normal","power":40,"accuracy":100},{"name":"Growl","type":"Status","power":0,"accuracy":100}]},
+  {"id":23,"name":"Ekans","types":["Poison"],"baseStats":{"hp":35,"attack":60,"defense":44,"speed":55,"special":40},"moves":[{"name":"Bite","type":"Dark","power":60,"accuracy":100},{"name":"Poison Sting","type":"Poison","power":15,"accuracy":100},{"name":"Glare","type":"Normal","power":0,"accuracy":100},{"name":"Slam","type":"Normal","power":80,"accuracy":75}]},
+  {"id":24,"name":"Arbok","types":["Poison"],"baseStats":{"hp":60,"attack":85,"defense":69,"speed":80,"special":65},"moves":[{"name":"Bite","type":"Dark","power":60,"accuracy":100},{"name":"Poison Sting","type":"Poison","power":15,"accuracy":100},{"name":"Slam","type":"Normal","power":80,"accuracy":75},{"name":"Acid","type":"Poison","power":40,"accuracy":100}]},
+  {"id":25,"name":"Pikachu","types":["Electric"],"baseStats":{"hp":35,"attack":55,"defense":40,"speed":90,"special":50},"moves":[{"name":"Thunder Shock","type":"Electric","power":40,"accuracy":100},{"name":"Quick Attack","type":"Normal","power":40,"accuracy":100},{"name":"Tail Whip","type":"Status","power":0,"accuracy":100},{"name":"Thunder Wave","type":"Electric","power":0,"accuracy":90}]},
+  {"id":26,"name":"Raichu","types":["Electric"],"baseStats":{"hp":60,"attack":90,"defense":55,"speed":100,"special":90},"moves":[{"name":"Thunderbolt","type":"Electric","power":90,"accuracy":100},{"name":"Quick Attack","type":"Normal","power":40,"accuracy":100},{"name":"Tail Whip","type":"Status","power":0,"accuracy":100},{"name":"Thunder Wave","type":"Electric","power":0,"accuracy":90}]},
+  {"id":27,"name":"Sandshrew","types":["Ground"],"baseStats":{"hp":50,"attack":75,"defense":85,"speed":40,"special":30},"moves":[{"name":"Scratch","type":"Normal","power":40,"accuracy":100},{"name":"Sand Attack","type":"Ground","power":0,"accuracy":100},{"name":"Slash","type":"Normal","power":70,"accuracy":100},{"name":"Dig","type":"Ground","power":60,"accuracy":100}]},
+  {"id":28,"name":"Sandslash","types":["Ground"],"baseStats":{"hp":75,"attack":100,"defense":110,"speed":65,"special":55},"moves":[{"name":"Slash","type":"Normal","power":70,"accuracy":100},{"name":"Dig","type":"Ground","power":60,"accuracy":100},{"name":"Fury Swipes","type":"Normal","power":18,"accuracy":80},{"name":"Sand Tomb","type":"Ground","power":35,"accuracy":85}]},
+  {"id":29,"name":"Nidoran♀","types":["Poison"],"baseStats":{"hp":55,"attack":47,"defense":52,"speed":41,"special":40},"moves":[{"name":"Tackle","type":"Normal","power":35,"accuracy":95},{"name":"Poison Sting","type":"Poison","power":15,"accuracy":100},{"name":"Double Kick","type":"Fighting","power":30,"accuracy":100},{"name":"Tail Whip","type":"Status","power":0,"accuracy":100}]},
+  {"id":30,"name":"Nidorina","types":["Poison"],"baseStats":{"hp":70,"attack":62,"defense":67,"speed":56,"special":55},"moves":[{"name":"Double Kick","type":"Fighting","power":30,"accuracy":100},{"name":"Poison Sting","type":"Poison","power":15,"accuracy":100},{"name":"Horn Attack","type":"Normal","power":65,"accuracy":100},{"name":"Tail Whip","type":"Status","power":0,"accuracy":100}]}
 ];
 
-// --- POKEDEX UI + TOGGLE ---
-const pokedexButton = document.getElementById('open-pokedex');
-const pokedexList = document.getElementById('pokedex-list');
-function showPokemonDetails(pokemon){
-  alert(`${pokemon.name}\nTypes: ${pokemon.types.join(', ')}\nHP: ${pokemon.baseStats.hp}\nAttack: ${pokemon.baseStats.attack}\nDefense: ${pokemon.baseStats.defense}\nSpeed: ${pokemon.baseStats.speed}\nSpecial: ${pokemon.baseStats.special}`);
-}
+/* ===========================
+   Pokedex UI & toggle
+   =========================== */
+const pokedexBtn = document.getElementById('open-pokedex');
+const pokedexListEl = document.getElementById('pokedex-list');
+
 function buildPokedex(){
-  pokedexList.innerHTML = '';
-  pokemonData.forEach(p => {
-    const li = document.createElement('li');
-    li.textContent = p.name;
-    li.setAttribute('tabindex','0');
-    li.setAttribute('aria-label',`${p.name}, Type: ${p.types.join(', ')}`);
-    li.addEventListener('click',()=>showPokemonDetails(p));
-    li.addEventListener('keypress',e=>{if(e.key==='Enter') showPokemonDetails(p)});
-    pokedexList.appendChild(li);
+  pokedexListEl.innerHTML = '';
+  pokemonData.forEach(p=>{
+    const node = document.createElement('div');
+    node.tabIndex = 0;
+    node.style.padding = '6px 4px';
+    node.style.borderBottom = '1px solid #eee';
+    node.setAttribute('role','button');
+    node.setAttribute('aria-label', `${p.name}. Types: ${p.types.join(', ')}.`);
+    node.textContent = `${p.id.toString().padStart(3,'0')} — ${p.name} (${p.types.join('/')})`;
+    node.addEventListener('click', ()=>announcePokemon(p));
+    node.addEventListener('keypress', e=>{ if(e.key==='Enter') announcePokemon(p); });
+    pokedexListEl.appendChild(node);
   });
 }
-pokedexButton.addEventListener('click', () => {
-  if (pokedexList.style.display === 'none' || pokedexList.style.display === '') {
-    buildPokedex();
-    pokedexList.style.display = 'block';
-    pokedexButton.innerText = 'Close Pokedex';
-  } else {
-    pokedexList.style.display = 'none';
-    pokedexButton.innerText = 'Open Pokedex';
-  }
+
+function announcePokemon(p){
+  // screen readers will pick this up; quick popup for sighted users
+  const info = `${p.name}. Types: ${p.types.join(', ')}. Stats — HP ${p.baseStats.hp}, Attack ${p.baseStats.attack}, Defense ${p.baseStats.defense}, Speed ${p.baseStats.speed}, Special ${p.baseStats.special}. Moves: ${p.moves.map(m=>m.name).join(', ')}.`;
+  alert(info);
+}
+
+pokedexBtn.addEventListener('click', ()=>{
+  const visible = pokedexListEl.style.display === 'block';
+  if(!visible){ buildPokedex(); pokedexListEl.style.display = 'block'; pokedexBtn.innerText='Close Pokedex'; pokedexBtn.setAttribute('aria-expanded','true'); }
+  else { pokedexListEl.style.display = 'none'; pokedexBtn.innerText='Open Pokedex'; pokedexBtn.setAttribute('aria-expanded','false'); }
 });
 
-// --- GATHER LOGIC ---
+/* ===========================
+   Explore: Catching
+   =========================== */
+const exploreLog = document.getElementById('explore-log');
+document.getElementById('catch-pokemon').addEventListener('click', ()=>{
+  const wild = pokemonData[Math.floor(Math.random()*pokemonData.length)];
+  exploreLog.innerText = `A wild ${wild.name} appeared! You try to catch...`;
+  // simple catch chance formula: 70% success
+  setTimeout(()=>{
+    const success = Math.random() < 0.7;
+    if(success){
+      player.pokemon.push(wild.name);
+      savePlayer();
+      exploreLog.innerText = `You caught ${wild.name}! It's added to your party (saved).`;
+    } else {
+      exploreLog.innerText = `The ${wild.name} escaped! Try again.`;
+    }
+  }, 700);
+});
+
+/* ===========================
+   Gather: named resources
+   =========================== */
 const resources = [
   'Oran Berry','Sitrus Berry','Pecha Berry','Rawst Berry',
   'Potion','Super Potion','Hyper Potion',
-  'Evolution Stone: Fire','Evolution Stone: Water','Evolution Stone: Leaf',
+  'Fire Stone','Water Stone','Leaf Stone',
   'Rare Candy'
 ];
-document.getElementById('gather-resource').addEventListener('click',()=>{
-  const resource = resources[Math.floor(Math.random()*resources.length)];
-  player.inventory.push(resource); savePlayer();
-  document.getElementById('gather-log').innerText = `You gathered: ${resource}`;
+document.getElementById('gather-resource').addEventListener('click', ()=>{
+  const item = resources[Math.floor(Math.random()*resources.length)];
+  player.inventory.push(item); savePlayer();
+  document.getElementById('gather-log').innerText = `You gathered: ${item}`;
+});
+
+/* ===========================
+   Inventory UI (trade sell panel)
+   =========================== */
+function updateInventoryUI(){
+  const inv = document.getElementById('inventory-list');
+  inv.innerHTML = '';
+  if(player.inventory.length===0){ inv.innerText = '(Inventory empty)'; return; }
+  player.inventory.forEach((it, idx)=>{
+    const row = document.createElement('div');
+    row.className = 'flex';
+    const name = document.createElement('div'); name.textContent = it;
+    const btn = document.createElement('button'); btn.className='btn ghost'; btn.textContent='Sell';
+    btn.addEventListener('click', ()=>{ sellItem(idx); });
+    row.appendChild(name); row.appendChild(btn); inv.appendChild(row);
+  });
+}
+function sellItem(index){
+  const item = player.inventory[index];
+  const price = sellPrice(item);
+  if(confirm(`Sell ${item} for $${price}?`)){
+    player.money += price;
+    player.inventory.splice(index,1);
+    savePlayer();
+    alert(`Sold ${item} for $${price}.`);
+  }
+}
+function sellPrice(item){
+  if(item.includes('Potion')) return 50;
+  if(item.includes('Berry')) return 20;
+  if(item.includes('Rare Candy')) return 500;
+  if(item.includes('Stone')) return 300;
+  return 10;
+}
+
+/* ===========================
+   Market (Buy)
+   =========================== */
+const marketItems = [
+  {name:'Potion', price:100},
+  {name:'Super Potion', price:300},
+  {name:'Oran Berry', price:30},
+  {name:'Fire Stone', price:400},
+  {name:'Rare Candy', price:700}
+];
+function buildMarket(){
+  const node = document.getElementById('market-items');
+  node.innerHTML = '';
+  marketItems.forEach(it=>{
+    const row = document.createElement('div');
+    row.className = 'flex';
+    const info = document.createElement('div'); info.textContent = `${it.name} — $${it.price}`;
+    const btn = document.createElement('button'); btn.className = 'btn'; btn.textContent = 'Buy';
+    btn.addEventListener('click', ()=>{ buyItem(it); });
+    row.appendChild(info); row.appendChild(btn); node.appendChild(row);
+  });
+}
+function buyItem(item){
+  if(player.money < item.price){ alert('Not enough money'); return; }
+  player.money -= item.price;
+  player.inventory.push(item.name);
+  savePlayer();
+  alert(`Bought ${item.name}.`);
+}
+
+/* market/inventory tab toggles */
+document.getElementById('market-tab').addEventListener('click', ()=>{
+  document.getElementById('market-panel').style.display='block';
+  document.getElementById('sell-panel').style.display='none';
+  buildMarket();
+});
+document.getElementById('inventory-tab').addEventListener('click', ()=>{
+  document.getElementById('market-panel').style.display='none';
+  document.getElementById('sell-panel').style.display='block';
   updateInventoryUI();
 });
 
-// --- EXPLORE LOGIC ---
-const exploreLog = document.getElementById('explore-log');
-document.getElementById('catch-pokemon').addEventListener('click',()=>{
-  const wild = pokemonData[Math.floor(Math.random()*pokemonData.length)];
-  exploreLog.innerText = `A wild ${wild.name} appeared! You caught it!`;
-  player.pokemon.push(wild.name); savePlayer();
-});
-
-// --- INVENTORY UI ---
-function updateInventoryUI(){
-  const invList = document.getElementById('inventory-list');
-  invList.innerHTML='';
-  player.inventory.forEach(item=>{
-    const li = document.createElement('li'); li.textContent=item; invList.appendChild(li);
-  });
-}
-updateInventoryUI();
-
-// --- TURN-BASED BATTLE LOGIC ---
+/* ===========================
+   Turn-based Battle system
+   - Player chooses a Pokémon (from player.pokemon)
+   - Send Out -> shows moves
+   - Player picks move -> damage applied -> enemy acts
+   =========================== */
 let currentBattle = null;
 
 function calculateDamage(attacker, defender, move){
-  if(move.power === 0) return 0; // non-damaging
-  let base = move.power + attacker.baseStats.attack - defender.baseStats.defense/2;
-  return Math.max(1, Math.floor(base));
+  if(!move || move.power <= 0) return 0;
+  // simplified damage formula: move power + atk - def/2, scaled
+  const base = move.power + attacker.baseStats.attack - Math.floor(defender.baseStats.defense/2);
+  return Math.max(1, Math.floor(base / 2)); // mild scaling to keep battles reasonable
 }
 
-function startBattle(){
-  if(player.pokemon.length===0){alert('You have no Pokémon!'); return;}
-  const playerPokemon = pokemonData.find(p=>p.name===player.pokemon[0]);
-  const enemyPokemon = pokemonData[Math.floor(Math.random()*pokemonData.length)];
+function openBattleSetup(){
+  // if no pokemon -> prompt to catch
+  if(player.pokemon.length === 0){
+    if(confirm('You have no Pokémon. Go catch one in Explore?')){ // quick jump to Explore
+      document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+      document.querySelector('.tab-btn[data-target="explore"]').classList.add('active');
+      document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+      document.getElementById('explore').classList.add('active');
+    }
+    return;
+  }
+  // populate select with player's pokemon
+  const sel = document.getElementById('select-player-poke');
+  sel.innerHTML = '';
+  player.pokemon.forEach((name, idx)=>{
+    const opt = document.createElement('option');
+    opt.value = idx;
+    opt.textContent = `${name} ${idx===0? '(active)': ''}`;
+    sel.appendChild(opt);
+  });
+  document.getElementById('battle-controls').style.display = 'block';
+  document.getElementById('battle-area').style.display = 'none';
+  document.getElementById('battle-log').innerText = 'Choose a Pokémon and click Send Out.';
+}
+
+/* event - Start battle */
+document.getElementById('start-battle').addEventListener('click', openBattleSetup);
+
+/* event - Send out */
+document.getElementById('send-out').addEventListener('click', ()=>{
+  const sel = document.getElementById('select-player-poke');
+  const idx = parseInt(sel.value,10);
+  const pname = player.pokemon[idx];
+  const playerPokeData = pokemonData.find(p=>p.name===pname);
+  const enemyData = pokemonData[Math.floor(Math.random()*pokemonData.length)];
+  // build battle object (clone so base stats untouched)
   currentBattle = {
-    player: {...playerPokemon, hp: playerPokemon.baseStats.hp},
-    enemy: {...enemyPokemon, hp: enemyPokemon.baseStats.hp}
+    player: { ...playerPokeData, hp: playerPokeData.baseStats.hp },
+    enemy: { ...enemyData, hp: enemyData.baseStats.hp }
   };
-  document.getElementById('battle-log').innerText=`A wild ${enemyPokemon.name} appeared! Go ${playerPokemon.name}!`;
-  renderMoveButtons();
-}
+  // display battle area & render moves
+  document.getElementById('battle-controls').style.display = 'none';
+  document.getElementById('battle-area').style.display = 'block';
+  document.getElementById('battle-log').innerText = `A wild ${currentBattle.enemy.name} appeared! Go ${currentBattle.player.name}!`;
+  renderBattleUI();
+});
 
-function renderMoveButtons(){
-  const container = document.getElementById('move-buttons');
-  container.innerHTML='';
-  currentBattle.player.moves.forEach(move=>{
-    const btn=document.createElement('button');
-    btn.innerText=move.name;
-    btn.classList.add('action-btn');
-    btn.addEventListener('click',()=>playerTurn(move));
-    container.appendChild(btn);
+/* render moves & stats */
+function renderBattleUI(){
+  const stats = document.getElementById('battle-stats');
+  stats.innerHTML = `<strong>You:</strong> ${currentBattle.player.name} — HP ${currentBattle.player.hp}/${currentBattle.player.baseStats.hp}<br>
+                     <strong>Enemy:</strong> ${currentBattle.enemy.name} — HP ${currentBattle.enemy.hp}/${currentBattle.enemy.baseStats.hp}`;
+  // moves
+  const moveBox = document.getElementById('move-buttons');
+  moveBox.innerHTML = '';
+  currentBattle.player.moves.forEach((m, idx)=>{
+    const b = document.createElement('button');
+    b.className = 'btn';
+    b.textContent = `${m.name} ${m.power>0?`(Power ${m.power})`: '(Status)'}`;
+    b.addEventListener('click', ()=>playerUseMove(idx));
+    moveBox.appendChild(b);
   });
 }
 
-function playerTurn(move){
-  let log = `${currentBattle.player.name} used ${move.name}! `;
-  const damage = calculateDamage(currentBattle.player, currentBattle.enemy, move);
-  currentBattle.enemy.hp -= damage;
-  log += `It dealt ${damage} damage. Enemy HP: ${Math.max(0,currentBattle.enemy.hp)}\n`;
-  if(currentBattle.enemy.hp<=0){
-    log += `${currentBattle.enemy.name} fainted! You win!`;
-    document.getElementById('move-buttons').innerHTML='';
-    document.getElementById('battle-log').innerText=log;
+/* player uses move index */
+function playerUseMove(moveIndex){
+  const m = currentBattle.player.moves[moveIndex];
+  let log = '';
+  // accuracy check simplified
+  const hit = (m.accuracy === undefined) ? true : (Math.random()*100 <= m.accuracy);
+  if(!hit){ log += `${currentBattle.player.name} used ${m.name} — but it missed!\n`; }
+  else{
+    const dmg = calculateDamage(currentBattle.player, currentBattle.enemy, m);
+    currentBattle.enemy.hp -= dmg;
+    log += `${currentBattle.player.name} used ${m.name}! It dealt ${dmg} damage. Enemy HP: ${Math.max(0,currentBattle.enemy.hp)}\n`;
+  }
+  // check enemy faint
+  if(currentBattle.enemy.hp <= 0){
+    log += `${currentBattle.enemy.name} fainted! You win!\n`;
+    document.getElementById('move-buttons').innerHTML = '';
+    document.getElementById('battle-log').innerText = log;
+    renderBattleUI();
     return;
   }
-  // Enemy turn after slight delay
-  setTimeout(()=>enemyTurn(log), 500);
+  // enemy turn after small delay
+  document.getElementById('battle-log').innerText = log + '\n-- Enemy turn incoming --';
+  setTimeout(()=>enemyTurn(log), 600);
 }
 
+/* enemy AI turn */
 function enemyTurn(prevLog){
-  const move = currentBattle.enemy.moves[Math.floor(Math.random()*currentBattle.enemy.moves.length)];
-  let log = prevLog + `${currentBattle.enemy.name} used ${move.name}! `;
-  const damage = calculateDamage(currentBattle.enemy, currentBattle.player, move);
-  currentBattle.player.hp -= damage;
-  log += `You took ${damage} damage. Your HP: ${Math.max(0,currentBattle.player.hp)}\n`;
-  if(currentBattle.player.hp<=0){
-    log += `${currentBattle.player.name} fainted! You lost!`;
-    document.getElementById('move-buttons').innerHTML='';
+  const emoves = currentBattle.enemy.moves;
+  // choose random non-zero-power if possible, else random
+  let idx = Math.floor(Math.random()*emoves.length);
+  // accuracy check + damage
+  const m = emoves[idx];
+  const hit = (m.accuracy === undefined) ? true : (Math.random()*100 <= m.accuracy);
+  let log = prevLog;
+  if(!hit){ log += `${currentBattle.enemy.name} used ${m.name} — but it missed!\n`; }
+  else{
+    const dmg = calculateDamage(currentBattle.enemy, currentBattle.player, m);
+    currentBattle.player.hp -= dmg;
+    log += `${currentBattle.enemy.name} used ${m.name}! It dealt ${dmg} damage. Your HP: ${Math.max(0,currentBattle.player.hp)}\n`;
   }
-  document.getElementById('battle-log').innerText=log;
+  // check player faint
+  if(currentBattle.player.hp <= 0){
+    log += `${currentBattle.player.name} fainted! You lost!\n`;
+    document.getElementById('move-buttons').innerHTML = '';
+    document.getElementById('battle-log').innerText = log;
+    renderBattleUI();
+    return;
+  }
+  // continue - render UI and allow player to pick next move
+  document.getElementById('battle-log').innerText = log;
+  renderBattleUI();
 }
 
-document.getElementById('start-battle').addEventListener('click', startBattle);
+/* ===========================
+   Initialization
+   =========================== */
+updateUI(); // update money/inventory
+// Keep market hidden initially
+document.getElementById('market-panel').style.display='none';
+document.getElementById('sell-panel').style.display='none';
+
+/* Tab switching — merge-friendly (updates active tab classes) */
+document.querySelectorAll('.tab-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    const target = btn.getAttribute('data-target');
+    document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+    document.getElementById(target).classList.add('active');
+    // small accessibility focus
+    document.getElementById(target).focus?.();
+  });
+});
+
+/* expose savePlayer for external merges if needed */
+window._pkm_savePlayer = savePlayer;
 </script>
 </body>
 </html>
