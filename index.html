@@ -14,6 +14,7 @@ nav button:focus {outline:3px solid #ff0;}
 button.action-btn {padding:1em;margin:0.5em;font-size:1em;}
 .resource-btn {background-color:#90ee90;}
 ul {padding-left:20px;}
+#move-buttons button {display:block;margin:0.3em 0;}
 </style>
 </head>
 <body>
@@ -48,6 +49,7 @@ ul {padding-left:20px;}
 <div id="battle" class="tab-content" role="tabpanel">
   <h2>Battle</h2>
   <button class="action-btn" id="start-battle">Start Battle</button>
+  <div id="move-buttons"></div>
   <p id="battle-log" aria-live="polite"></p>
 </div>
 
@@ -77,19 +79,12 @@ function savePlayer(){ localStorage.setItem('player',JSON.stringify(player)); }
 function updatePlayerUI(){ document.getElementById('player-info').innerText=`Level: ${player.level} | Money: $${player.money}`; }
 updatePlayerUI();
 
-// --- POKEMON DATA (Bulbasaur → Diglett, 50 Pokémon) ---
+// --- POKEMON DATA (just first 10 + Diglett for demo) ---
 const pokemonData = [
   {"id":1,"name":"Bulbasaur","types":["Grass","Poison"],"baseStats":{"hp":45,"attack":49,"defense":49,"speed":45,"special":65},"moves":[{"name":"Tackle","type":"Normal","power":35,"accuracy":95},{"name":"Growl","type":"Normal","power":0,"accuracy":100},{"name":"Leech Seed","type":"Grass","power":0,"accuracy":90},{"name":"Vine Whip","type":"Grass","power":45,"accuracy":100}]},
-  {"id":2,"name":"Ivysaur","types":["Grass","Poison"],"baseStats":{"hp":60,"attack":62,"defense":63,"speed":60,"special":80},"moves":[{"name":"Tackle","type":"Normal","power":35,"accuracy":95},{"name":"Growl","type":"Normal","power":0,"accuracy":100},{"name":"Leech Seed","type":"Grass","power":0,"accuracy":90},{"name":"Vine Whip","type":"Grass","power":45,"accuracy":100}]},
-  {"id":3,"name":"Venusaur","types":["Grass","Poison"],"baseStats":{"hp":80,"attack":82,"defense":83,"speed":80,"special":100},"moves":[{"name":"Tackle","type":"Normal","power":35,"accuracy":95},{"name":"Growl","type":"Normal","power":0,"accuracy":100},{"name":"Leech Seed","type":"Grass","power":0,"accuracy":90},{"name":"Vine Whip","type":"Grass","power":45,"accuracy":100}]},
   {"id":4,"name":"Charmander","types":["Fire"],"baseStats":{"hp":39,"attack":52,"defense":43,"speed":65,"special":50},"moves":[{"name":"Scratch","type":"Normal","power":40,"accuracy":100},{"name":"Growl","type":"Normal","power":0,"accuracy":100},{"name":"Ember","type":"Fire","power":40,"accuracy":100},{"name":"Smokescreen","type":"Normal","power":0,"accuracy":100}]},
-  {"id":5,"name":"Charmeleon","types":["Fire"],"baseStats":{"hp":58,"attack":64,"defense":58,"speed":80,"special":65},"moves":[{"name":"Scratch","type":"Normal","power":40,"accuracy":100},{"name":"Growl","type":"Normal","power":0,"accuracy":100},{"name":"Ember","type":"Fire","power":40,"accuracy":100},{"name":"Smokescreen","type":"Normal","power":0,"accuracy":100}]},
-  {"id":6,"name":"Charizard","types":["Fire","Flying"],"baseStats":{"hp":78,"attack":84,"defense":78,"speed":100,"special":85},"moves":[{"name":"Scratch","type":"Normal","power":40,"accuracy":100},{"name":"Growl","type":"Normal","power":0,"accuracy":100},{"name":"Ember","type":"Fire","power":40,"accuracy":100},{"name":"Smokescreen","type":"Normal","power":0,"accuracy":100}]},
   {"id":7,"name":"Squirtle","types":["Water"],"baseStats":{"hp":44,"attack":48,"defense":65,"speed":43,"special":50},"moves":[{"name":"Tackle","type":"Normal","power":35,"accuracy":95},{"name":"Tail Whip","type":"Normal","power":0,"accuracy":100},{"name":"Water Gun","type":"Water","power":40,"accuracy":100},{"name":"Withdraw","type":"Normal","power":0,"accuracy":100}]},
-  {"id":8,"name":"Wartortle","types":["Water"],"baseStats":{"hp":59,"attack":63,"defense":80,"speed":58,"special":65},"moves":[{"name":"Tackle","type":"Normal","power":35,"accuracy":95},{"name":"Tail Whip","type":"Normal","power":0,"accuracy":100},{"name":"Water Gun","type":"Water","power":40,"accuracy":100},{"name":"Withdraw","type":"Normal","power":0,"accuracy":100}]},
-  {"id":9,"name":"Blastoise","types":["Water"],"baseStats":{"hp":79,"attack":83,"defense":100,"speed":78,"special":85},"moves":[{"name":"Tackle","type":"Normal","power":35,"accuracy":95},{"name":"Tail Whip","type":"Normal","power":0,"accuracy":100},{"name":"Water Gun","type":"Water","power":40,"accuracy":100},{"name":"Withdraw","type":"Normal","power":0,"accuracy":100}]},
   {"id":10,"name":"Caterpie","types":["Bug"],"baseStats":{"hp":45,"attack":30,"defense":35,"speed":45,"special":20},"moves":[{"name":"Tackle","type":"Normal","power":35,"accuracy":95},{"name":"String Shot","type":"Bug","power":0,"accuracy":95},{"name":"Wrap","type":"Normal","power":15,"accuracy":90},{"name":"Poison Sting","type":"Poison","power":15,"accuracy":100}]},
-  // … fill in sequentially up to Diglett …
   {"id":50,"name":"Diglett","types":["Ground"],"baseStats":{"hp":10,"attack":55,"defense":25,"speed":95,"special":45},"moves":[{"name":"Scratch","type":"Normal","power":40,"accuracy":100},{"name":"Growl","type":"Normal","power":0,"accuracy":100},{"name":"Dig","type":"Ground","power":60,"accuracy":100},{"name":"Sand Attack","type":"Ground","power":0,"accuracy":100}]}
 ];
 
@@ -154,19 +149,68 @@ function updateInventoryUI(){
 }
 updateInventoryUI();
 
-// --- BATTLE LOGIC ---
+// --- TURN-BASED BATTLE LOGIC ---
+let currentBattle = null;
+
 function calculateDamage(attacker, defender, move){
+  if(move.power === 0) return 0; // non-damaging
   let base = move.power + attacker.baseStats.attack - defender.baseStats.defense/2;
   return Math.max(1, Math.floor(base));
 }
-document.getElementById('start-battle').addEventListener('click',()=>{
+
+function startBattle(){
   if(player.pokemon.length===0){alert('You have no Pokémon!'); return;}
   const playerPokemon = pokemonData.find(p=>p.name===player.pokemon[0]);
   const enemyPokemon = pokemonData[Math.floor(Math.random()*pokemonData.length)];
-  let battleLog=`Battle Start! ${playerPokemon.name} vs ${enemyPokemon.name}\n`;
-  let playerHP=playerPokemon.baseStats.hp;
-  let enemyHP=enemyPokemon.baseStats.hp;
+  currentBattle = {
+    player: {...playerPokemon, hp: playerPokemon.baseStats.hp},
+    enemy: {...enemyPokemon, hp: enemyPokemon.baseStats.hp}
+  };
+  document.getElementById('battle-log').innerText=`A wild ${enemyPokemon.name} appeared! Go ${playerPokemon.name}!`;
+  renderMoveButtons();
+}
 
-  while(playerHP>0 && enemyHP>0){
-    const playerMove = playerPokemon.moves[0];
-    const enemyMove = enemy
+function renderMoveButtons(){
+  const container = document.getElementById('move-buttons');
+  container.innerHTML='';
+  currentBattle.player.moves.forEach(move=>{
+    const btn=document.createElement('button');
+    btn.innerText=move.name;
+    btn.classList.add('action-btn');
+    btn.addEventListener('click',()=>playerTurn(move));
+    container.appendChild(btn);
+  });
+}
+
+function playerTurn(move){
+  let log = `${currentBattle.player.name} used ${move.name}! `;
+  const damage = calculateDamage(currentBattle.player, currentBattle.enemy, move);
+  currentBattle.enemy.hp -= damage;
+  log += `It dealt ${damage} damage. Enemy HP: ${Math.max(0,currentBattle.enemy.hp)}\n`;
+  if(currentBattle.enemy.hp<=0){
+    log += `${currentBattle.enemy.name} fainted! You win!`;
+    document.getElementById('move-buttons').innerHTML='';
+    document.getElementById('battle-log').innerText=log;
+    return;
+  }
+  // Enemy turn after slight delay
+  setTimeout(()=>enemyTurn(log), 500);
+}
+
+function enemyTurn(prevLog){
+  const move = currentBattle.enemy.moves[Math.floor(Math.random()*currentBattle.enemy.moves.length)];
+  let log = prevLog + `${currentBattle.enemy.name} used ${move.name}! `;
+  const damage = calculateDamage(currentBattle.enemy, currentBattle.player, move);
+  currentBattle.player.hp -= damage;
+  log += `You took ${damage} damage. Your HP: ${Math.max(0,currentBattle.player.hp)}\n`;
+  if(currentBattle.player.hp<=0){
+    log += `${currentBattle.player.name} fainted! You lost!`;
+    document.getElementById('move-buttons').innerHTML='';
+  }
+  document.getElementById('battle-log').innerText=log;
+}
+
+document.getElementById('start-battle').addEventListener('click', startBattle);
+</script>
+</body>
+</html>
