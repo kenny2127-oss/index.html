@@ -1,189 +1,167 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Pokémon Adventure</title>
-<meta name="theme-color" content="#ef5350" />
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Accessible Pokémon Game</title>
 <style>
-:root{
-  --bg:#f5f5f5; --card:#ffffff; --ink:#222; --muted:#666;
-  --brand:#ef5350; --brand-ink:#fff; --tab:#fff; --tab-sel:#e0e0e0;
-}
-*{box-sizing:border-box}
-body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:var(--bg);color:var(--ink)}
-h1,h2,h3{margin:.4rem 0}
-main{padding:16px 16px 86px}
-.card{background:var(--card);border-radius:14px;box-shadow:0 1px 4px rgba(0,0,0,.08);padding:14px;margin-bottom:12px}
-button{cursor:pointer;border:0;border-radius:10px;background:var(--brand);color:var(--brand-ink);padding:10px 14px;font-size:16px}
-button.secondary{background:#e0e0e0;color:#111}
-button.link{background:transparent;color:var(--brand);padding:0}
-input,select{width:100%;padding:10px;border:1px solid #ddd;border-radius:10px;margin:6px 0}
-.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-.grow{flex:1}
-.muted{color:var(--muted)}
-.tabs{position:fixed;inset:auto 0 0 0;display:flex;border-top:1px solid #ddd;background:var(--tab);z-index:50}
-.tab{flex:1;padding:12px 6px;text-align:center;user-select:none;cursor:pointer}
-.tab[aria-selected="true"]{background:var(--tab-sel);font-weight:600}
-.panel{display:none}
-.panel.active{display:block}
-.pill{display:inline-block;background:#ffe0e0;color:#b71c1c;border-radius:999px;padding:2px 10px;font-size:12px;margin-left:6px}
-/* Modal */
-.modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;align-items:center;justify-content:center;z-index:1000}
-.modal{background:#fff;border-radius:14px;max-width:420px;width:92%;padding:16px;outline:0}
-.modal header{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
-.sr-only{position:absolute;left:-10000px;top:auto;width:1px;height:1px;overflow:hidden}
+body {font-family: Arial,sans-serif;margin:0;padding:0;background:#f0f8ff;display:flex;flex-direction:column;}
+nav {display:flex;justify-content:space-around;background:#333;}
+nav button {flex:1;padding:1em;color:white;background:#333;border:none;font-size:1em;cursor:pointer;}
+nav button:focus {outline:3px solid #ff0;}
+.tab-content {padding:1em;display:none;}
+.tab-content.active {display:block;}
+button.action-btn {padding:1em;margin:0.5em;font-size:1em;}
+.resource-btn {background-color:#90ee90;}
+ul {padding-left:20px;}
 </style>
 </head>
 <body>
-<main>
-  <!-- HOME -->
-  <section id="home" class="panel active" aria-labelledby="tab-home">
-    <div class="card">
-      <h2>Welcome to Pokémon Adventure</h2>
-      <p class="muted">Sign up or log in to save your Pokémon and items.</p>
-      <div class="row">
-        <button id="btn-open-auth-signup">Sign Up</button>
-        <button class="secondary" id="btn-open-auth-login">Log In</button>
-        <button class="secondary" id="btn-open-auth-google">Sign in with Google</button>
-      </div>
-      <div id="auth-status" class="muted" aria-live="polite"></div>
-    </div>
-    <div class="card">
-      <h3>Your Trainer</h3>
-      <div class="row">
-        <div class="grow">
-          <div><strong>Level:</strong> <span id="trainer-level">1</span></div>
-          <div><strong>XP:</strong> <span id="trainer-xp">0</span> / <span id="trainer-xp-next">100</span></div>
-        </div>
-        <div><strong>₽</strong> <span id="wallet">500</span></div>
-      </div>
-    </div>
-  </section>
 
-  <!-- EXPLORE -->
-  <section id="explore" class="panel" aria-labelledby="tab-explore">
-    <div class="card">
-      <h2>Explore</h2>
-      <p class="muted">Search for wild Pokémon or Gather to gain XP.</p>
-      <div class="row">
-        <button id="btn-encounter">Find Wild Pokémon</button>
-        <button class="secondary" id="btn-gather">Gather</button>
-      </div>
-      <div id="explore-log" aria-live="polite"></div>
-    </div>
-    <div class="card" id="encounter-card">
-      <h3>Wild Encounter</h3>
-      <p><strong id="wild-name">???</strong> <span class="muted" id="wild-id"></span></p>
-      <div class="row">
-        <button id="btn-throw-ball">Throw Poké Ball</button>
-        <button class="secondary" id="btn-run">Run</button>
-      </div>
-      <div id="encounter-msg" class="muted" aria-live="polite"></div>
-    </div>
-  </section>
-
-  <!-- INVENTORY -->
-  <section id="inventory" class="panel" aria-labelledby="tab-inventory">
-    <div class="card">
-      <h2>Your Pokémon</h2>
-      <div id="my-pokemon"></div>
-    </div>
-    <div class="card">
-      <h2>Your Items</h2>
-      <div id="my-items"></div>
-    </div>
-  </section>
-
-  <!-- POKÉMARKET -->
-  <section id="market" class="panel" aria-labelledby="tab-market">
-    <div class="card">
-      <h2>PokéMarket <span class="pill">New</span></h2>
-      <p class="muted">Buy essentials or sell your extras. Sounds play on purchase/sale.</p>
-      <div class="row">
-        <button id="btn-open-buy">Buy Items</button>
-        <button class="secondary" id="btn-open-sell">Sell Items</button>
-      </div>
-      <p class="muted">Wallet: <strong>₽</strong> <span id="market-wallet">0</span></p>
-    </div>
-  </section>
-
-  <!-- PLACEHOLDER PANELS -->
-  <section id="battle" class="panel" aria-labelledby="tab-battle">
-    <div class="card"><h2>Battle</h2><p class="muted">Turn-based battle with move selection coming next.</p></div>
-  </section>
-  <section id="trade" class="panel" aria-labelledby="tab-trade">
-    <div class="card"><h2>Trade</h2><p class="muted">6-digit friend code trading coming next.</p></div>
-  </section>
-  <section id="center" class="panel" aria-labelledby="tab-center">
-    <div class="card"><h2>PokéCenter</h2><p class="muted">Rest and heal coming next.</p></div>
-  </section>
-</main>
-
-<!-- TABS -->
-<nav class="tabs" role="tablist" aria-label="Main tabs">
-  <div id="tab-home" class="tab" role="tab" aria-controls="home" aria-selected="true" tabindex="0">Home</div>
-  <div id="tab-explore" class="tab" role="tab" aria-controls="explore" aria-selected="false" tabindex="0">Explore</div>
-  <div id="tab-inventory" class="tab" role="tab" aria-controls="inventory" aria-selected="false" tabindex="0">Inventory</div>
-  <div id="tab-market" class="tab" role="tab" aria-controls="market" aria-selected="false" tabindex="0">PokéMarket</div>
-  <div id="tab-battle" class="tab" role="tab" aria-controls="battle" aria-selected="false" tabindex="0">Battle</div>
-  <div id="tab-trade" class="tab" role="tab" aria-controls="trade" aria-selected="false" tabindex="0">Trade</div>
-  <div id="tab-center" class="tab" role="tab" aria-controls="center" aria-selected="false" tabindex="0">PokéCenter</div>
+<nav role="tablist">
+  <button role="tab" aria-controls="home" class="tab-btn active">Home</button>
+  <button role="tab" aria-controls="explore" class="tab-btn">Explore</button>
+  <button role="tab" aria-controls="gather" class="tab-btn">Gather</button>
+  <button role="tab" aria-controls="battle" class="tab-btn">Battle</button>
+  <button role="tab" aria-controls="trade" class="tab-btn">Trade</button>
 </nav>
 
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/9.25.0/firebase-app.js";
-import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.25.0/firebase-auth.js";
-import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/9.25.0/firebase-firestore.js";
+<div id="home" class="tab-content active" role="tabpanel">
+  <h2>Home</h2>
+  <p id="player-info">Level: 1 | Money: $1000</p>
+  <button id="open-pokedex" class="action-btn">Open Pokedex</button>
+  <ul id="pokedex-list"></ul>
+</div>
 
-const firebaseConfig = {
-  apiKey: "AIzaSyDB4XhURDerrLIfb_PdcyDHiBhyzIqRxvY",
-  authDomain: "pokemon-756e7.firebaseapp.com",
-  projectId: "pokemon-756e7",
-  storageBucket: "pokemon-756e7.appspot.com",
-  messagingSenderId: "799827870179",
-  appId: "1:799827870179:web:7cf9995a4c45469b02e0d6"
-};
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
+<div id="explore" class="tab-content" role="tabpanel">
+  <h2>Explore</h2>
+  <button class="action-btn" id="catch-pokemon">Catch Pokémon</button>
+  <p id="explore-log" aria-live="polite"></p>
+</div>
 
-/* =========================
-   Tabs
-========================= */
-document.addEventListener('DOMContentLoaded', ()=>{
-  const panels = [...document.querySelectorAll('.panel')];
-  document.querySelectorAll('.tab').forEach(t=>{
-    t.addEventListener('click', ()=>{
-      document.querySelectorAll('.tab').forEach(x=>x.setAttribute('aria-selected','false'));
-      t.setAttribute('aria-selected','true');
-      panels.forEach(p=>p.classList.remove('active'));
-      const target = document.getElementById(t.getAttribute('aria-controls'));
-      if(target) target.classList.add('active');
-    });
-    t.addEventListener('keydown', (e)=>{
-      if(e.key === "Enter" || e.key === " "){ t.click(); e.preventDefault(); }
-    });
+<div id="gather" class="tab-content" role="tabpanel">
+  <h2>Gather Resources</h2>
+  <button class="action-btn resource-btn" id="gather-resource">Gather</button>
+  <p id="gather-log" aria-live="polite"></p>
+</div>
+
+<div id="battle" class="tab-content" role="tabpanel">
+  <h2>Battle</h2>
+  <button class="action-btn" id="start-battle">Start Battle</button>
+  <p id="battle-log" aria-live="polite"></p>
+</div>
+
+<div id="trade" class="tab-content" role="tabpanel">
+  <h2>Trade</h2>
+  <button class="action-btn" id="view-inventory">Inventory</button>
+  <button class="action-btn" id="view-market">Market</button>
+  <ul id="inventory-list"></ul>
+</div>
+
+<script>
+// --- TAB LOGIC ---
+const tabs = document.querySelectorAll('.tab-btn');
+const contents = document.querySelectorAll('.tab-content');
+tabs.forEach(tab => {
+  tab.addEventListener('click', () => {
+    tabs.forEach(t=>t.classList.remove('active'));
+    tab.classList.add('active');
+    contents.forEach(c=>c.classList.remove('active'));
+    document.getElementById(tab.getAttribute('aria-controls')).classList.add('active');
   });
 });
+
+// --- PLAYER DATA ---
+let player = JSON.parse(localStorage.getItem('player')) || {level:1,money:1000,inventory:[],pokemon:[]};
+function savePlayer(){ localStorage.setItem('player',JSON.stringify(player)); }
+function updatePlayerUI(){ document.getElementById('player-info').innerText=`Level: ${player.level} | Money: $${player.money}`; }
+updatePlayerUI();
+
+// --- POKEMON DATA (first 50 Pokémon subset) ---
+const pokemonData = [
+  {"id":1,"name":"Bulbasaur","types":["Grass","Poison"],"baseStats":{"hp":45,"attack":49,"defense":49,"speed":45,"special":65},"moves":[{"name":"Tackle","type":"Normal","power":35,"accuracy":95},{"name":"Growl","type":"Normal","power":0,"accuracy":100},{"name":"Leech Seed","type":"Grass","power":0,"accuracy":90},{"name":"Vine Whip","type":"Grass","power":45,"accuracy":100}]},
+  {"id":2,"name":"Ivysaur","types":["Grass","Poison"],"baseStats":{"hp":60,"attack":62,"defense":63,"speed":60,"special":80},"moves":[{"name":"Tackle","type":"Normal","power":35,"accuracy":95},{"name":"Growl","type":"Normal","power":0,"accuracy":100},{"name":"Leech Seed","type":"Grass","power":0,"accuracy":90},{"name":"Vine Whip","type":"Grass","power":45,"accuracy":100}]},
+  {"id":3,"name":"Venusaur","types":["Grass","Poison"],"baseStats":{"hp":80,"attack":82,"defense":83,"speed":80,"special":100},"moves":[{"name":"Tackle","type":"Normal","power":35,"accuracy":95},{"name":"Growl","type":"Normal","power":0,"accuracy":100},{"name":"Leech Seed","type":"Grass","power":0,"accuracy":90},{"name":"Vine Whip","type":"Grass","power":45,"accuracy":100}]},
+  {"id":4,"name":"Charmander","types":["Fire"],"baseStats":{"hp":39,"attack":52,"defense":43,"speed":65,"special":50},"moves":[{"name":"Scratch","type":"Normal","power":40,"accuracy":100},{"name":"Growl","type":"Normal","power":0,"accuracy":100},{"name":"Ember","type":"Fire","power":40,"accuracy":100},{"name":"Smokescreen","type":"Normal","power":0,"accuracy":100}]},
+  {"id":5,"name":"Charmeleon","types":["Fire"],"baseStats":{"hp":58,"attack":64,"defense":58,"speed":80,"special":65},"moves":[{"name":"Scratch","type":"Normal","power":40,"accuracy":100},{"name":"Growl","type":"Normal","power":0,"accuracy":100},{"name":"Ember","type":"Fire","power":40,"accuracy":100},{"name":"Smokescreen","type":"Normal","power":0,"accuracy":100}]},
+  {"id":6,"name":"Charizard","types":["Fire","Flying"],"baseStats":{"hp":78,"attack":84,"defense":78,"speed":100,"special":85},"moves":[{"name":"Scratch","type":"Normal","power":40,"accuracy":100},{"name":"Growl","type":"Normal","power":0,"accuracy":100},{"name":"Ember","type":"Fire","power":40,"accuracy":100},{"name":"Smokescreen","type":"Normal","power":0,"accuracy":100}]},
+  {"id":7,"name":"Squirtle","types":["Water"],"baseStats":{"hp":44,"attack":48,"defense":65,"speed":43,"special":50},"moves":[{"name":"Tackle","type":"Normal","power":35,"accuracy":95},{"name":"Tail Whip","type":"Normal","power":0,"accuracy":100},{"name":"Water Gun","type":"Water","power":40,"accuracy":100},{"name":"Withdraw","type":"Normal","power":0,"accuracy":100}]},
+  {"id":8,"name":"Wartortle","types":["Water"],"baseStats":{"hp":59,"attack":63,"defense":80,"speed":58,"special":65},"moves":[{"name":"Tackle","type":"Normal","power":35,"accuracy":95},{"name":"Tail Whip","type":"Normal","power":0,"accuracy":100},{"name":"Water Gun","type":"Water","power":40,"accuracy":100},{"name":"Withdraw","type":"Normal","power":0,"accuracy":100}]},
+  {"id":9,"name":"Blastoise","types":["Water"],"baseStats":{"hp":79,"attack":83,"defense":100,"speed":78,"special":85},"moves":[{"name":"Tackle","type":"Normal","power":35,"accuracy":95},{"name":"Tail Whip","type":"Normal","power":0,"accuracy":100},{"name":"Water Gun","type":"Water","power":40,"accuracy":100},{"name":"Withdraw","type":"Normal","power":0,"accuracy":100}]},
+  {"id":10,"name":"Caterpie","types":["Bug"],"baseStats":{"hp":45,"attack":30,"defense":35,"speed":45,"special":20},"moves":[{"name":"Tackle","type":"Normal","power":35,"accuracy":95},{"name":"String Shot","type":"Bug","power":0,"accuracy":95},{"name":"Wrap","type":"Normal","power":15,"accuracy":90},{"name":"Poison Sting","type":"Poison","power":15,"accuracy":100}]}
+  // Continue adding Pokémon up to 50
+];
+
+// --- POKEDEX UI ---
+const pokedexList = document.getElementById('pokedex-list');
+function showPokemonDetails(pokemon){
+  alert(`${pokemon.name}\nTypes: ${pokemon.types.join(', ')}\nHP: ${pokemon.baseStats.hp}\nAttack: ${pokemon.baseStats.attack}\nDefense: ${pokemon.baseStats.defense}\nSpeed: ${pokemon.baseStats.speed}\nSpecial: ${pokemon.baseStats.special}`);
+}
+pokemonData.forEach(p => {
+  const li = document.createElement('li');
+  li.textContent = p.name;
+  li.setAttribute('tabindex','0');
+  li.setAttribute('aria-label',`${p.name}, Type: ${p.types.join(', ')}`);
+  li.addEventListener('click',()=>showPokemonDetails(p));
+  li.addEventListener('keypress',e=>{if(e.key==='Enter') showPokemonDetails(p)});
+  pokedexList.appendChild(li);
+});
+
+// --- GATHER LOGIC ---
+const resources = ['Berry','Potion','Evolution Stone','Rare Candy'];
+document.getElementById('gather-resource').addEventListener('click',()=>{
+  const resource = resources[Math.floor(Math.random()*resources.length)];
+  player.inventory.push(resource); savePlayer();
+  document.getElementById('gather-log').innerText = `You gathered: ${resource}`;
+  updateInventoryUI();
+});
+
+// --- EXPLORE LOGIC ---
+const exploreLog = document.getElementById('explore-log');
+document.getElementById('catch-pokemon').addEventListener('click',()=>{
+  const wild = pokemonData[Math.floor(Math.random()*pokemonData.length)];
+  exploreLog.innerText = `A wild ${wild.name} appeared! You caught it!`;
+  player.pokemon.push(wild.name); savePlayer();
+});
+
+// --- INVENTORY UI ---
+function updateInventoryUI(){
+  const invList = document.getElementById('inventory-list');
+  invList.innerHTML='';
+  player.inventory.forEach(item=>{
+    const li = document.createElement('li'); li.textContent=item; invList.appendChild(li);
+  });
+}
+updateInventoryUI();
+
+// --- BATTLE LOGIC ---
+function calculateDamage(attacker, defender, move){
+  let base = move.power + attacker.baseStats.attack - defender.baseStats.defense/2;
+  return Math.max(1, Math.floor(base));
+}
+document.getElementById('start-battle').addEventListener('click',()=>{
+  if(player.pokemon.length===0){alert('You have no Pokémon!'); return;}
+  const playerPokemon = pokemonData.find(p=>p.name===player.pokemon[0]);
+  const enemyPokemon = pokemonData[Math.floor(Math.random()*pokemonData.length)];
+  let battleLog=`Battle Start! ${playerPokemon.name} vs ${enemyPokemon.name}\n`;
+  let playerHP=playerPokemon.baseStats.hp;
+  let enemyHP=enemyPokemon.baseStats.hp;
+
+  while(playerHP>0 && enemyHP>0){
+    const playerMove = playerPokemon.moves[0];
+    const enemyMove = enemyPokemon.moves[0];
+    let damageToEnemy = calculateDamage(playerPokemon, enemyPokemon, playerMove);
+    enemyHP -= damageToEnemy;
+    battleLog+=`${playerPokemon.name} used ${playerMove.name}! Enemy HP-${damageToEnemy}\n`;
+    if(enemyHP<=0){battleLog+=`${enemyPokemon.name} fainted! You win!\n`; break;}
+    let damageToPlayer = calculateDamage(enemyPokemon, playerPokemon, enemyMove);
+    playerHP -= damageToPlayer;
+    battleLog+=`${enemyPokemon.name} used ${enemyMove.name}! Your HP-${damageToPlayer}\n`;
+    if(playerHP<=0){battleLog+=`${playerPokemon.name} fainted! You lose!\n`; break;}
+  }
+  document.getElementById('battle-log').innerText=battleLog;
+});
+
 </script>
 </body>
-</html><!-- TABS -->
-<nav class="tabs" role="tablist" aria-label="Main tabs">
-  <div id="tab-home" class="tab" role="tab" aria-controls="home" aria-selected="true" tabindex="0">Home</div>
-  <div id="tab-explore" class="tab" role="tab" aria-controls="explore" aria-selected="false" tabindex="0">Explore</div>
-  <div id="tab-inventory" class="tab" role="tab" aria-controls="inventory" aria-selected="false" tabindex="0">Inventory</div>
-  <div id="tab-market" class="tab" role="tab" aria-controls="market" aria-selected="false" tabindex="0">PokéMarket</div>
-  <div id="tab-battle" class="tab" role="tab" aria-controls="battle" aria-selected="false" tabindex="0">Battle</div>
-  <div id="tab-trade" class="tab" role="tab" aria-controls="trade" aria-selected="false" tabindex="0">Trade</div>
-  <div id="tab-center" class="tab" role="tab" aria-controls="center" aria-selected="false" tabindex="0">PokéCenter</div>
-</nav>
-
-<!-- Example Panels -->
-<section id="home" class="panel active">Home content here</section>
-<section id="explore" class="panel">Explore content here</section>
-<section id="inventory" class="panel">Inventory content here</section>
-<section id="market" class="panel">Market content here</section>
-<section id="battle" class="panel">Battle content here</section>
-<section id="trade" class="panel">Trade content here</section>
-<section id="center" class="panel">PokéCenter content here</section>
+</html>
