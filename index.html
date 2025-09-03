@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Accessible Pokémon Game — Inventory & Gear</title>
+<title>Accessible Pokémon Game — Level & XP System</title>
 <style>
 :root{--nav:#333;--accent:#90ee90;--bg:#f0f8ff}
 html,body{height:100%;margin:0;font-family:Arial,Helvetica,sans-serif;background:var(--bg);color:#111;display:flex;flex-direction:column;}
@@ -15,7 +15,6 @@ nav button.active{background:#222;outline:3px solid #ff0;}
 .btn{display:inline-block;padding:10px 14px;margin:6px 4px;border:0;border-radius:8px;background:#1976d2;color:#fff;font-size:14px;cursor:pointer;}
 .btn.alt{background:var(--accent);color:#000;}
 .btn.ghost{background:transparent;border:1px solid #ccc;color:#000;}
-ul{padding-left:18px;}
 .panel{border:1px solid #ddd;padding:8px;background:#fff;border-radius:8px;}
 .flex{display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
 label{display:block;margin:6px 0;}
@@ -25,79 +24,87 @@ select{padding:6px;border-radius:4px;}
 </head>
 <body>
 <main>
-  <!-- HOME -->
-  <section id="home" class="tab" role="tabpanel">
-    <h1>Home</h1>
-    <p id="player-info" aria-live="polite">Level: 1 | Money: $1000 | Bank: $0</p>
-    <div class="flex">
-      <button id="open-pokedex" class="btn alt" aria-expanded="false">Open Pokedex</button>
-      <button id="save-manual" class="btn ghost">Save Now</button>
-      <button id="reset-game" class="btn ghost">Reset Save</button>
-    </div>
-    <div class="flex" style="margin-top:8px;">
-      <button id="bank-deposit" class="btn alt">Deposit $100</button>
-      <button id="bank-withdraw" class="btn alt">Withdraw $100</button>
-    </div>
-    <h2>Pokedex</h2>
-    <div id="pokedex-list" class="panel" style="display:none" aria-live="polite"></div>
-  </section>
-
-  <!-- INVENTORY -->
-  <section id="inventory" class="tab" role="tabpanel">
-    <h1>Inventory</h1>
-    <div id="inventory-list" class="panel" aria-live="polite"></div>
-  </section>
-
-  <!-- EXPLORE -->
-  <section id="explore" class="tab" role="tabpanel">
-    <h1>Explore</h1>
-    <p>Search the wilds and try to catch Pokémon.</p>
-    <div class="flex">
-      <button id="catch-pokemon" class="btn alt">Search & Catch</button>
-    </div>
-    <p id="explore-log" aria-live="polite"></p>
-  </section>
-
-  <!-- GATHER -->
-  <section id="gather" class="tab" role="tabpanel">
-    <h1>Gather</h1>
-    <p>Gather resources used for healing, evolving, and trading.</p>
-    <div class="flex">
-      <button id="gather-resource" class="btn alt">Gather Resource</button>
-    </div>
-    <p id="gather-log" aria-live="polite"></p>
-  </section>
-
-  <!-- BATTLE -->
-  <section id="battle" class="tab" role="tabpanel">
-    <h1>Battle</h1>
-    <div class="flex">
-      <button id="start-battle" class="btn alt">Start Battle</button>
-      <div id="battle-controls" style="display:none;">
-        <label for="select-player-poke">Choose your Pokémon:</label>
-        <select id="select-player-poke" aria-label="Choose your Pokémon to send"></select>
-        <button id="send-out" class="btn">Send Out</button>
-      </div>
-    </div>
-    <div id="battle-area" style="margin-top:12px;display:none;">
-      <div class="panel" id="battle-stats" aria-live="polite"></div>
-      <div id="move-buttons" style="margin-top:10px;"></div>
-    </div>
-    <p id="battle-log" aria-live="assertive" style="white-space:pre-wrap;margin-top:10px;"></p>
-  </section>
-
-  <!-- TRADE -->
-  <section id="trade" class="tab" role="tabpanel">
-    <h1>Trade</h1>
-    <label for="trade-mode">Choose Mode:</label>
-    <select id="trade-mode">
-      <option value="buy">Buy Items</option>
-      <option value="sell">Sell Items</option>
+<!-- HOME -->
+<section id="home" class="tab" role="tabpanel">
+  <h1>Home</h1>
+  <p id="player-info" aria-live="polite">Level: 1 | XP: 0 | Money: $1000 | Bank: $0</p>
+  <div class="flex">
+    <button id="open-pokedex" class="btn alt" aria-expanded="false">Open Pokedex</button>
+    <button id="save-manual" class="btn ghost">Save Now</button>
+    <button id="reset-game" class="btn ghost">Reset Save</button>
+  </div>
+  <div class="flex" style="margin-top:8px;">
+    <label for="bank-actions">Bank:</label>
+    <select id="bank-actions">
+      <option value="">Select</option>
+      <option value="deposit10">Deposit $10</option>
+      <option value="deposit20">Deposit $20</option>
+      <option value="deposit50">Deposit $50</option>
+      <option value="depositAll">Deposit All</option>
+      <option value="withdraw10">Withdraw $10</option>
+      <option value="withdraw20">Withdraw $20</option>
+      <option value="withdraw50">Withdraw $50</option>
+      <option value="withdrawAll">Withdraw All</option>
     </select>
-    <div id="trade-panel" class="panel" style="margin-top:10px;"></div>
-  </section>
+  </div>
+  <h2>Pokedex</h2>
+  <div id="pokedex-list" class="panel" style="display:none" aria-live="polite"></div>
+</section>
 
-  <footer style="margin-top:18px;font-size:13px;color:#444">Accessible Pokémon Game — full merged base with Inventory & Gear</footer>
+<!-- INVENTORY -->
+<section id="inventory" class="tab" role="tabpanel">
+  <h1>Inventory</h1>
+  <div id="inventory-list" class="panel" aria-live="polite"></div>
+</section>
+
+<!-- EXPLORE -->
+<section id="explore" class="tab" role="tabpanel">
+  <h1>Explore</h1>
+  <p>Search the wilds and try to catch Pokémon.</p>
+  <div class="flex">
+    <button id="catch-pokemon" class="btn alt">Search & Catch</button>
+  </div>
+  <p id="explore-log" aria-live="polite"></p>
+</section>
+
+<!-- GATHER -->
+<section id="gather" class="tab" role="tabpanel">
+  <h1>Gather</h1>
+  <p>Gather resources used for healing, evolving, and trading.</p>
+  <div class="flex">
+    <button id="gather-resource" class="btn alt">Gather Resource</button>
+  </div>
+  <p id="gather-log" aria-live="polite"></p>
+</section>
+
+<!-- BATTLE -->
+<section id="battle" class="tab" role="tabpanel">
+  <h1>Battle</h1>
+  <div class="flex">
+    <button id="start-battle" class="btn alt">Start Battle</button>
+  </div>
+  <div id="battle-area" style="margin-top:12px;display:none;">
+    <div class="panel" id="battle-stats" aria-live="polite"></div>
+    <div id="move-buttons" style="margin-top:10px;"></div>
+  </div>
+  <p id="battle-log" aria-live="assertive" style="white-space:pre-wrap;margin-top:10px;"></p>
+</section>
+
+<!-- TRADE -->
+<section id="trade" class="tab" role="tabpanel">
+  <h1>Trade</h1>
+  <div class="flex">
+    <button id="sell-all-top" class="btn alt">Sell All Sellable Items</button>
+  </div>
+  <label for="trade-mode">Choose Mode:</label>
+  <select id="trade-mode">
+    <option value="buy">Buy Items</option>
+    <option value="sell">Sell Items</option>
+  </select>
+  <div id="trade-panel" class="panel" style="margin-top:10px;"></div>
+</section>
+
+<footer style="margin-top:18px;font-size:13px;color:#444">Accessible Pokémon Game — Level & XP System</footer>
 </main>
 
 <nav role="tablist" aria-label="Main tabs">
@@ -111,196 +118,104 @@ select{padding:6px;border-radius:4px;}
 
 <script>
 // ------------------ Player state ------------------
-const DEFAULT_PLAYER = { level:1, money:1000, bank:0, inventory:{}, pokemon:[] };
+const DEFAULT_PLAYER = { level:1, xp:0, money:1000, bank:0, inventory:{}, pokemon:[] };
 let player = loadPlayer();
 
-function savePlayer(){ localStorage.setItem('pkm_player_v3', JSON.stringify(player)); updateUI(); }
-function loadPlayer(){ try{ const s=localStorage.getItem('pkm_player_v3'); return s?JSON.parse(s): structuredClone(DEFAULT_PLAYER);}catch(e){return structuredClone(DEFAULT_PLAYER);} }
+function savePlayer(){ localStorage.setItem('pkm_player_v4', JSON.stringify(player)); updateUI(); }
+function loadPlayer(){ try{ const s=localStorage.getItem('pkm_player_v4'); return s?JSON.parse(s): structuredClone(DEFAULT_PLAYER);}catch(e){return structuredClone(DEFAULT_PLAYER);} }
 function resetPlayer(){ if(confirm('Reset save? This will clear progress.')){ player=structuredClone(DEFAULT_PLAYER); savePlayer(); location.reload(); } }
-function updateUI(){ document.getElementById('player-info').innerText=`Level: ${player.level} | Money: $${player.money} | Bank: $${player.bank}`; updateInventoryUI(); updateTradeUI(); }
+function gainXP(amount){
+  player.xp += amount;
+  while(player.xp >= 100){ player.level++; player.xp -= 100; alert(`You leveled up! Now Level ${player.level}`);}
+  savePlayer();
+}
+function updateUI(){
+  document.getElementById('player-info').innerText=`Level: ${player.level} | XP: ${player.xp} | Money: $${player.money} | Bank: $${player.bank}`;
+  updateInventoryUI();
+  updateTradeUI();
+}
 
-// save/reset buttons
+// ------------------ Save/Reset ------------------
 document.getElementById('save-manual').addEventListener('click', ()=>{ savePlayer(); alert('Saved.'); });
 document.getElementById('reset-game').addEventListener('click', resetPlayer);
 
-// bank buttons
-document.getElementById('bank-deposit').addEventListener('click', ()=>{
-  if(player.money>=100){player.money-=100; player.bank+=100; savePlayer();}
-});
-document.getElementById('bank-withdraw').addEventListener('click', ()=>{
-  if(player.bank>=100){player.bank-=100; player.money+=100; savePlayer();}
+// ------------------ Bank ------------------
+const bankActions=document.getElementById('bank-actions');
+bankActions.addEventListener('change',()=>{
+  const v=bankActions.value;
+  if(v==='deposit10' && player.money>=10){player.money-=10; player.bank+=10;}
+  else if(v==='deposit20' && player.money>=20){player.money-=20; player.bank+=20;}
+  else if(v==='deposit50' && player.money>=50){player.money-=50; player.bank+=50;}
+  else if(v==='depositAll'){player.bank+=player.money; player.money=0;}
+  else if(v==='withdraw10' && player.bank>=10){player.bank-=10; player.money+=10;}
+  else if(v==='withdraw20' && player.bank>=20){player.bank-=20; player.money+=20;}
+  else if(v==='withdraw50' && player.bank>=50){player.bank-=50; player.money+=50;}
+  else if(v==='withdrawAll'){player.money+=player.bank; player.bank=0;}
+  bankActions.value='';
+  savePlayer();
 });
 
 // ------------------ Pokémon data ------------------
 const pokemonData = [
-  {"id":1,"name":"Bulbasaur","types":["Grass","Poison"],"baseStats":{"hp":45,"attack":49,"defense":49,"speed":45,"special":65},"moves":[{"name":"Tackle","type":"Normal","power":35,"accuracy":95},{"name":"Growl","type":"Status","power":0,"accuracy":100},{"name":"Leech Seed","type":"Grass","power":0,"accuracy":90},{"name":"Vine Whip","type":"Grass","power":45,"accuracy":100}]},
-  {"id":2,"name":"Ivysaur","types":["Grass","Poison"],"baseStats":{"hp":60,"attack":62,"defense":63,"speed":60,"special":80},"moves":[{"name":"Tackle","type":"Normal","power":35,"accuracy":95},{"name":"Growl","type":"Status","power":0,"accuracy":100},{"name":"Leech Seed","type":"Grass","power":0,"accuracy":90},{"name":"Vine Whip","type":"Grass","power":45,"accuracy":100}]} 
+  {"id":1,"name":"Bulbasaur"}, {"id":2,"name":"Ivysaur"}, {"id":3,"name":"Venusaur"},
+  {"id":4,"name":"Charmander"}, {"id":5,"name":"Charmeleon"}, {"id":6,"name":"Charizard"},
+  {"id":7,"name":"Squirtle"}, {"id":8,"name":"Wartortle"}, {"id":9,"name":"Blastoise"},
+  {"id":10,"name":"Caterpie"}, {"id":11,"name":"Metapod"}, {"id":12,"name":"Butterfree"},
+  {"id":13,"name":"Weedle"}, {"id":14,"name":"Kakuna"}, {"id":15,"name":"Beedrill"}
 ];
 
 // ------------------ Pokedex ------------------
-const pokedexBtn = document.getElementById('open-pokedex');
-const pokedexListEl = document.getElementById('pokedex-list');
+const pokedexBtn=document.getElementById('open-pokedex');
+const pokedexListEl=document.getElementById('pokedex-list');
 function buildPokedex(){
   pokedexListEl.innerHTML='';
   pokemonData.forEach(p=>{
-    const node=document.createElement('div');
-    node.tabIndex=0; node.style.padding='6px 4px';
-    node.style.borderBottom='1px solid #eee';
+    const node=document.createElement('div'); node.tabIndex=0;
+    node.style.padding='6px 4px'; node.style.borderBottom='1px solid #eee';
     node.setAttribute('role','button');
-    node.setAttribute('aria-label',`${p.name}. Types: ${p.types.join(', ')}.`);
-    node.textContent=`${p.id.toString().padStart(3,'0')} — ${p.name} (${p.types.join('/')})`;
-    node.addEventListener('click', ()=>alert(`Stats: HP ${p.baseStats.hp}, Atk ${p.baseStats.attack}`));
-    node.addEventListener('keypress', e=>{if(e.key==='Enter') alert(`Stats: HP ${p.baseStats.hp}, Atk ${p.baseStats.attack}`)});
+    node.setAttribute('aria-label',p.name);
+    node.textContent=`${p.id.toString().padStart(3,'0')} — ${p.name}`;
     pokedexListEl.appendChild(node);
   });
 }
 pokedexBtn.addEventListener('click', ()=>{
-  const visible = pokedexListEl.style.display==='block';
+  const visible=pokedexListEl.style.display==='block';
   if(!visible){ buildPokedex(); pokedexListEl.style.display='block'; pokedexBtn.innerText='Close Pokedex'; pokedexBtn.setAttribute('aria-expanded','true'); }
   else{ pokedexListEl.style.display='none'; pokedexBtn.innerText='Open Pokedex'; pokedexBtn.setAttribute('aria-expanded','false'); }
 });
 
 // ------------------ Tabs ------------------
-const tabButtons = document.querySelectorAll('nav .tab-btn');
-const tabs = document.querySelectorAll('main .tab');
-
-tabButtons.forEach(btn => {
-  btn.addEventListener('click', () => {
-    const target = btn.dataset.target;
-    tabButtons.forEach(b => b.classList.remove('active'));
-    tabs.forEach(t => t.style.display = 'none');
-    btn.classList.add('active');
-    document.getElementById(target).style.display = 'block';
-  });
-});
-tabs.forEach(t => t.style.display = 'none');
-document.getElementById('home').style.display = 'block';
+const tabButtons=document.querySelectorAll('nav .tab-btn');
+const tabs=document.querySelectorAll('main .tab');
+tabButtons.forEach(btn=>{btn.addEventListener('click',()=>{const target=btn.dataset.target; tabButtons.forEach(b=>b.classList.remove('active')); tabs.forEach(t=>t.style.display='none'); btn.classList.add('active'); document.getElementById(target).style.display='block';});});
+tabs.forEach(t=>t.style.display='none');
+document.getElementById('home').style.display='block';
 
 // ------------------ Inventory ------------------
 function updateInventoryUI(){
-  const invPanel = document.getElementById('inventory-list');
+  const invPanel=document.getElementById('inventory-list');
   invPanel.innerHTML='';
-  for(const [item, qty] of Object.entries(player.inventory)){
+  for(const [item,qty] of Object.entries(player.inventory)){
     const node=document.createElement('div');
     node.textContent=`${item} x${qty}`;
     invPanel.appendChild(node);
   }
 }
 
-// ------------------ Explore/Gather ------------------
+// ------------------ Explore ------------------
 const exploreLog=document.getElementById('explore-log');
-document.getElementById('catch-pokemon').addEventListener('click', ()=>{
-  const wild = pokemonData[Math.floor(Math.random()*pokemonData.length)];
+document.getElementById('catch-pokemon').addEventListener('click',()=>{
+  const wild=pokemonData[Math.floor(Math.random()*pokemonData.length)];
   exploreLog.innerText=`A wild ${wild.name} appeared!`;
   setTimeout(()=>{
-    const success = Math.random()<0.7;
-    if(success){ 
-      player.pokemon.push(wild.name); savePlayer(); exploreLog.innerText=`You caught ${wild.name}!`; 
-    } else{ exploreLog.innerText=`${wild.name} escaped!`; }
+    const success=Math.random()<0.7;
+    if(success){ player.pokemon.push(wild.name); gainXP(20); savePlayer(); exploreLog.innerText=`You caught ${wild.name}! (+20 XP)`;}
+    else exploreLog.innerText=`${wild.name} escaped!`;
   },500);
 });
 
+// ------------------ Gather ------------------
 const gatherLog=document.getElementById('gather-log');
 const resources=['Potion','Super Potion','Berry','Shield Vest','Battle Gloves'];
-document.getElementById('gather-resource').addEventListener('click', ()=>{
-  const item = resources[Math.floor(Math.random()*resources.length)];
-  if(!player.inventory[item]) player.inventory[item]=0;
-  player.inventory[item]++;
-  savePlayer();
-  gatherLog.innerText=`You gathered: ${item}`;
-});
-
-// ------------------ Trade ------------------
-const tradeMode = document.getElementById('trade-mode');
-const tradePanel = document.getElementById('trade-panel');
-function updateTradeUI(){
-  tradePanel.innerHTML='';
-  if(tradeMode.value==='buy'){
-    ['Shield Vest','Healing Ring','Battle Gloves'].forEach(item=>{
-      const b=document.createElement('button');
-      b.className='btn alt';
-      b.textContent=`Buy ${item} ($50)`;
-      b.addEventListener('click', ()=>{
-        if(player.money>=50){player.money-=50; if(!player.inventory[item]) player.inventory[item]=0; player.inventory[item]++; savePlayer(); alert(`Bought ${item}`);}
-        else alert('Not enough money');
-      });
-      tradePanel.appendChild(b);
-    });
-  } else { // Sell
-    const sellable = Object.keys(player.inventory).filter(i=>player.inventory[i]>0);
-    if(sellable.length===0){ tradePanel.innerText='No items to sell.'; return; }
-    sellable.forEach(item=>{
-      const b=document.createElement('button');
-      b.className='btn alt';
-      b.textContent=`Sell ${item} ($25)`;
-      b.addEventListener('click', ()=>{
-        player.inventory[item]--; if(player.inventory[item]<=0) delete player.inventory[item];
-        player.money+=25;
-        savePlayer(); updateTradeUI();
-      });
-      tradePanel.appendChild(b);
-    });
-    const sellAllBtn=document.createElement('button');
-    sellAllBtn.className='btn alt';
-    sellAllBtn.textContent='Sell All Sellable Items';
-    sellAllBtn.addEventListener('click', ()=>{
-      let earned=0;
-      sellable.forEach(item=>{
-        earned+=player.inventory[item]*25;
-        delete player.inventory[item];
-      });
-      player.money+=earned;
-      savePlayer(); updateTradeUI(); alert(`Sold all items for $${earned}`);
-    });
-    tradePanel.appendChild(document.createElement('br'));
-    tradePanel.appendChild(sellAllBtn);
-  }
-}
-tradeMode.addEventListener('change', updateTradeUI);
-updateTradeUI();
-
-// ------------------ Battle ------------------
-let currentBattle = null;
-const battleLog = document.getElementById('battle-log');
-document.getElementById('start-battle').addEventListener('click', ()=>{
-  if(player.pokemon.length===0){ alert('No Pokémon to battle with!'); return; }
-  currentBattle = { player: {name:player.pokemon[0], hp:50}, enemy: {name:pokemonData[Math.floor(Math.random()*pokemonData.length)].name, hp:50} };
-  document.getElementById('battle-area').style.display='block';
-  document.getElementById('move-buttons').innerHTML='';
-  battleLog.innerText=`A wild ${currentBattle.enemy.name} appeared!`;
-  showMoves();
-});
-function showMoves(){
-  const movesDiv=document.getElementById('move-buttons');
-  movesDiv.innerHTML='';
-  ['Tackle','Growl','Vine Whip','Leech Seed'].forEach(move=>{
-    const btn=document.createElement('button');
-    btn.textContent=move;
-    btn.addEventListener('click', ()=>playerTurn(move));
-    movesDiv.appendChild(btn);
-  });
-}
-function playerTurn(move){
-  if(!currentBattle) return;
-  currentBattle.enemy.hp-=10;
-  battleLog.innerText+=`\nPlayer used ${move}! Enemy HP: ${Math.max(0,currentBattle.enemy.hp)}`;
-  if(currentBattle.enemy.hp<=0){ endBattle('You Win!'); return; }
-  setTimeout(enemyTurn,500);
-}
-function enemyTurn(){
-  if(!currentBattle) return;
-  currentBattle.player.hp-=10;
-  battleLog.innerText+=`\nEnemy attacks! Player HP: ${Math.max(0,currentBattle.player.hp)}`;
-  if(currentBattle.player.hp<=0){ endBattle('You Lose!'); return; }
-}
-function endBattle(result){
-  currentBattle=null;
-  document.getElementById('move-buttons').innerHTML='';
-  battleLog.innerText+=`\nBattle Over: ${result}`;
-  if(result==='You Win!'){ player.money+=100; player.level+=1; savePlayer(); updateUI(); battleLog.innerText+=`\nYou earned $100 and leveled up!`; }
-}
-
-updateUI();
-</script>
-</body>
-</html>
+document.getElementById('gather-resource').addEventListener('click',()=>{
+  const item=
