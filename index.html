@@ -6,33 +6,33 @@
 <title>Pokémon Adventure</title>
 <meta name="theme-color" content="#ef5350" />
 <style>
-  :root{
-    --bg:#f5f5f5; --card:#ffffff; --ink:#222; --muted:#666;
-    --brand:#ef5350; --brand-ink:#fff; --tab:#fff; --tab-sel:#e0e0e0;
-  }
-  *{box-sizing:border-box}
-  body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:var(--bg);color:var(--ink)}
-  h1,h2,h3{margin:.4rem 0}
-  main{padding:16px 16px 86px}
-  .card{background:var(--card);border-radius:14px;box-shadow:0 1px 4px rgba(0,0,0,.08);padding:14px;margin-bottom:12px}
-  button{cursor:pointer;border:0;border-radius:10px;background:var(--brand);color:var(--brand-ink);padding:10px 14px;font-size:16px}
-  button.secondary{background:#e0e0e0;color:#111}
-  button.link{background:transparent;color:var(--brand);padding:0}
-  input,select{width:100%;padding:10px;border:1px solid #ddd;border-radius:10px;margin:6px 0}
-  .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-  .grow{flex:1}
-  .muted{color:var(--muted)}
-  .tabs{position:fixed;inset:auto 0 0 0;display:flex;border-top:1px solid #ddd;background:var(--tab);z-index:50}
-  .tab{flex:1;padding:12px 6px;text-align:center;user-select:none;cursor:pointer}
-  .tab[aria-selected="true"]{background:var(--tab-sel);font-weight:600}
-  .panel{display:none}
-  .panel.active{display:block}
-  .pill{display:inline-block;background:#ffe0e0;color:#b71c1c;border-radius:999px;padding:2px 10px;font-size:12px;margin-left:6px}
-  /* Modal */
-  .modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;align-items:center;justify-content:center;z-index:1000}
-  .modal{background:#fff;border-radius:14px;max-width:420px;width:92%;padding:16px;outline:0}
-  .modal header{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
-  .sr-only{position:absolute;left:-10000px;top:auto;width:1px;height:1px;overflow:hidden}
+:root{
+  --bg:#f5f5f5; --card:#ffffff; --ink:#222; --muted:#666;
+  --brand:#ef5350; --brand-ink:#fff; --tab:#fff; --tab-sel:#e0e0e0;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:var(--bg);color:var(--ink)}
+h1,h2,h3{margin:.4rem 0}
+main{padding:16px 16px 86px}
+.card{background:var(--card);border-radius:14px;box-shadow:0 1px 4px rgba(0,0,0,.08);padding:14px;margin-bottom:12px}
+button{cursor:pointer;border:0;border-radius:10px;background:var(--brand);color:var(--brand-ink);padding:10px 14px;font-size:16px}
+button.secondary{background:#e0e0e0;color:#111}
+button.link{background:transparent;color:var(--brand);padding:0}
+input,select{width:100%;padding:10px;border:1px solid #ddd;border-radius:10px;margin:6px 0}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.grow{flex:1}
+.muted{color:var(--muted)}
+.tabs{position:fixed;inset:auto 0 0 0;display:flex;border-top:1px solid #ddd;background:var(--tab);z-index:50}
+.tab{flex:1;padding:12px 6px;text-align:center;user-select:none;cursor:pointer}
+.tab[aria-selected="true"]{background:var(--tab-sel);font-weight:600}
+.panel{display:none}
+.panel.active{display:block}
+.pill{display:inline-block;background:#ffe0e0;color:#b71c1c;border-radius:999px;padding:2px 10px;font-size:12px;margin-left:6px}
+/* Modal */
+.modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;align-items:center;justify-content:center;z-index:1000}
+.modal{background:#fff;border-radius:14px;max-width:420px;width:92%;padding:16px;outline:0}
+.modal header{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.sr-only{position:absolute;left:-10000px;top:auto;width:1px;height:1px;overflow:hidden}
 </style>
 </head>
 <body>
@@ -72,7 +72,7 @@
       </div>
       <div id="explore-log" aria-live="polite"></div>
     </div>
-    <div class="card" id="encounter-card" style="display:none">
+    <div class="card" id="encounter-card">
       <h3>Wild Encounter</h3>
       <p><strong id="wild-name">???</strong> <span class="muted" id="wild-id"></span></p>
       <div class="row">
@@ -131,8 +131,6 @@
   <div id="tab-center" class="tab" role="tab" aria-controls="center" aria-selected="false" tabindex="0">PokéCenter</div>
 </nav>
 
-<!-- Market & Auth modals unchanged -->
-
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.25.0/firebase-app.js";
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.25.0/firebase-auth.js";
@@ -163,12 +161,8 @@ document.addEventListener('DOMContentLoaded', ()=>{
       const target = document.getElementById(t.getAttribute('aria-controls'));
       if(target) target.classList.add('active');
     });
-    // keyboard accessibility
     t.addEventListener('keydown', (e)=>{
-      if(e.key === "Enter" || e.key === " "){
-        t.click();
-        e.preventDefault();
-      }
+      if(e.key === "Enter" || e.key === " "){ t.click(); e.preventDefault(); }
     });
   });
 });
