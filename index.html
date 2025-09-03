@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Accessible Pokémon Game — Full Base Updated</title>
+<title>Accessible Pokémon Game — Inventory & Gear</title>
 <style>
 :root{--nav:#333;--accent:#90ee90;--bg:#f0f8ff}
 html,body{height:100%;margin:0;font-family:Arial,Helvetica,sans-serif;background:var(--bg);color:#111;display:flex;flex-direction:column;}
@@ -16,9 +16,6 @@ nav button.active{background:#222;outline:3px solid #ff0;}
 .btn.alt{background:var(--accent);color:#000;}
 .btn.ghost{background:transparent;border:1px solid #ccc;color:#000;}
 ul{padding-left:18px;}
-#pokedex-list{max-height:240px;overflow:auto;border:1px solid #ddd;padding:8px;background:#fff;}
-#inventory-list{max-height:200px;overflow:auto;border:1px solid #ddd;padding:8px;background:#fff;}
-#move-buttons button{display:block;width:100%;margin:6px 0;padding:10px;}
 .panel{border:1px solid #ddd;padding:8px;background:#fff;border-radius:8px;}
 .flex{display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
 label{display:block;margin:6px 0;}
@@ -43,6 +40,12 @@ select{padding:6px;border-radius:4px;}
     </div>
     <h2>Pokedex</h2>
     <div id="pokedex-list" class="panel" style="display:none" aria-live="polite"></div>
+  </section>
+
+  <!-- INVENTORY -->
+  <section id="inventory" class="tab" role="tabpanel">
+    <h1>Inventory</h1>
+    <div id="inventory-list" class="panel" aria-live="polite"></div>
   </section>
 
   <!-- EXPLORE -->
@@ -94,11 +97,12 @@ select{padding:6px;border-radius:4px;}
     <div id="trade-panel" class="panel" style="margin-top:10px;"></div>
   </section>
 
-  <footer style="margin-top:18px;font-size:13px;color:#444">Accessible Pokémon Game — full merged base</footer>
+  <footer style="margin-top:18px;font-size:13px;color:#444">Accessible Pokémon Game — full merged base with Inventory & Gear</footer>
 </main>
 
 <nav role="tablist" aria-label="Main tabs">
   <button class="tab-btn active" data-target="home" role="tab" aria-controls="home">Home</button>
+  <button class="tab-btn" data-target="inventory" role="tab" aria-controls="inventory">Inventory</button>
   <button class="tab-btn" data-target="explore" role="tab" aria-controls="explore">Explore</button>
   <button class="tab-btn" data-target="gather" role="tab" aria-controls="gather">Gather</button>
   <button class="tab-btn" data-target="battle" role="tab" aria-controls="battle">Battle</button>
@@ -107,13 +111,13 @@ select{padding:6px;border-radius:4px;}
 
 <script>
 // ------------------ Player state ------------------
-const DEFAULT_PLAYER = { level:1, money:1000, bank:0, inventory:[], pokemon:[] };
+const DEFAULT_PLAYER = { level:1, money:1000, bank:0, inventory:{}, pokemon:[] };
 let player = loadPlayer();
 
-function savePlayer(){ localStorage.setItem('pkm_player_v2', JSON.stringify(player)); updateUI(); }
-function loadPlayer(){ try{ const s=localStorage.getItem('pkm_player_v2'); return s?JSON.parse(s): structuredClone(DEFAULT_PLAYER);}catch(e){return structuredClone(DEFAULT_PLAYER);} }
+function savePlayer(){ localStorage.setItem('pkm_player_v3', JSON.stringify(player)); updateUI(); }
+function loadPlayer(){ try{ const s=localStorage.getItem('pkm_player_v3'); return s?JSON.parse(s): structuredClone(DEFAULT_PLAYER);}catch(e){return structuredClone(DEFAULT_PLAYER);} }
 function resetPlayer(){ if(confirm('Reset save? This will clear progress.')){ player=structuredClone(DEFAULT_PLAYER); savePlayer(); location.reload(); } }
-function updateUI(){ document.getElementById('player-info').innerText=`Level: ${player.level} | Money: $${player.money} | Bank: $${player.bank}`; updateInventoryUI(); }
+function updateUI(){ document.getElementById('player-info').innerText=`Level: ${player.level} | Money: $${player.money} | Bank: $${player.bank}`; updateInventoryUI(); updateTradeUI(); }
 
 // save/reset buttons
 document.getElementById('save-manual').addEventListener('click', ()=>{ savePlayer(); alert('Saved.'); });
@@ -127,7 +131,7 @@ document.getElementById('bank-withdraw').addEventListener('click', ()=>{
   if(player.bank>=100){player.bank-=100; player.money+=100; savePlayer();}
 });
 
-// ------------------ Pokémon data subset ------------------
+// ------------------ Pokémon data ------------------
 const pokemonData = [
   {"id":1,"name":"Bulbasaur","types":["Grass","Poison"],"baseStats":{"hp":45,"attack":49,"defense":49,"speed":45,"special":65},"moves":[{"name":"Tackle","type":"Normal","power":35,"accuracy":95},{"name":"Growl","type":"Status","power":0,"accuracy":100},{"name":"Leech Seed","type":"Grass","power":0,"accuracy":90},{"name":"Vine Whip","type":"Grass","power":45,"accuracy":100}]},
   {"id":2,"name":"Ivysaur","types":["Grass","Poison"],"baseStats":{"hp":60,"attack":62,"defense":63,"speed":60,"special":80},"moves":[{"name":"Tackle","type":"Normal","power":35,"accuracy":95},{"name":"Growl","type":"Status","power":0,"accuracy":100},{"name":"Leech Seed","type":"Grass","power":0,"accuracy":90},{"name":"Vine Whip","type":"Grass","power":45,"accuracy":100}]} 
@@ -172,6 +176,17 @@ tabButtons.forEach(btn => {
 tabs.forEach(t => t.style.display = 'none');
 document.getElementById('home').style.display = 'block';
 
+// ------------------ Inventory ------------------
+function updateInventoryUI(){
+  const invPanel = document.getElementById('inventory-list');
+  invPanel.innerHTML='';
+  for(const [item, qty] of Object.entries(player.inventory)){
+    const node=document.createElement('div');
+    node.textContent=`${item} x${qty}`;
+    invPanel.appendChild(node);
+  }
+}
+
 // ------------------ Explore/Gather ------------------
 const exploreLog=document.getElementById('explore-log');
 document.getElementById('catch-pokemon').addEventListener('click', ()=>{
@@ -179,31 +194,21 @@ document.getElementById('catch-pokemon').addEventListener('click', ()=>{
   exploreLog.innerText=`A wild ${wild.name} appeared!`;
   setTimeout(()=>{
     const success = Math.random()<0.7;
-    if(success){ player.pokemon.push(wild.name); savePlayer(); exploreLog.innerText=`You caught ${wild.name}!`; }
-    else{ exploreLog.innerText=`${wild.name} escaped!`; }
+    if(success){ 
+      player.pokemon.push(wild.name); savePlayer(); exploreLog.innerText=`You caught ${wild.name}!`; 
+    } else{ exploreLog.innerText=`${wild.name} escaped!`; }
   },500);
 });
 
 const gatherLog=document.getElementById('gather-log');
-const resources=['Potion','Super Potion','Berry','Rare Candy'];
+const resources=['Potion','Super Potion','Berry','Shield Vest','Battle Gloves'];
 document.getElementById('gather-resource').addEventListener('click', ()=>{
   const item = resources[Math.floor(Math.random()*resources.length)];
-  player.inventory.push(item);
+  if(!player.inventory[item]) player.inventory[item]=0;
+  player.inventory[item]++;
   savePlayer();
   gatherLog.innerText=`You gathered: ${item}`;
 });
-
-// ------------------ Inventory ------------------
-function updateInventoryUI(){
-  let invPanel = document.getElementById('inventory-list');
-  if(!invPanel){ invPanel=document.createElement('div'); invPanel.id='inventory-list'; document.body.appendChild(invPanel); }
-  invPanel.innerHTML='';
-  player.inventory.forEach((item,i)=>{
-    const node=document.createElement('div');
-    node.textContent=`${i+1}. ${item}`;
-    invPanel.appendChild(node);
-  });
-}
 
 // ------------------ Trade ------------------
 const tradeMode = document.getElementById('trade-mode');
@@ -211,25 +216,25 @@ const tradePanel = document.getElementById('trade-panel');
 function updateTradeUI(){
   tradePanel.innerHTML='';
   if(tradeMode.value==='buy'){
-    ['Potion','Super Potion','Berry','Rare Candy'].forEach(item=>{
+    ['Shield Vest','Healing Ring','Battle Gloves'].forEach(item=>{
       const b=document.createElement('button');
       b.className='btn alt';
       b.textContent=`Buy ${item} ($50)`;
       b.addEventListener('click', ()=>{
-        if(player.money>=50){player.money-=50; player.inventory.push(item); savePlayer(); alert(`Bought ${item}`);}
+        if(player.money>=50){player.money-=50; if(!player.inventory[item]) player.inventory[item]=0; player.inventory[item]++; savePlayer(); alert(`Bought ${item}`);}
         else alert('Not enough money');
       });
       tradePanel.appendChild(b);
     });
   } else { // Sell
-    if(player.inventory.length===0){ tradePanel.innerText='No items to sell.'; return; }
-    const sellable = player.inventory.slice();
-    sellable.forEach((item,i)=>{
+    const sellable = Object.keys(player.inventory).filter(i=>player.inventory[i]>0);
+    if(sellable.length===0){ tradePanel.innerText='No items to sell.'; return; }
+    sellable.forEach(item=>{
       const b=document.createElement('button');
       b.className='btn alt';
       b.textContent=`Sell ${item} ($25)`;
       b.addEventListener('click', ()=>{
-        player.inventory.splice(player.inventory.indexOf(item),1);
+        player.inventory[item]--; if(player.inventory[item]<=0) delete player.inventory[item];
         player.money+=25;
         savePlayer(); updateTradeUI();
       });
@@ -239,8 +244,11 @@ function updateTradeUI(){
     sellAllBtn.className='btn alt';
     sellAllBtn.textContent='Sell All Sellable Items';
     sellAllBtn.addEventListener('click', ()=>{
-      const earned = sellable.length*25;
-      sellable.forEach(item=>player.inventory.splice(player.inventory.indexOf(item),1));
+      let earned=0;
+      sellable.forEach(item=>{
+        earned+=player.inventory[item]*25;
+        delete player.inventory[item];
+      });
       player.money+=earned;
       savePlayer(); updateTradeUI(); alert(`Sold all items for $${earned}`);
     });
