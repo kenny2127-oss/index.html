@@ -1,493 +1,171 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>Audio-First Monsters — Full</title>
-<style>
-:root{--bg:#071021;--panel:#0f1720;--muted:#9fb0c0;--text:#e6edf3;--accent:#5eead4;--danger:#f87171;--ok:#86efac}
-*{box-sizing:border-box}
-html,body{height:100%;margin:0;background:var(--bg);color:var(--text);font-family:Inter,system-ui,Segoe UI,Roboto,Arial}
-.container{max-width:1100px;margin:18px auto;padding:18px;display:grid;gap:12px}
-.header{display:flex;justify-content:space-between;align-items:center}
-.title{font-size:1.1rem}
-.panel{background:var(--panel);padding:12px;border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,.4)}
-.controls{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-.btn{background:#12202b;border:1px solid #23313f;color:var(--text);padding:8px 10px;border-radius:8px;cursor:pointer}
-.btn[aria-pressed="true"]{outline:2px solid var(--accent)}
-.kbd{font-family:ui-monospace,monospace;background:#071827;padding:4px 6px;border-radius:6px;border:1px solid #153040}
-.grid{display:grid;grid-template-columns:repeat(7,46px);gap:6px}
-.cell{width:46px;height:46px;border-radius:8px;border:1px solid #1f2a3a;display:grid;place-items:center;font-size:11px;color:#94a3b8}
-.cell.player{outline:2px solid var(--accent)}
-.row{display:flex;gap:12px;align-items:flex-start}
-.log{height:160px;overflow:auto;padding:8px;background:#061019;border-radius:8px;border:1px solid #12202b;font-family:ui-monospace,monospace}
-.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
-.side{width:340px}
-.small{font-size:13px;color:var(--muted)}
-.footer{font-size:12px;color:var(--muted)}
-.flexcol{display:flex;flex-direction:column;gap:8px}
-.progress{height:8px;background:#071827;border-radius:6px;overflow:hidden;border:1px solid #12202b}
-.bar{height:100%;background:linear-gradient(90deg,#5eead4,#86efac)}
-.moves{display:flex;flex-wrap:wrap;gap:6px}
-.move-btn{background:#0b1220;border:1px solid #21313f;padding:6px 8px;border-radius:8px;font-size:13px;cursor:pointer}
-</style>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Audio‑First Monsters — Capture Update</title>
+  <style>
+    :root{--bg:#071021;--panel:#0f1720;--muted:#9fb0c0;--text:#e6edf3;--accent:#5eead4;--danger:#f87171;--ok:#86efac}
+    *{box-sizing:border-box}
+    html,body{height:100%;margin:0;background:var(--bg);color:var(--text);font-family:Inter,system-ui,Segoe UI,Roboto,Arial}
+    .container{max-width:1100px;margin:18px auto;padding:18px;display:grid;gap:12px}
+    .panel{background:var(--panel);padding:12px;border-radius:12px}
+    .controls{display:flex;gap:8px;align-items:center}
+    .btn{background:#12202b;border:1px solid #23313f;color:var(--text);padding:8px 10px;border-radius:8px;cursor:pointer}
+    .grid{display:grid;grid-template-columns:repeat(7,46px);gap:6px}
+    .cell{width:46px;height:46px;border-radius:8px;border:1px solid #1f2a3a;display:grid;place-items:center;font-size:11px;color:#94a3b8}
+    .cell.player{outline:2px solid var(--accent)}
+    .log{height:160px;overflow:auto;padding:8px;background:#061019;border-radius:8px;border:1px solid #12202b;font-family:ui-monospace,monospace}
+    .moves{display:flex;flex-wrap:wrap;gap:6px}
+    .move-btn{background:#0b1220;border:1px solid #21313f;padding:6px 8px;border-radius:8px;font-size:13px;cursor:pointer}
+    .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+  </style>
 </head>
 <body>
-<div class="container" id="app" tabindex="0" aria-label="Audio first monsters full game">
-  <div class="header panel">
-    <div>
-      <div class="title">Audio-First Monsters — Full</div>
-      <div class="small">Arrows / WASD to move. M listen. C status. B search. In battle: A attack, S skill, P potion, R run. Space repeat. V verbosity.</div>
-    </div>
-    <div class="controls">
-      <button id="ttsToggle" class="btn" aria-pressed="true">TTS: on</button>
-      <button id="verbToggle" class="btn" aria-pressed="false">Verbose: off</button>
-      <button id="repeatBtn" class="btn">Repeat</button>
-      <button id="saveBtn" class="btn">Save</button>
-      <button id="loadBtn" class="btn">Load</button>
-      <button id="resetBtn" class="btn">Reset</button>
-    </div>
-  </div>
-
-  <div class="row">
-    <div class="panel" style="flex:1">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-        <div class="small">Map (visual aid)</div>
-        <div class="small">Zone legend: town grass forest plain lake</div>
-      </div>
-      <div id="mapGrid" class="grid" aria-hidden="true"></div>
-      <div style="margin-top:8px" class="small">On-screen control buttons for testing</div>
-      <div style="display:flex;gap:8px;margin-top:6px">
-        <button class="btn" data-cmd="up">▲</button>
-        <button class="btn" data-cmd="left">◀</button>
-        <button class="btn" data-cmd="down">▼</button>
-        <button class="btn" data-cmd="right">▶</button>
-        <button class="btn" data-cmd="listen">Listen</button>
-        <button class="btn" data-cmd="search">Search</button>
+  <div class="container" id="app" tabindex="0" aria-label="Audio first monsters with capture">
+    <div class="panel" style="display:flex;justify-content:space-between;align-items:center">
+      <div>Audio‑First Monsters — Capture</div>
+      <div class="controls">
+        <button id="ttsToggle" class="btn" aria-pressed="true">TTS: on</button>
+        <button id="repeatBtn" class="btn">Repeat</button>
       </div>
     </div>
 
-    <aside class="panel side">
-      <div class="small">Player</div>
-      <div id="playerBox" class="flexcol"></div>
-      <div style="margin-top:8px" class="small">Party</div>
-      <div id="partyBox" class="flexcol"></div>
-      <div style="margin-top:8px" class="small">Inventory</div>
-      <div id="invBox" class="small"></div>
-    </aside>
-  </div>
-
-  <div class="panel">
-    <div style="display:flex;justify-content:space-between;align-items:center">
-      <div class="small">Battle Log</div>
-      <div class="small">Use Space to repeat last spoken message</div>
+    <div class="panel">
+      <div style="display:flex;gap:12px">
+        <div style="flex:1">
+          <div class="small">Map (visual)</div>
+          <div id="mapGrid" class="grid" aria-hidden="true"></div>
+          <div style="margin-top:8px">Controls: Arrows/WASD move. M listen. B search. In battle: A attack, S skill, P potion, K throw ball, R run. Space repeat.</div>
+        </div>
+        <aside style="width:320px">
+          <div>Player</div>
+          <div id="playerBox"></div>
+          <div style="margin-top:8px">Party</div>
+          <div id="partyBox"></div>
+          <div style="margin-top:8px">Inventory</div>
+          <div id="invBox"></div>
+          <div style="margin-top:8px">
+            <button id="throwBallBtn" class="btn">Throw Ball (K)</button>
+          </div>
+        </aside>
+      </div>
     </div>
-    <div id="log" class="log" role="log" aria-live="polite"></div>
-    <div style="margin-top:8px;display:flex;gap:8px;align-items:center">
-      <div id="battleActions" style="flex:1"></div>
+
+    <div class="panel">
+      <div>Battle Log</div>
+      <div id="log" class="log" role="log" aria-live="polite"></div>
+      <div id="battleActions" style="margin-top:8px"></div>
     </div>
+
+    <div class="sr-only" id="live-assert" aria-live="assertive" aria-atomic="true"></div>
+    <div class="sr-only" id="live-polite" aria-live="polite" aria-atomic="false"></div>
   </div>
-
-  <div class="sr-only" id="live-assert" aria-live="assertive" aria-atomic="true"></div>
-  <div class="sr-only" id="live-polite" aria-live="polite" aria-atomic="false"></div>
-
-  <div class="footer panel small">Persistent saves use localStorage. Best experience in Chrome/Edge. This build focuses on audio first accessibility.</div>
-</div>
 
 <script>
 (() => {
-  // --- settings and utilities
-  const appEl = document.getElementById('app');
-  const mapGrid = document.getElementById('mapGrid');
+  // minimal speech + cues
   const logEl = document.getElementById('log');
   const livePolite = document.getElementById('live-polite');
   const liveAssert = document.getElementById('live-assert');
-  const ttsBtn = document.getElementById('ttsToggle');
-  const verbBtn = document.getElementById('verbToggle');
-  const repeatBtn = document.getElementById('repeatBtn');
-  const saveBtn = document.getElementById('saveBtn');
-  const loadBtn = document.getElementById('loadBtn');
-  const resetBtn = document.getElementById('resetBtn');
-  const playerBox = document.getElementById('playerBox');
-  const partyBox = document.getElementById('partyBox');
-  const invBox = document.getElementById('invBox');
-  const battleActions = document.getElementById('battleActions');
-
-  let useTTS = true;
-  let verbose = false;
-  let lastUtter = '';
-  let voice = null;
-
-  // WebAudio cues
-  let ac;
-  try { ac = new (window.AudioContext || window.webkitAudioContext)(); } catch(e){ ac = null; }
-  function tone(freq=440, ms=120, type='sine', vol=0.07){
-    if(!ac) return;
-    const o = ac.createOscillator(), g = ac.createGain();
-    o.type = type; o.frequency.value = freq; g.gain.value = vol;
-    o.connect(g).connect(ac.destination);
-    const t = ac.currentTime; o.start(t); o.stop(t + ms/1000);
+  let useTTS = true; let lastUtter = '';
+  function speak(text, priority='polite'){ lastUtter = text; const target = priority==='assertive' ? liveAssert : livePolite; target.textContent=''; setTimeout(()=> target.textContent = text, 10);
+    if(!useTTS || !('speechSynthesis' in window)) return; try{ const u = new SpeechSynthesisUtterance(text); speechSynthesis.cancel(); speechSynthesis.speak(u);}catch(e){}
   }
-  const cues = {
-    move:()=>tone(740,70,'triangle',0.05),
-    block:()=>tone(220,120,'square',0.05),
-    encounter:()=>{tone(600,120); setTimeout(()=>tone(900,120),140)},
-    hit:()=>tone(320,90,'sawtooth'),
-    hurt:()=>tone(150,120,'sawtooth'),
-    faint:()=>{tone(300,140); setTimeout(()=>tone(220,220),160)},
-    ok:()=>tone(880,100)
-  };
+  function log(msg, priority='polite'){ const d=document.createElement('div'); d.textContent=msg; logEl.prepend(d); speak(msg, priority); }
 
-  // Speech synthesis voice pick
-  function pickVoice(){
-    const vs = speechSynthesis.getVoices();
-    voice = vs.find(v=>/en-US|en_GB/.test(v.lang)) || vs[0] || null;
-  }
-  if('speechSynthesis' in window){
-    speechSynthesis.onvoiceschanged = pickVoice;
-    pickVoice();
-  } else {
-    useTTS = false; ttsBtn.setAttribute('aria-pressed','false'); ttsBtn.textContent='TTS: off (unsupported)';
-  }
+  // small audio cues
+  let ac;,  try{ ac = new (window.AudioContext||window.webkitAudioContext)(); }catch(e){ ac=null }
+  function tone(f=440,ms=120){ if(!ac) return; const o=ac.createOscillator(), g=ac.createGain(); o.type='sine'; o.frequency.value=f; g.gain.value=0.06; o.connect(g).connect(ac.destination); const t=ac.currentTime; o.start(t); o.stop(t+ms/1000); }
 
-  function speak(text, priority='polite'){
-    lastUtter = text;
-    const target = priority==='assertive' ? liveAssert : livePolite;
-    target.textContent = ''; setTimeout(()=>target.textContent = text, 10);
-    if(!useTTS || !('speechSynthesis' in window)) return;
-    try {
-      const u = new SpeechSynthesisUtterance(text);
-      if(voice) u.voice = voice;
-      u.rate = 1; u.pitch = 1; u.volume = 1;
-      speechSynthesis.cancel();
-      speechSynthesis.speak(u);
-    } catch(e){}
-  }
+  // game structures
+  class Monster{ constructor(name,max,atk,moves,level=1){ this.name=name; this.max=max; this.hp=max; this.atk=atk; this.moves = moves.map(m=>Object.assign({},m)); this.level=level; this.xp=0; } isFainted(){ return this.hp<=0; } }
+  function mkMove(id,name,power,pp){ return {id,name,power,pp,maxpp:pp}; }
+  const BASE = { peck: mkMove('peck','Peck',6,25), tackle: mkMove('tackle','Tackle',7,25), splash: mkMove('splash','Splash',4,30) };
+  const WILDS={ grass:[{name:'Weedmite',hp:12,atk:4,moves:[BASE.peck,BASE.tackle]}], forest:[{name:'Leafrat',hp:16,atk:5,moves:[BASE.tackle]}], plain:[{name:'Fieldog',hp:15,atk:5,moves:[BASE.tackle]}], lake:[{name:'Splashit',hp:16,atk:5,moves:[BASE.splash]}] };
+  const MAP = [['grass','grass','forest'],['plain','town','plain'],['forest','grass','lake']];
 
-  function log(msg, priority='polite', cue=null){
-    const out = verbose ? msg : msg.replace(/\(.*?\)/g,'').replace(/\s+/g,' ').trim();
-    const d = document.createElement('div'); d.textContent = out; logEl.prepend(d);
-    if(cue && cues[cue]) cues[cue]();
-    speak(out, priority);
-  }
+  let state={ player:{x:1,y:1}, party:[new Monster('Sparrowmon',20,5,[BASE.peck,BASE.tackle])], potions:3, balls:5, gold:30, inBattle:false, enemy:null };
 
-  // --- game data
-  class Monster {
-    constructor(name, hp, atk, desc, moves, level=1) {
-      this.name = name; this.max = hp; this.hp = hp; this.atk = atk; this.desc = desc;
-      this.level = level; this.xp = 0;
-      // moves: [{id,name,pp,power}]
-      this.moves = moves.map(m=>Object.assign({},m));
-    }
-    isFainted(){ return this.hp <= 0; }
-    healFull(){ this.hp = this.max; this.moves.forEach(m=>m.pp = m.maxpp); }
-  }
+  // UI
+  const mapGrid = document.getElementById('mapGrid'); const playerBox = document.getElementById('playerBox'); const partyBox = document.getElementById('partyBox'); const invBox = document.getElementById('invBox'); const battleActions = document.getElementById('battleActions'); const throwBallBtn = document.getElementById('throwBallBtn');
+  function drawMap(){ mapGrid.innerHTML=''; for(let y=0;y<MAP.length;y++){ for(let x=0;x<MAP[0].length;x++){ const c=document.createElement('div'); c.className='cell'; c.dataset.tile=MAP[y][x]; if(x===state.player.x && y===state.player.y) c.classList.add('player'); mapGrid.appendChild(c); } } }
+  function renderPlayer(){ playerBox.textContent = `Pos ${state.player.x},${state.player.y} (${MAP[state.player.y][state.player.x]}) · Gold ${state.gold}`; }
+  function renderParty(){ partyBox.innerHTML=''; state.party.forEach((m,i)=>{ const el=document.createElement('div'); el.innerHTML = `${i===0?'> ':''}${m.name} Lv${m.level} HP ${m.hp}/${m.max} Moves: ${m.moves.map(mm=>mm.name+'('+mm.pp+')').join(', ')}`; partyBox.appendChild(el); }); }
+  function renderInv(){ invBox.textContent = `Potions ${state.potions} · Balls ${state.balls}`; }
 
-  function mkMove(id,name,power,pp){
-    return {id,name,power,pp,maxpp:pp};
-  }
+  function describeTile(){ const t = MAP[state.player.y][state.player.x]; const near=[]; if(state.player.y>0) near.push('north '+MAP[state.player.y-1][state.player.x]); if(state.player.y<MAP.length-1) near.push('south '+MAP[state.player.y+1][state.player.x]); if(state.player.x>0) near.push('west '+MAP[state.player.y][state.player.x-1]); if(state.player.x<MAP[0].length-1) near.push('east '+MAP[state.player.y][state.player.x+1]); log(`You are on ${t}. Nearby: ${near.join(', ')}.`); }
 
-  const BASE_MOVES = {
-    peck: mkMove('peck','Peck',6,25),
-    tackle: mkMove('tackle','Tackle',7,25),
-    ember: mkMove('ember','Ember',9,15),
-    splash: mkMove('splash','Splash',4,30)
-  };
+  function tryEncounter(force=false){ if(state.inBattle) return false; const tile=MAP[state.player.y][state.player.x]; if(tile==='town') return false; const pool=WILDS[tile]||[]; if(!pool.length) return false; if(!force && Math.random()>=0.3) return false; const base = pool[Math.floor(Math.random()*pool.length)]; const enemy = new Monster(base.name, base.hp, base.atk, base.moves); state.enemy = enemy; state.inBattle=true; renderBattleStart(); log(`A wild ${enemy.name} appeared. HP ${enemy.hp}.`,'assertive'); tone(600); return true; }
 
-  // simple starter roster for wilds
-  const WILDS = {
-    grass: [{name:'Weedmite',hp:12,atk:4,moves:[BASE_MOVES.peck,BASE_MOVES.tackle]} , {name:'Bugbun',hp:14,atk:5,moves:[BASE_MOVES.tackle]}],
-    forest: [{name:'Leafrat',hp:16,atk:5,moves:[BASE_MOVES.tackle,BASE_MOVES.peck]} , {name:'Barkid',hp:18,atk:6,moves:[BASE_MOVES.tackle]}],
-    plain: [{name:'Fieldog',hp:15,atk:5,moves:[BASE_MOVES.tackle]}],
-    lake: [{name:'Splashit',hp:16,atk:5,moves:[BASE_MOVES.splash]}]
-  };
+  function move(dx,dy){ if(state.inBattle){ log('Cannot move during battle.'); tone(200); return; } const nx=state.player.x+dx, ny=state.player.y+dy; if(nx<0||ny<0||ny>=MAP.length||nx>=MAP[0].length){ log('You cannot move that way.'); tone(220); return; } state.player.x=nx; state.player.y=ny; drawMap(); renderPlayer(); log(`Moved to ${nx},${ny}.`); tone(740); describeTile(); tryEncounter(false); }
 
-  const MAP = [
-    ['grass','grass','forest','plain','grass','forest','lake'],
-    ['plain','town','plain','grass','forest','plain','grass'],
-    ['forest','grass','grass','plain','town','grass','forest'],
-    ['plain','grass','lake','plain','grass','forest','plain'],
-    ['grass','plain','forest','grass','plain','town','lake']
-  ];
+  function calcDamage(attacker,move){ const varr =,  Math.floor(Math.random()*3)-1; return Math.max(1, move.power + attacker.atk + varr); }
 
-  // --- player and state
-  let state = {
-    player: {x:2,y:2},
-    party: [new Monster('Sparrowmon',20,5,'starter',[BASE_MOVES.peck,BASE_MOVES.tackle])],
-    potions: 5,
-    gold: 50,
-    inBattle: false,
-    enemy: null,
-    mode: 'explore' // or 'battle'
-  };
+  function enemyAct(){ if(!state.enemy) return; const e=state.enemy; const p=state.party[0]; const mv = e.moves.find(m=>m.pp>0) || e.moves[0]; if(mv.pp>0) mv.pp--; const dmg = calcDamage(e,mv); p.hp = Math.max(0, p.hp - dmg); log(`${e.name} uses ${mv.name}. Your ${p.name} loses ${dmg} HP. HP ${p.hp}.`); tone(150); renderParty(); if(p.hp<=0){ log(`Your ${p.name} fainted. Game over.`,'assertive'); state.inBattle=false; state.enemy=null; } }
 
-  // --- helpers
-  function randInt(n){ return Math.floor(Math.random()*n); }
-  function clamp(v, a, b){ return Math.max(a, Math.min(b, v)); }
+  function playerAttack(moveId){ if(!state.inBattle || !state.enemy){ log('No current battle.'); return; } const p = state.party[0]; const mv = p.moves.find(m=>m.id===moveId); if(!mv){ log('Move not available.'); return; } if(mv.pp<=0){ log(`${mv.name} has no PP.`); return; } mv.pp--; const dmg = calcDamage(p,mv); state.enemy.hp = Math.max(0, state.enemy.hp - dmg); log(`You use ${mv.name}. ${state.enemy.name} takes ${dmg}. HP ${state.enemy.hp}.`); tone(320); renderParty(); if(state.enemy.hp<=0){ log(`You defeated ${state.enemy.name}.`); state.inBattle=false; state.enemy=null; battleActions.innerHTML=''; renderParty(); return; } setTimeout(enemyAct,500); }
 
-  // --- UI render
-  function drawMap(){
-    mapGrid.innerHTML = '';
-    for(let y=0;y<MAP.length;y++){
-      for(let x=0;x<MAP[0].length;x++){
-        const d = document.createElement('div');
-        d.className = 'cell';
-        d.dataset.tile = MAP[y][x];
-        if(x===state.player.x && y===state.player.y) d.classList.add('player');
-        d.title = MAP[y][x];
-        mapGrid.appendChild(d);
-      }
-    }
-  }
-  function renderPlayer(){
-    playerBox.innerHTML = '';
-    const p = document.createElement('div'); p.textContent = `Pos: ${state.player.x},${state.player.y} (${MAP[state.player.y][state.player.x]})`; playerBox.appendChild(p);
-    const stats = document.createElement('div'); stats.textContent = `Gold ${state.gold} · Potions ${state.potions}`; playerBox.appendChild(stats);
-  }
-  function renderParty(){
-    partyBox.innerHTML = '';
-    state.party.forEach((m,i)=>{
-      const el = document.createElement('div');
-      const hpPct = clamp((m.hp/m.max)*100,0,100);
-      el.innerHTML = `<strong>${i===0?'> ':''}${m.name} Lv${m.level} HP ${m.hp}/${m.max} XP ${m.xp}</strong>
-        <div class="progress" aria-hidden="true"><div class="bar" style="width:${hpPct}%"></div></div>
-        <div class="small">Moves: ${m.moves.map(mm=>`${mm.name}(${mm.pp})`).join(', ')}</div>`;
-      partyBox.appendChild(el);
-    });
-  }
-  function renderInv(){ invBox.textContent = `Potions: ${state.potions} · Gold: ${state.gold}`; }
+  function playerPotion(){ if(state.potions<=0){ log('No potions left.'); return; } const p = state.party[0]; const heal = Math.min(p.max - p.hp, 12); if(heal<=0){ log('Pokémon already full HP.'); return; } state.potions--; p.hp += heal; log(`Used potion. Restored ${heal} HP. HP ${p.hp}.`); renderParty(); renderInv(); setTimeout(enemyAct,500); }
 
-  // --- encounter / battle logic
-  function describeTile(){
-    const tile = MAP[state.player.y][state.player.x];
-    const n = [];
-    if(state.player.y>0) n.push(`north ${MAP[state.player.y-1][state.player.x]}`);
-    if(state.player.y < MAP.length-1) n.push(`south ${MAP[state.player.y+1][state.player.x]}`);
-    if(state.player.x>0) n.push(`west ${MAP[state.player.y][state.player.x-1]}`);
-    if(state.player.x < MAP[0].length-1) n.push(`east ${MAP[state.player.y][state.player.x+1]}`);
-    log(`You are on ${tile}. Nearby: ${n.join(', ')}.`, 'polite');
-  }
+  function playerRun(){ if(Math.random()<0.6){ log('You ran successfully.'); state.inBattle=false; state.enemy=null; battleActions.innerHTML=''; } else { log('Failed to run.'); setTimeout(enemyAct,500); } }
 
-  function tryEncounter(force=false){
-    if(state.inBattle) return false;
-    const tile = MAP[state.player.y][state.player.x];
-    if(tile === 'town') return false;
-    const pool = WILDS[tile] || [];
-    if(!pool.length) return false;
-    if(!force && Math.random() >= 0.28) return false;
-    const base = pool[randInt(pool.length)];
-    const lvl = 1 + Math.floor(Math.random()*3);
-    const enemy = new Monster(base.name, base.hp + lvl*2, base.atk + Math.floor(lvl/2), base.name+' wild', base.moves, lvl);
-    enemy.max = enemy.max + (lvl-1)*2; enemy.hp = enemy.max;
-    state.enemy = enemy; state.inBattle = true; state.mode = 'battle';
-    renderBattleStart();
-    log(`A wild ${enemy.name} appeared. HP ${enemy.hp}.`, 'assertive', 'encounter');
-    return true;
-  }
-
-  function movePlayer(dx,dy){
-    if(state.inBattle){ log('Cannot move during battle.','assertive','block'); return; }
-    const nx = state.player.x + dx, ny = state.player.y + dy;
-    if(nx < 0 || ny < 0 || ny >= MAP.length || nx >= MAP[0].length){ log('You cannot move that way.','polite','block'); return; }
-    state.player.x = nx; state.player.y = ny; drawMap(); renderPlayer(); log(`Moved to ${nx},${ny}.`,'polite','move');
-    describeTile(); tryEncounter(false);
-  }
-
-  function calcDamage(attacker, move){
-    // simple: power + attacker.atk ± variance
-    const variance = Math.floor(Math.random()*3) - 1;
-    return Math.max(1, move.power + attacker.atk + variance);
-  }
-
-  function enemyAct(){
-    if(!state.enemy || state.enemy.isFainted()) return;
-    const enemy = state.enemy;
-    const playerMon = state.party[0];
-    const move = enemy.moves.find(m=>m.pp>0) || enemy.moves[0];
-    if(move.pp > 0) move.pp--;
-    const dmg = calcDamage(enemy, move);
-    playerMon.hp = Math.max(0, playerMon.hp - dmg);
-    log(`${enemy.name} uses ${move.name}. Your ${playerMon.name} loses ${dmg} HP. HP ${playerMon.hp}.`, 'assertive','hurt');
-    if(playerMon.hp <= 0){
-      log(`Your ${playerMon.name} fainted. Game over.`, 'assertive', 'faint');
-      // simple: end game
-      state.inBattle = false; state.enemy = null; state.mode='explore';
-    }
-    renderParty();
-  }
-
-  function playerAttack(moveId){
-    if(!state.inBattle || !state.enemy) { log('No current battle.'); return; }
-    const playerMon = state.party[0];
-    const move = playerMon.moves.find(m=>m.id===moveId);
-    if(!move){ log('Move not available.'); return; }
-    if(move.pp <= 0){ log(`${move.name} has no PP left.`); return; }
-    move.pp--;
-    const dmg = calcDamage(playerMon, move);
-    state.enemy.hp = Math.max(0, state.enemy.hp - dmg);
-    log(`You use ${move.name}. ${state.enemy.name} takes ${dmg}. HP ${state.enemy.hp}.`, 'polite','hit');
-    renderParty();
-    if(state.enemy.hp <= 0){
-      log(`You defeated ${state.enemy.name}.`, 'assertive','ok');
-      // reward xp/gold and end
-      const rewardXP = 6 + Math.floor(Math.random()*5);
-      const rewardGold = 8 + Math.floor(Math.random()*8);
-      state.party[0].xp += rewardXP;
-      state.gold += rewardGold;
-      log(`Gained ${rewardXP} XP and ${rewardGold} gold.`, 'polite','ok');
-      checkLevelUp(state.party[0]);
-      state.inBattle = false; state.enemy = null; state.mode = 'explore';
-      renderParty(); renderInv(); renderPlayer();
-      battleActions.innerHTML = '';
-      return;
-    }
-    // enemy turn
-    setTimeout(enemyAct, 600);
-  }
-
-  function playerDefend(){ log('You brace. Damage will be reduced on enemy turn.','polite','block'); /* simple placeholder */ setTimeout(enemyAct,600); }
-  function playerPotion(){
-    if(state.potions <= 0){ log('No potions left.'); return; }
-    const mon = state.party[0];
-    const heal = Math.min(mon.max - mon.hp, 12);
-    if(heal <= 0){ log('Pokémon already full HP.'); return; }
-    state.potions--; mon.hp += heal;
-    log(`Used potion. Restored ${heal} HP. HP ${mon.hp}.`,'polite','ok');
-    renderParty(); renderInv();
-    setTimeout(enemyAct,600);
-  }
-  function playerRun(){
-    if(Math.random() < 0.6){ log('You ran successfully.','polite','ok'); state.inBattle=false; state.enemy=null; state.mode='explore'; battleActions.innerHTML=''; }
-    else { log('Failed to run.','polite'); setTimeout(enemyAct,600); }
-  }
-
-  function checkLevelUp(mon){
-    // level at xp thresholds simple: every 10 xp
-    const threshold = mon.level * 10;
-    if(mon.xp >= threshold){
-      mon.level += 1; mon.xp -= threshold;
-      mon.max += 4; mon.atk += 1; mon.hp = mon.max;
-      log(`${mon.name} leveled up to ${mon.level}. HP and attack increased.`, 'assertive','ok');
+  // --- capture mechanic
+  function captureAttempt(){ if(!state.inBattle || !state.enemy){ log('No target to capture.'); return; } if(state.balls<=0){ log('No balls left.'); return; } // simple catch rate formula
+    const enemy = state.enemy; // lower HP increases chance
+    const hpFactor = (enemy.max - enemy.hp) / enemy.max; // 0..1
+    const baseChance = 0.25; // base
+    const levelBonus = Math.min(0.25, enemy.level * 0.02); // small
+    const chance = baseChance + hpFactor * 0.5 + levelBonus; // top ~1.0
+    state.balls--; renderInv(); log(`Threw a ball at ${enemy.name}.`); tone(700);
+    const roll = Math.random();
+    if(roll < chance){
+      // success
+      log(`Capture! ${enemy.name} was caught.`,'assertive'); tone(900);
+      // add to party (if less than 6) else send to box (not implemented -> discard)
+      if(state.party.length < 6){ state.party.push(new Monster(enemy.name, enemy.max, enemy.atk, enemy.moves, enemy.level)); log(`${enemy.name} added to your party.`); } else { log(`Party full. ${enemy.name} sent to box (not implemented).`); }
+      state.inBattle=false; state.enemy=null; battleActions.innerHTML=''; renderParty(); renderInv();
+    } else {
+      // fail, enemy gets angry and attacks
+      log(`The ${enemy.name} broke free!`);
+      tone(260);
+      setTimeout(enemyAct, 500);
     }
   }
 
-  // --- render battle UI
-  function renderBattleStart(){
-    battleActions.innerHTML = '';
-    if(!state.enemy) return;
-    const enemy = state.enemy;
-    const title = document.createElement('div'); title.textContent = `Battle: Wild ${enemy.name} Lv${enemy.level} HP ${enemy.hp}/${enemy.max}`; battleActions.appendChild(title);
-    // show moves
-    const movesDiv = document.createElement('div'); movesDiv.className='moves';
-    state.party[0].moves.forEach(m=>{
-      const b = document.createElement('button'); b.className='move-btn'; b.textContent = `${m.name} (${m.pp})`; b.onclick = ()=>playerAttack(m.id);
-      movesDiv.appendChild(b);
-    });
-    battleActions.appendChild(movesDiv);
-    // quick-action buttons
-    const actions = document.createElement('div'); actions.style.display='flex'; actions.style.gap='8px'; actions.style.marginTop='8px';
-    const defend = document.createElement('button'); defend.className='btn'; defend.textContent='Defend'; defend.onclick=playerDefend;
-    const potion = document.createElement('button'); potion.className='btn'; potion.textContent='Potion'; potion.onclick=playerPotion;
-    const run = document.createElement('button'); run.className='btn'; run.textContent='Run'; run.onclick=playerRun;
-    actions.appendChild(defend); actions.appendChild(potion); actions.appendChild(run);
-    battleActions.appendChild(actions);
+  // --- battle UI start
+  function renderBattleStart(){ battleActions.innerHTML=''; if(!state.enemy) return; const title = document.createElement('div'); title.textContent = `Battle: Wild ${state.enemy.name} HP ${state.enemy.hp}/${state.enemy.max}`; battleActions.appendChild(title);
+    const movesDiv = document.createElement('div'); movesDiv.className='moves'; state.party[0].moves.forEach(m=>{ const b=document.createElement('button'); b.className='move-btn'; b.textContent=`${m.name} (${m.pp})`; b.onclick = ()=>playerAttack(m.id); movesDiv.appendChild(b); }); battleActions.appendChild(movesDiv);
   }
 
-  // --- keyboard and on-screen handlers
-  function doCommand(cmd){
-    if(cmd === 'up') movePlayer(0,-1);
-    if(cmd === 'down') movePlayer(0,1);
-    if(cmd === 'left') movePlayer(-1,0);
-    if(cmd === 'right') movePlayer(1,0);
-    if(cmd === 'listen') describeTile();
-    if(cmd === 'search') { if(!tryEncounter(true)) log('No monsters found.'); }
-  }
-
-  document.querySelectorAll('[data-cmd]').forEach(b=>{
-    b.addEventListener('click', ()=>doCommand(b.dataset.cmd));
-  });
-
+  // --- input handling
   window.addEventListener('keydown', e=>{
-    if(!state) return;
-    if(e.key === ' '){ e.preventDefault(); if(lastUtter) speak(lastUtter,'assertive'); return; }
-    if(e.key==='v' || e.key==='V'){ verbose = !verbose; verbBtn.setAttribute('aria-pressed', String(verbose)); verbBtn.textContent = `Verbose: ${verbose? 'on':'off'}`; log(`Verbosity ${verbose? 'on':'off'}.`); return; }
-    if(e.key==='m' || e.key==='M'){ describeTile(); return; }
-    if(e.key==='c' || e.key==='C'){ log(`Status: ${state.party[0].name} HP ${state.party[0].hp}/${state.party[0].max}. Potions ${state.potions}. Gold ${state.gold}.`); return; }
-    if(e.key==='b' || e.key==='B'){ if(!tryEncounter(true)) log('No monsters found.'); return; }
-    // movement
-    if(e.key==='ArrowUp' || e.key==='w' || e.key==='W') movePlayer(0,-1);
-    if(e.key==='ArrowDown' || e.key==='s' || e.key==='S') movePlayer(0,1);
-    if(e.key==='ArrowLeft' || e.key==='a' || e.key==='A') movePlayer(-1,0);
-    if(e.key==='ArrowRight' || e.key==='d' || e.key==='D') movePlayer(1,0);
-    // battle keys
-    if(state.inBattle){
-      if(e.key==='a' || e.key==='A'){ // quick attack first move
-        const m = state.party[0].moves[0]; if(m) playerAttack(m.id);
-      }
-      if(e.key==='s' || e.key==='S'){ // skill => second move if exists
-        const m = state.party[0].moves[1]; if(m) playerAttack(m.id);
-      }
-      if(e.key==='p' || e.key==='P'){ playerPotion(); }
-      if(e.key==='r' || e.key==='R'){ playerRun(); }
+    if(e.key === ' ') { e.preventDefault(); if(lastUtter) speak(lastUtter); return; }
+    if(e.key === 'm' || e.key === 'M') describeTile();
+    if(e.key === 'b' || e.key === 'B') { if(!tryEncounter(true)) log('No monsters found.');,  }
+    if(e.key === 'k' || e.key === 'K') captureAttempt();
+    if(e.key === 'p' || e.key === 'P') playerPotion();
+    if(e.key === 'r' || e.key === 'R') playerRun();
+    if(e.key === 'a' || e.key === 'A') { // attack quick
+      const m = state.party[0].moves[0]; if(m) playerAttack(m.id);
     }
+    // movement
+    if(e.key==='ArrowUp' || e.key==='w' || e.key==='W') move(0,-1);
+    if(e.key==='ArrowDown' || e.key==='s' || e.key==='S') move(0,1);
+    if(e.key==='ArrowLeft' || e.key==='a' || e.key==='A') move(-1,0);
+    if(e.key==='ArrowRight' || e.key==='d' || e.key==='D') move(1,0);
   });
 
-  // --- save/load
-  function saveGame(){
-    try {
-      const data = JSON.stringify(state, (k,v)=> {
-        // strip functions and circulars by defining structure
-        if(k==='enemy' && v && v.moves) { return {name:v.name,max:v.max,hp:v.hp,atk:v.atk,level:v.level,moves:v.moves,xp:v.xp}; }
-        if(k==='party' && Array.isArray(v)) { return v.map(m=>({name:m.name,max:m.max,hp:m.hp,atk:m.atk,level:m.level,xp:m.xp,moves:m.moves})); }
-        return v;
-      });
-      localStorage.setItem('afm_save', data);
-      log('Game saved.', 'polite','ok');
-    } catch(e){ log('Save failed.','assertive'); }
-  }
-  function loadGame(){
-    const data = localStorage.getItem('afm_save');
-    if(!data){ log('No save found.'); return; }
-    try {
-      const obj = JSON.parse(data);
-      // minimal hydration
-      state.player = obj.player || state.player;
-      state.potions = obj.potions || state.potions;
-      state.gold = obj.gold || state.gold;
-      state.inBattle = false; state.enemy = null; state.mode='explore';
-      // rebuild party
-      state.party = (obj.party || []).map(p=>{
-        const m = new Monster(p.name, p.max, p.atk, '', (p.moves||[]).map(mm=>({id:mm.id,name:mm.name,power:mm.power,pp:mm.pp,maxpp:mm.maxpp})), p.level);
-        m.hp = p.hp; m.xp = p.xp || 0; m.max = p.max;
-        return m;
-      });
-      drawMap(); renderPlayer(); renderParty(); renderInv();
-      log('Game loaded.', 'polite','ok');
-    } catch(e){ log('Load failed.','assertive'); }
-  }
+  // UI button
+  throwBallBtn.addEventListener('click', captureAttempt);
 
-  // --- UI button wiring
-  ttsBtn.addEventListener('click', ()=>{ useTTS = !useTTS; ttsBtn.setAttribute('aria-pressed', String(useTTS)); ttsBtn.textContent = `TTS: ${useTTS? 'on':'off'}`; log(`TTS ${useTTS? 'on':'off'}.`); });
-  verbBtn.addEventListener('click', ()=>{ verbose = !verbose; verbBtn.setAttribute('aria-pressed', String(verbose)); verbBtn.textContent = `Verbose: ${verbose? 'on':'off'}`; log(`Verbosity ${verbose? 'on':'off'}.`); });
-  repeatBtn.addEventListener('click', ()=>{ if(lastUtter) speak(lastUtter,'assertive'); });
-  saveBtn.addEventListener('click', saveGame);
-  loadBtn.addEventListener('click', loadGame);
-  resetBtn.addEventListener('click', ()=>{ if(confirm('Reset progress?')) { localStorage.removeItem('afm_save'); location.reload(); } });
+  // toggles
+  document.getElementById('ttsToggle').addEventListener('click', ()=>{ useTTS = !useTTS; document.getElementById('ttsToggle').setAttribute('aria-pressed', String(useTTS)); document.getElementById('ttsToggle').textContent = `TTS: ${useTTS? 'on':'off'}`; });
+  document.getElementById('repeatBtn').addEventListener('click', ()=>{ if(lastUtter) speak(lastUtter); });
 
-  // --- initial setup
-  function initStarter(){
-    // give starter some PP copies
-    state.party.forEach(m=>m.moves.forEach(mm=>{ mm = mm; mm.pp = mm.maxpp; }));
-  }
-
-  function init(){
-    initStarter(); drawMap(); renderPlayer(); renderParty(); renderInv();
-    log('Welcome. Use keyboard or on-screen buttons. Press M to listen. Press B to search. Space to repeat last message.','assertive','ok');
-    describeTile();
-    appEl.focus();
-  }
-
-  init();
+  // init
+  function init(){ drawMap(); renderPlayer(); renderParty(); renderInv(); log('Welcome. Press M to listen. Press B to search. Press K or click Throw Ball to attempt capture when in battle.'); }
+ ,  init();
 
 })();
 </script>
