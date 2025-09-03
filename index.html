@@ -29,7 +29,7 @@ select{padding:6px;border-radius:4px;}
 <body>
 <main>
   <!-- HOME -->
-  <section id="home" class="tab active" role="tabpanel">
+  <section id="home" class="tab" role="tabpanel">
     <h1>Home</h1>
     <p id="player-info" aria-live="polite">Level: 1 | Money: $1000 | Bank: $0</p>
     <div class="flex">
@@ -41,7 +41,6 @@ select{padding:6px;border-radius:4px;}
       <button id="bank-deposit" class="btn alt">Deposit $100</button>
       <button id="bank-withdraw" class="btn alt">Withdraw $100</button>
     </div>
-
     <h2>Pokedex</h2>
     <div id="pokedex-list" class="panel" style="display:none" aria-live="polite"></div>
   </section>
@@ -77,7 +76,6 @@ select{padding:6px;border-radius:4px;}
         <button id="send-out" class="btn">Send Out</button>
       </div>
     </div>
-
     <div id="battle-area" style="margin-top:12px;display:none;">
       <div class="panel" id="battle-stats" aria-live="polite"></div>
       <div id="move-buttons" style="margin-top:10px;"></div>
@@ -93,11 +91,10 @@ select{padding:6px;border-radius:4px;}
       <option value="buy">Buy Items</option>
       <option value="sell">Sell Items</option>
     </select>
-
     <div id="trade-panel" class="panel" style="margin-top:10px;"></div>
   </section>
 
-  <footer style="margin-top:18px;font-size:13px;color:#444">Accessible Pokémon Game — merged base (local file)</footer>
+  <footer style="margin-top:18px;font-size:13px;color:#444">Accessible Pokémon Game — full merged base</footer>
 </main>
 
 <nav role="tablist" aria-label="Main tabs">
@@ -122,10 +119,18 @@ function updateUI(){ document.getElementById('player-info').innerText=`Level: ${
 document.getElementById('save-manual').addEventListener('click', ()=>{ savePlayer(); alert('Saved.'); });
 document.getElementById('reset-game').addEventListener('click', resetPlayer);
 
+// bank buttons
+document.getElementById('bank-deposit').addEventListener('click', ()=>{
+  if(player.money>=100){player.money-=100; player.bank+=100; savePlayer();}
+});
+document.getElementById('bank-withdraw').addEventListener('click', ()=>{
+  if(player.bank>=100){player.bank-=100; player.money+=100; savePlayer();}
+});
+
 // ------------------ Pokémon data subset ------------------
 const pokemonData = [
   {"id":1,"name":"Bulbasaur","types":["Grass","Poison"],"baseStats":{"hp":45,"attack":49,"defense":49,"speed":45,"special":65},"moves":[{"name":"Tackle","type":"Normal","power":35,"accuracy":95},{"name":"Growl","type":"Status","power":0,"accuracy":100},{"name":"Leech Seed","type":"Grass","power":0,"accuracy":90},{"name":"Vine Whip","type":"Grass","power":45,"accuracy":100}]},
-  {"id":2,"name":"Ivysaur","types":["Grass","Poison"],"baseStats":{"hp":60,"attack":62,"defense":63,"speed":60,"special":80},"moves":[{"name":"Tackle","type":"Normal","power":35,"accuracy":95},{"name":"Growl","type":"Status","power":0,"accuracy":100},{"name":"Leech Seed","type":"Grass","power":0,"accuracy":90},{"name":"Vine Whip","type":"Grass","power":45,"accuracy":100}]} // ...expand as needed
+  {"id":2,"name":"Ivysaur","types":["Grass","Poison"],"baseStats":{"hp":60,"attack":62,"defense":63,"speed":60,"special":80},"moves":[{"name":"Tackle","type":"Normal","power":35,"accuracy":95},{"name":"Growl","type":"Status","power":0,"accuracy":100},{"name":"Leech Seed","type":"Grass","power":0,"accuracy":90},{"name":"Vine Whip","type":"Grass","power":45,"accuracy":100}]} 
 ];
 
 // ------------------ Pokedex ------------------
@@ -151,7 +156,23 @@ pokedexBtn.addEventListener('click', ()=>{
   else{ pokedexListEl.style.display='none'; pokedexBtn.innerText='Open Pokedex'; pokedexBtn.setAttribute('aria-expanded','false'); }
 });
 
-// ------------------ Explore ------------------
+// ------------------ Tabs ------------------
+const tabButtons = document.querySelectorAll('nav .tab-btn');
+const tabs = document.querySelectorAll('main .tab');
+
+tabButtons.forEach(btn => {
+  btn.addEventListener('click', () => {
+    const target = btn.dataset.target;
+    tabButtons.forEach(b => b.classList.remove('active'));
+    tabs.forEach(t => t.style.display = 'none');
+    btn.classList.add('active');
+    document.getElementById(target).style.display = 'block';
+  });
+});
+tabs.forEach(t => t.style.display = 'none');
+document.getElementById('home').style.display = 'block';
+
+// ------------------ Explore/Gather ------------------
 const exploreLog=document.getElementById('explore-log');
 document.getElementById('catch-pokemon').addEventListener('click', ()=>{
   const wild = pokemonData[Math.floor(Math.random()*pokemonData.length)];
@@ -159,4 +180,119 @@ document.getElementById('catch-pokemon').addEventListener('click', ()=>{
   setTimeout(()=>{
     const success = Math.random()<0.7;
     if(success){ player.pokemon.push(wild.name); savePlayer(); exploreLog.innerText=`You caught ${wild.name}!`; }
-    else{ explore
+    else{ exploreLog.innerText=`${wild.name} escaped!`; }
+  },500);
+});
+
+const gatherLog=document.getElementById('gather-log');
+const resources=['Potion','Super Potion','Berry','Rare Candy'];
+document.getElementById('gather-resource').addEventListener('click', ()=>{
+  const item = resources[Math.floor(Math.random()*resources.length)];
+  player.inventory.push(item);
+  savePlayer();
+  gatherLog.innerText=`You gathered: ${item}`;
+});
+
+// ------------------ Inventory ------------------
+function updateInventoryUI(){
+  let invPanel = document.getElementById('inventory-list');
+  if(!invPanel){ invPanel=document.createElement('div'); invPanel.id='inventory-list'; document.body.appendChild(invPanel); }
+  invPanel.innerHTML='';
+  player.inventory.forEach((item,i)=>{
+    const node=document.createElement('div');
+    node.textContent=`${i+1}. ${item}`;
+    invPanel.appendChild(node);
+  });
+}
+
+// ------------------ Trade ------------------
+const tradeMode = document.getElementById('trade-mode');
+const tradePanel = document.getElementById('trade-panel');
+function updateTradeUI(){
+  tradePanel.innerHTML='';
+  if(tradeMode.value==='buy'){
+    ['Potion','Super Potion','Berry','Rare Candy'].forEach(item=>{
+      const b=document.createElement('button');
+      b.className='btn alt';
+      b.textContent=`Buy ${item} ($50)`;
+      b.addEventListener('click', ()=>{
+        if(player.money>=50){player.money-=50; player.inventory.push(item); savePlayer(); alert(`Bought ${item}`);}
+        else alert('Not enough money');
+      });
+      tradePanel.appendChild(b);
+    });
+  } else { // Sell
+    if(player.inventory.length===0){ tradePanel.innerText='No items to sell.'; return; }
+    const sellable = player.inventory.slice();
+    sellable.forEach((item,i)=>{
+      const b=document.createElement('button');
+      b.className='btn alt';
+      b.textContent=`Sell ${item} ($25)`;
+      b.addEventListener('click', ()=>{
+        player.inventory.splice(player.inventory.indexOf(item),1);
+        player.money+=25;
+        savePlayer(); updateTradeUI();
+      });
+      tradePanel.appendChild(b);
+    });
+    const sellAllBtn=document.createElement('button');
+    sellAllBtn.className='btn alt';
+    sellAllBtn.textContent='Sell All Sellable Items';
+    sellAllBtn.addEventListener('click', ()=>{
+      const earned = sellable.length*25;
+      sellable.forEach(item=>player.inventory.splice(player.inventory.indexOf(item),1));
+      player.money+=earned;
+      savePlayer(); updateTradeUI(); alert(`Sold all items for $${earned}`);
+    });
+    tradePanel.appendChild(document.createElement('br'));
+    tradePanel.appendChild(sellAllBtn);
+  }
+}
+tradeMode.addEventListener('change', updateTradeUI);
+updateTradeUI();
+
+// ------------------ Battle ------------------
+let currentBattle = null;
+const battleLog = document.getElementById('battle-log');
+document.getElementById('start-battle').addEventListener('click', ()=>{
+  if(player.pokemon.length===0){ alert('No Pokémon to battle with!'); return; }
+  currentBattle = { player: {name:player.pokemon[0], hp:50}, enemy: {name:pokemonData[Math.floor(Math.random()*pokemonData.length)].name, hp:50} };
+  document.getElementById('battle-area').style.display='block';
+  document.getElementById('move-buttons').innerHTML='';
+  battleLog.innerText=`A wild ${currentBattle.enemy.name} appeared!`;
+  showMoves();
+});
+function showMoves(){
+  const movesDiv=document.getElementById('move-buttons');
+  movesDiv.innerHTML='';
+  ['Tackle','Growl','Vine Whip','Leech Seed'].forEach(move=>{
+    const btn=document.createElement('button');
+    btn.textContent=move;
+    btn.addEventListener('click', ()=>playerTurn(move));
+    movesDiv.appendChild(btn);
+  });
+}
+function playerTurn(move){
+  if(!currentBattle) return;
+  currentBattle.enemy.hp-=10;
+  battleLog.innerText+=`\nPlayer used ${move}! Enemy HP: ${Math.max(0,currentBattle.enemy.hp)}`;
+  if(currentBattle.enemy.hp<=0){ endBattle('You Win!'); return; }
+  setTimeout(enemyTurn,500);
+}
+function enemyTurn(){
+  if(!currentBattle) return;
+  currentBattle.player.hp-=10;
+  battleLog.innerText+=`\nEnemy attacks! Player HP: ${Math.max(0,currentBattle.player.hp)}`;
+  if(currentBattle.player.hp<=0){ endBattle('You Lose!'); return; }
+}
+function endBattle(result){
+  currentBattle=null;
+  document.getElementById('move-buttons').innerHTML='';
+  battleLog.innerText+=`\nBattle Over: ${result}`;
+  if(result==='You Win!'){ player.money+=100; player.level+=1; savePlayer(); updateUI(); battleLog.innerText+=`\nYou earned $100 and leveled up!`; }
+}
+
+updateUI();
+</script>
+</body>
+</html>
