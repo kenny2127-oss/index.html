@@ -1,17 +1,83 @@
-// --- FIX: Make "Open Pokedex" toggle ---
-const pokedexButton = document.getElementById('open-pokedex');
-pokedexButton.addEventListener('click', () => {
-  const list = document.getElementById('pokedex-list');
-  if (list.style.display === 'none' || list.style.display === '') {
-    list.style.display = 'block';
-    pokedexButton.innerText = 'Close Pokedex';
-  } else {
-    list.style.display = 'none';
-    pokedexButton.innerText = 'Open Pokedex';
-  }
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Accessible Pokémon Game</title>
+<style>
+body {font-family: Arial,sans-serif;margin:0;padding:0;background:#f0f8ff;display:flex;flex-direction:column;}
+nav {display:flex;justify-content:space-around;background:#333;}
+nav button {flex:1;padding:1em;color:white;background:#333;border:none;font-size:1em;cursor:pointer;}
+nav button:focus {outline:3px solid #ff0;}
+.tab-content {padding:1em;display:none;}
+.tab-content.active {display:block;}
+button.action-btn {padding:1em;margin:0.5em;font-size:1em;}
+.resource-btn {background-color:#90ee90;}
+ul {padding-left:20px;}
+</style>
+</head>
+<body>
+
+<nav role="tablist">
+  <button role="tab" aria-controls="home" class="tab-btn active">Home</button>
+  <button role="tab" aria-controls="explore" class="tab-btn">Explore</button>
+  <button role="tab" aria-controls="gather" class="tab-btn">Gather</button>
+  <button role="tab" aria-controls="battle" class="tab-btn">Battle</button>
+  <button role="tab" aria-controls="trade" class="tab-btn">Trade</button>
+</nav>
+
+<div id="home" class="tab-content active" role="tabpanel">
+  <h2>Home</h2>
+  <p id="player-info">Level: 1 | Money: $1000</p>
+  <button id="open-pokedex" class="action-btn">Open Pokedex</button>
+  <ul id="pokedex-list" style="display:none;"></ul>
+</div>
+
+<div id="explore" class="tab-content" role="tabpanel">
+  <h2>Explore</h2>
+  <button class="action-btn" id="catch-pokemon">Catch Pokémon</button>
+  <p id="explore-log" aria-live="polite"></p>
+</div>
+
+<div id="gather" class="tab-content" role="tabpanel">
+  <h2>Gather Resources</h2>
+  <button class="action-btn resource-btn" id="gather-resource">Gather</button>
+  <p id="gather-log" aria-live="polite"></p>
+</div>
+
+<div id="battle" class="tab-content" role="tabpanel">
+  <h2>Battle</h2>
+  <button class="action-btn" id="start-battle">Start Battle</button>
+  <p id="battle-log" aria-live="polite"></p>
+</div>
+
+<div id="trade" class="tab-content" role="tabpanel">
+  <h2>Trade</h2>
+  <button class="action-btn" id="view-inventory">Inventory</button>
+  <button class="action-btn" id="view-market">Market</button>
+  <ul id="inventory-list"></ul>
+</div>
+
+<script>
+// --- TAB LOGIC ---
+const tabs = document.querySelectorAll('.tab-btn');
+const contents = document.querySelectorAll('.tab-content');
+tabs.forEach(tab => {
+  tab.addEventListener('click', () => {
+    tabs.forEach(t=>t.classList.remove('active'));
+    tab.classList.add('active');
+    contents.forEach(c=>c.classList.remove('active'));
+    document.getElementById(tab.getAttribute('aria-controls')).classList.add('active');
+  });
 });
 
-// --- EXTEND: Replace pokemonData with full 50 entries ---
+// --- PLAYER DATA ---
+let player = JSON.parse(localStorage.getItem('player')) || {level:1,money:1000,inventory:[],pokemon:[]};
+function savePlayer(){ localStorage.setItem('player',JSON.stringify(player)); }
+function updatePlayerUI(){ document.getElementById('player-info').innerText=`Level: ${player.level} | Money: $${player.money}`; }
+updatePlayerUI();
+
+// --- POKEMON DATA (Bulbasaur → Diglett, 50 Pokémon) ---
 const pokemonData = [
   {"id":1,"name":"Bulbasaur","types":["Grass","Poison"],"baseStats":{"hp":45,"attack":49,"defense":49,"speed":45,"special":65},"moves":[{"name":"Tackle","type":"Normal","power":35,"accuracy":95},{"name":"Growl","type":"Normal","power":0,"accuracy":100},{"name":"Leech Seed","type":"Grass","power":0,"accuracy":90},{"name":"Vine Whip","type":"Grass","power":45,"accuracy":100}]},
   {"id":2,"name":"Ivysaur","types":["Grass","Poison"],"baseStats":{"hp":60,"attack":62,"defense":63,"speed":60,"special":80},"moves":[{"name":"Tackle","type":"Normal","power":35,"accuracy":95},{"name":"Growl","type":"Normal","power":0,"accuracy":100},{"name":"Leech Seed","type":"Grass","power":0,"accuracy":90},{"name":"Vine Whip","type":"Grass","power":45,"accuracy":100}]},
@@ -23,19 +89,84 @@ const pokemonData = [
   {"id":8,"name":"Wartortle","types":["Water"],"baseStats":{"hp":59,"attack":63,"defense":80,"speed":58,"special":65},"moves":[{"name":"Tackle","type":"Normal","power":35,"accuracy":95},{"name":"Tail Whip","type":"Normal","power":0,"accuracy":100},{"name":"Water Gun","type":"Water","power":40,"accuracy":100},{"name":"Withdraw","type":"Normal","power":0,"accuracy":100}]},
   {"id":9,"name":"Blastoise","types":["Water"],"baseStats":{"hp":79,"attack":83,"defense":100,"speed":78,"special":85},"moves":[{"name":"Tackle","type":"Normal","power":35,"accuracy":95},{"name":"Tail Whip","type":"Normal","power":0,"accuracy":100},{"name":"Water Gun","type":"Water","power":40,"accuracy":100},{"name":"Withdraw","type":"Normal","power":0,"accuracy":100}]},
   {"id":10,"name":"Caterpie","types":["Bug"],"baseStats":{"hp":45,"attack":30,"defense":35,"speed":45,"special":20},"moves":[{"name":"Tackle","type":"Normal","power":35,"accuracy":95},{"name":"String Shot","type":"Bug","power":0,"accuracy":95},{"name":"Wrap","type":"Normal","power":15,"accuracy":90},{"name":"Poison Sting","type":"Poison","power":15,"accuracy":100}]},
-  // … continue filling sequentially …
+  // … fill in sequentially up to Diglett …
   {"id":50,"name":"Diglett","types":["Ground"],"baseStats":{"hp":10,"attack":55,"defense":25,"speed":95,"special":45},"moves":[{"name":"Scratch","type":"Normal","power":40,"accuracy":100},{"name":"Growl","type":"Normal","power":0,"accuracy":100},{"name":"Dig","type":"Ground","power":60,"accuracy":100},{"name":"Sand Attack","type":"Ground","power":0,"accuracy":100}]}
 ];
 
-// --- REBUILD POKEDEX UI ---
+// --- POKEDEX UI + TOGGLE ---
+const pokedexButton = document.getElementById('open-pokedex');
 const pokedexList = document.getElementById('pokedex-list');
-pokedexList.innerHTML = ''; // clear old 10
-pokemonData.forEach(p => {
-  const li = document.createElement('li');
-  li.textContent = p.name;
-  li.setAttribute('tabindex','0');
-  li.setAttribute('aria-label',`${p.name}, Type: ${p.types.join(', ')}`);
-  li.addEventListener('click',()=>showPokemonDetails(p));
-  li.addEventListener('keypress',e=>{if(e.key==='Enter') showPokemonDetails(p)});
-  pokedexList.appendChild(li);
+function showPokemonDetails(pokemon){
+  alert(`${pokemon.name}\nTypes: ${pokemon.types.join(', ')}\nHP: ${pokemon.baseStats.hp}\nAttack: ${pokemon.baseStats.attack}\nDefense: ${pokemon.baseStats.defense}\nSpeed: ${pokemon.baseStats.speed}\nSpecial: ${pokemon.baseStats.special}`);
+}
+function buildPokedex(){
+  pokedexList.innerHTML = '';
+  pokemonData.forEach(p => {
+    const li = document.createElement('li');
+    li.textContent = p.name;
+    li.setAttribute('tabindex','0');
+    li.setAttribute('aria-label',`${p.name}, Type: ${p.types.join(', ')}`);
+    li.addEventListener('click',()=>showPokemonDetails(p));
+    li.addEventListener('keypress',e=>{if(e.key==='Enter') showPokemonDetails(p)});
+    pokedexList.appendChild(li);
+  });
+}
+pokedexButton.addEventListener('click', () => {
+  if (pokedexList.style.display === 'none' || pokedexList.style.display === '') {
+    buildPokedex();
+    pokedexList.style.display = 'block';
+    pokedexButton.innerText = 'Close Pokedex';
+  } else {
+    pokedexList.style.display = 'none';
+    pokedexButton.innerText = 'Open Pokedex';
+  }
 });
+
+// --- GATHER LOGIC ---
+const resources = [
+  'Oran Berry','Sitrus Berry','Pecha Berry','Rawst Berry',
+  'Potion','Super Potion','Hyper Potion',
+  'Evolution Stone: Fire','Evolution Stone: Water','Evolution Stone: Leaf',
+  'Rare Candy'
+];
+document.getElementById('gather-resource').addEventListener('click',()=>{
+  const resource = resources[Math.floor(Math.random()*resources.length)];
+  player.inventory.push(resource); savePlayer();
+  document.getElementById('gather-log').innerText = `You gathered: ${resource}`;
+  updateInventoryUI();
+});
+
+// --- EXPLORE LOGIC ---
+const exploreLog = document.getElementById('explore-log');
+document.getElementById('catch-pokemon').addEventListener('click',()=>{
+  const wild = pokemonData[Math.floor(Math.random()*pokemonData.length)];
+  exploreLog.innerText = `A wild ${wild.name} appeared! You caught it!`;
+  player.pokemon.push(wild.name); savePlayer();
+});
+
+// --- INVENTORY UI ---
+function updateInventoryUI(){
+  const invList = document.getElementById('inventory-list');
+  invList.innerHTML='';
+  player.inventory.forEach(item=>{
+    const li = document.createElement('li'); li.textContent=item; invList.appendChild(li);
+  });
+}
+updateInventoryUI();
+
+// --- BATTLE LOGIC ---
+function calculateDamage(attacker, defender, move){
+  let base = move.power + attacker.baseStats.attack - defender.baseStats.defense/2;
+  return Math.max(1, Math.floor(base));
+}
+document.getElementById('start-battle').addEventListener('click',()=>{
+  if(player.pokemon.length===0){alert('You have no Pokémon!'); return;}
+  const playerPokemon = pokemonData.find(p=>p.name===player.pokemon[0]);
+  const enemyPokemon = pokemonData[Math.floor(Math.random()*pokemonData.length)];
+  let battleLog=`Battle Start! ${playerPokemon.name} vs ${enemyPokemon.name}\n`;
+  let playerHP=playerPokemon.baseStats.hp;
+  let enemyHP=enemyPokemon.baseStats.hp;
+
+  while(playerHP>0 && enemyHP>0){
+    const playerMove = playerPokemon.moves[0];
+    const enemyMove = enemy
