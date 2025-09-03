@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Accessible Pokémon Game — Fixed Tabs & Level/XP</title>
+<title>Accessible Pokémon Game — Fully Merged</title>
 <style>
 :root{--nav:#333;--accent:#90ee90;--bg:#f0f8ff}
 html,body{height:100%;margin:0;font-family:Arial,Helvetica,sans-serif;background:var(--bg);color:#111;display:flex;flex-direction:column;}
@@ -104,7 +104,7 @@ select{padding:6px;border-radius:4px;}
   <div id="trade-panel" class="panel" style="margin-top:10px;"></div>
 </section>
 
-<footer style="margin-top:18px;font-size:13px;color:#444">Accessible Pokémon Game — Tabs Fixed</footer>
+<footer style="margin-top:18px;font-size:13px;color:#444">Accessible Pokémon Game — Fully Functional</footer>
 </main>
 
 <nav role="tablist" aria-label="Main tabs">
@@ -121,8 +121,8 @@ select{padding:6px;border-radius:4px;}
 const DEFAULT_PLAYER = { level:1, xp:0, money:1000, bank:0, inventory:{}, pokemon:[] };
 let player = loadPlayer();
 
-function savePlayer(){ localStorage.setItem('pkm_player_v5', JSON.stringify(player)); updateUI(); }
-function loadPlayer(){ try{ const s=localStorage.getItem('pkm_player_v5'); return s?JSON.parse(s): structuredClone(DEFAULT_PLAYER);}catch(e){return structuredClone(DEFAULT_PLAYER);} }
+function savePlayer(){ localStorage.setItem('pkm_player_v6', JSON.stringify(player)); updateUI(); }
+function loadPlayer(){ try{ const s=localStorage.getItem('pkm_player_v6'); return s?JSON.parse(s): structuredClone(DEFAULT_PLAYER);}catch(e){return structuredClone(DEFAULT_PLAYER);} }
 function resetPlayer(){ if(confirm('Reset save? This will clear progress.')){ player=structuredClone(DEFAULT_PLAYER); savePlayer(); location.reload(); } }
 function gainXP(amount){
   player.xp += amount;
@@ -155,7 +155,7 @@ bankActions.addEventListener('change',()=>{
   savePlayer();
 });
 
-// ------------------ Tabs Fix ------------------
+// ------------------ Tabs ------------------
 const tabButtons = document.querySelectorAll('nav .tab-btn');
 const tabs = document.querySelectorAll('main .tab');
 
@@ -182,9 +182,110 @@ function updateInventoryUI(){
   }
 }
 
-// ------------------ Other features (Pokedex, Explore, Gather, Trade, Battle) ------------------
-// Keep the previous logic for Pokedex, Catching, Gathering, Trading, and Battles here...
-// (The logic from your last merged base file remains intact.)
+// ------------------ Pokémon Data ------------------
+const pokemonData=[
+  {"id":1,"name":"Bulbasaur"},{"id":2,"name":"Ivysaur"},{"id":3,"name":"Venusaur"},
+  {"id":4,"name":"Charmander"},{"id":5,"name":"Charmeleon"},{"id":6,"name":"Charizard"},
+  {"id":7,"name":"Squirtle"},{"id":8,"name":"Wartortle"},{"id":9,"name":"Blastoise"},
+  {"id":10,"name":"Caterpie"},{"id":11,"name":"Metapod"},{"id":12,"name":"Butterfree"},
+  {"id":13,"name":"Weedle"},{"id":14,"name":"Kakuna"},{"id":15,"name":"Beedrill"}
+];
+
+// ------------------ Pokedex ------------------
+const pokedexBtn=document.getElementById('open-pokedex');
+const pokedexListEl=document.getElementById('pokedex-list');
+function buildPokedex(){
+  pokedexListEl.innerHTML='';
+  pokemonData.forEach(p=>{
+    const node=document.createElement('div'); node.tabIndex=0;
+    node.style.padding='6px 4px'; node.style.borderBottom='1px solid #eee';
+    node.setAttribute('role','button');
+    node.setAttribute('aria-label',p.name);
+    node.textContent=`${p.id.toString().padStart(3,'0')} — ${p.name}`;
+    pokedexListEl.appendChild(node);
+  });
+}
+pokedexBtn.addEventListener('click', ()=>{
+  const visible=pokedexListEl.style.display==='block';
+  if(!visible){ buildPokedex(); pokedexListEl.style.display='block'; pokedexBtn.innerText='Close Pokedex'; pokedexBtn.setAttribute('aria-expanded','true'); }
+  else{ pokedexListEl.style.display='none'; pokedexBtn.innerText='Open Pokedex'; pokedexBtn.setAttribute('aria-expanded','false'); }
+});
+
+// ------------------ Explore ------------------
+const exploreLog=document.getElementById('explore-log');
+document.getElementById('catch-pokemon').addEventListener('click',()=>{
+  const wild=pokemonData[Math.floor(Math.random()*pokemonData.length)];
+  exploreLog.innerText=`A wild ${wild.name} appeared!`;
+  setTimeout(()=>{
+    const success=Math.random()<0.7;
+    if(success){ player.pokemon.push(wild.name); gainXP(20); savePlayer(); exploreLog.innerText=`You caught ${wild.name}! (+20 XP)`;}
+    else exploreLog.innerText=`${wild.name} escaped!`;
+  },500);
+});
+
+// ------------------ Gather ------------------
+const gatherLog=document.getElementById('gather-log');
+const resources=['Potion','Super Potion','Berry','Shield Vest','Battle Gloves'];
+document.getElementById('gather-resource').addEventListener('click',()=>{
+  const item=resources[Math.floor(Math.random()*resources.length)];
+  player.inventory[item]=(player.inventory[item]||0)+1;
+  gatherLog.innerText=`You gathered 1 ${item}. (+10 XP)`;
+  gainXP(10);
+  savePlayer();
+});
+
+// ------------------ Trade ------------------
+const tradeMode=document.getElementById('trade-mode');
+const tradePanel=document.getElementById('trade-panel');
+document.getElementById('sell-all-top').addEventListener('click',()=>{
+  let total=0;
+  for(const [item,qty] of Object.entries(player.inventory)){
+    if(qty>0){ total+=qty*10; player.inventory[item]=0; } // sell price = $10/item
+  }
+  if(total>0){ player.money+=total; tradePanel.innerText=`Sold all items for $${total}.`; }
+  else tradePanel.innerText='No items to sell.';
+  savePlayer();
+});
+function updateTradeUI(){
+  tradePanel.innerHTML='';
+  const mode=tradeMode.value;
+  if(mode==='buy'){
+    tradePanel.innerHTML='Available to buy: Potion ($10), Super Potion ($20), Berry ($5)';
+  }else{
+    const sellable=Object.entries(player.inventory).filter(([k,v])=>v>0);
+    if(sellable.length>0){ sellable.forEach(([k,v])=>{const div=document.createElement('div'); div.textContent=`${k} x${v}`; tradePanel.appendChild(div); }); }
+    else tradePanel.innerText='No items to sell.';
+  }
+}
+tradeMode.addEventListener('change',updateTradeUI);
+updateTradeUI();
+
+// ------------------ Battle ------------------
+const battleArea=document.getElementById('battle-area');
+const battleStats=document.getElementById('battle-stats');
+const moveButtons=document.getElementById('move-buttons');
+const battleLog=document.getElementById('battle-log');
+document.getElementById('start-battle').addEventListener('click',()=>{
+  if(player.pokemon.length===0){ battleLog.innerText='No Pokémon to battle.'; return; }
+  battleArea.style.display='block';
+  const enemy={name:'Wild Rattata',hp:50};
+  const playerMon={name:player.pokemon[0],hp:50};
+  battleStats.innerText=`Your ${playerMon.name}: ${playerMon.hp} HP\nEnemy ${enemy.name}: ${enemy.hp} HP`;
+  moveButtons.innerHTML='';
+  ['Tackle','Growl','Quick Attack','Tail Whip'].forEach(move=>{
+    const btn=document.createElement('button'); btn.className='btn alt'; btn.innerText=move;
+    btn.addEventListener('click',()=>{
+      if(enemy.hp<=0){ battleLog.innerText='Enemy already defeated!'; return; }
+      const dmg=Math.floor(Math.random()*15)+5;
+      enemy.hp-=dmg;
+      if(enemy.hp<0) enemy.hp=0;
+      battleStats.innerText=`Your ${playerMon.name}: ${playerMon.hp} HP\nEnemy ${enemy.name}: ${enemy.hp} HP`;
+      battleLog.innerText=`You used ${move} and dealt ${dmg} damage!`;
+      if(enemy.hp===0){ gainXP(50); battleLog.innerText+=`\nEnemy defeated! (+50 XP)`; savePlayer(); }
+    });
+    moveButtons.appendChild(btn);
+  });
+});
 
 updateUI();
 </script>
