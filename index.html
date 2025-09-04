@@ -4,11 +4,30 @@
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
 <title>Accessible Pokémon — Map + 300 Pokémon</title>
+<link rel="manifest" href="/manifest.json">
 <style>
 :root {
   --nav: #222;
   --accent: #9be29b;
   --bg: #f7fbff;
+  --grass: #78c850;
+  --fire: #f08030;
+  --water: #6890f0;
+  --electric: #f8d030;
+  --poison: #a040a0;
+  --bug: #a8b820;
+  --normal: #a8a878;
+  --flying: #a890f0;
+  --fairy: #ee99ac;
+  --fighting: #c03028;
+  --psychic: #f85888;
+  --rock: #b8a038;
+  --ground: #e0c068;
+  --steel: #b8b8d0;
+  --dark: #705848;
+  --ghost: #705898;
+  --ice: #98d8d8;
+  --dragon: #7038f8;
 }
 html, body {
   height: 100%;
@@ -115,6 +134,10 @@ small, .sub {
 }
 .battle-subtab.active {
   display: block;
+}
+.pokemon {
+  padding: 8px;
+  border-radius: 6px;
 }
 @media (min-width: 720px) {
   main {
@@ -448,18 +471,18 @@ let player = loadPlayer();
 
 function loadPlayer() {
   try {
-    const saved = localStorage.getItem('pkm_player_v10'); // Updated version
+    const saved = localStorage.getItem('pkm_player_v11');
     if (saved) return JSON.parse(saved);
   } catch (e) {
     console.error('Failed to load player data:', e);
   }
-  localStorage.setItem('pkm_player_v10', JSON.stringify(DEFAULT_PLAYER));
+  localStorage.setItem('pkm_player_v11', JSON.stringify(DEFAULT_PLAYER));
   return structuredClone(DEFAULT_PLAYER);
 }
 
 function savePlayer() {
   try {
-    localStorage.setItem('pkm_player_v10', JSON.stringify(player));
+    localStorage.setItem('pkm_player_v11', JSON.stringify(player));
     updateUI();
   } catch (e) {
     console.error('Failed to save player data:', e);
@@ -501,13 +524,14 @@ function updateUI() {
   // Party and Box
   const partyList = document.getElementById('party-list');
   partyList.innerHTML = player.party.length ? player.party.map((p, i) => `
-    <div tabindex="0" aria-label="${p.name}, ${p.type1}${p.type2 ? '/' + p.type2 : ''}, level ${p.level}, HP ${p.hp}/${p.maxHp}">
+    <div tabindex="0" aria-label="${p.name}, ${p.type1}${p.type2 ? '/' + p.type2 : ''}, level ${p.level}, HP ${p.hp}/${p.maxHp}" class="pokemon" style="background: var(--${typeStyles[p.type1.toLowerCase()] || 'normal'});">
       ${p.name} (${p.type1}${p.type2 ? '/' + p.type2 : ''})<br>
-      Lv ${p.level}, HP: ${p.hp}/${p.maxHp}
+      Lv ${p.level}, HP: ${p.hp}/${p.maxHp}<br>
+      <button onclick="moveToBox(${i})">Move to Box</button>
     </div>`).join('') : '<p>No Pokémon in party</p>';
   const boxList = document.getElementById('box-list');
   boxList.innerHTML = player.box.length ? player.box.map((p, i) => `
-    <div tabindex="0" aria-label="${p.name}, ${p.type1}${p.type2 ? '/' + p.type2 : ''}, level ${p.level}, HP ${p.hp}/${p.maxHp}">
+    <div tabindex="0" aria-label="${p.name}, ${p.type1}${p.type2 ? '/' + p.type2 : ''}, level ${p.level}, HP ${p.hp}/${p.maxHp}" class="pokemon" style="background: var(--${typeStyles[p.type1.toLowerCase()] || 'normal'});">
       ${p.name} (${p.type1}${p.type2 ? '/' + p.type2 : ''})<br>
       Lv ${p.level}, HP: ${p.hp}/${p.maxHp}
     </div>`).join('') : '<p>No Pokémon in box</p>';
@@ -718,6 +742,13 @@ function catchPokemon() {
   savePlayer();
 }
 
+function moveToBox(index) {
+  const mon = player.party.splice(index, 1)[0];
+  player.box.push(mon);
+  savePlayer();
+  alert(`${mon.name} moved to box!`);
+}
+
 function gatherResource() {
   const loc = locations.find(l => l.name === player.location);
   if (!loc) return;
@@ -863,6 +894,7 @@ function buyItem(item, price) {
   if (marketLog) {
     marketLog.textContent = `Bought 1 ${item}!`;
   }
+  updateMarket(); // Refresh only market content
   savePlayer();
 }
 
@@ -880,8 +912,9 @@ function sellItem(item, price) {
   if (marketLog) {
     marketLog.textContent = `Sold all ${item} for $${total}!`;
   }
-  updateUI();
+  updateMarket(); // Refresh only market content without full UI update
   beep(660, 120);
+  savePlayer();
 }
 
 function sellAll() {
@@ -954,7 +987,7 @@ function updatePokeCenter() {
       const locs = locations.filter(l => l.resources.includes(resource)).map(l => l.name).join(', ') || 'Not available';
       const isParty = globalIndex < player.party.length;
       const index = isParty ? globalIndex : globalIndex - player.party.length;
-      return `<div>
+      return `<div class="pokemon" style="background: var(--${typeStyles[mon.type1.toLowerCase()] || 'normal'});">
         ${mon.name} (${mon.type1}${mon.type2 ? '/' + mon.type2 : ''}, Lv ${mon.level})<br>
         Requires: ${resource} x1 (found in ${locs})<br>
         <button onclick="upgradePokemon('${isParty ? 'party' : 'box'}', ${index})">Upgrade</button>
@@ -1002,6 +1035,13 @@ document.addEventListener('DOMContentLoaded', () => {
   setupTabs();
   setupEventListeners();
   updateUI();
+
+  // Register service worker for PWA
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/sw.js')
+      .then(reg => console.log('Service Worker registered', reg))
+      .catch(err => console.error('Service Worker registration failed', err));
+  }
 });
 </script>
 </body>
