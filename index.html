@@ -4,8 +4,9 @@
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
 <title>Accessible Pokémon — Map + 300 Pokémon</title>
-<link rel="manifest" href="/manifest.json">
+<link rel="manifest" href="./manifest.json">
 <style>
+/* Same CSS as before */
 :root {
   --nav: #222;
   --accent: #9be29b;
@@ -306,6 +307,14 @@ const beep = (freq = 660, dur = 120) => {
   } catch (e) {
     console.error('AudioContext error:', e);
   }
+};
+
+// Type to CSS variable mapping
+const typeStyles = {
+  Grass: 'grass', Fire: 'fire', Water: 'water', Electric: 'electric', Poison: 'poison',
+  Bug: 'bug', Normal: 'normal', Flying: 'flying', Fairy: 'fairy', Fighting: 'fighting',
+  Psychic: 'psychic', Rock: 'rock', Ground: 'ground', Steel: 'steel', Dark: 'dark',
+  Ghost: 'ghost', Ice: 'ice', Dragon: 'dragon'
 };
 
 // ===== DATA =====
@@ -1038,11 +1047,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Register service worker for PWA
   if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('/sw.js')
+    navigator.serviceWorker.register('./sw.js')
       .then(reg => console.log('Service Worker registered', reg))
       .catch(err => console.error('Service Worker registration failed', err));
   }
 });
 </script>
 </body>
-</html> 
+</html>
