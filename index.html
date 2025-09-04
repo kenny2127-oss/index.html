@@ -2,33 +2,128 @@
 <html lang="en">
 <head>
 <meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
 <title>Accessible Pokémon — Map + 300 Pokémon</title>
 <style>
-:root{--nav:#222;--accent:#9be29b;--bg:#f7fbff}
-html,body{height:100%;margin:0;font-family:system-ui,Arial,Helvetica,sans-serif;background:var(--bg);color:#111;display:flex;flex-direction:column;}
-main{flex:1;overflow:auto;padding:12px 12px 92px;}
-nav{display:flex;gap:0;position:fixed;bottom:0;left:0;right:0;background:var(--nav);color:#fff;z-index:10}
-nav button{flex:1;padding:12px 8px;border:0;background:transparent;color:#fff;font-size:15px;cursor:pointer}
-nav button.active{background:#111;outline:3px solid #ff0}
-h1{margin:8px 0 6px}
-.panel{background:#fff;border:1px solid #e3e7ef;border-radius:10px;padding:10px}
-.flex{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-.btn{padding:9px 12px;border:0;border-radius:9px;background:#1976d2;color:#fff;cursor:pointer}
-.btn.alt{background:var(--accent);color:#000}
-.btn.ghost{background:transparent;border:1px solid #cfd6e4;color:#000}
-select,input,button{font-size:15px}
-label{display:block;margin:6px 0 2px}
-small,.sub{color:#555}
-.kv{display:flex;justify-content:space-between;border-bottom:1px dashed #eee;padding:6px 0}
-.grid{display:grid;gap:8px}
-@media(min-width:720px){ main{padding:18px 18px 116px} nav button{font-size:16px} }
+:root {
+  --nav: #222;
+  --accent: #9be29b;
+  --bg: #f7fbff;
+}
+html, body {
+  height: 100%;
+  margin: 0;
+  font-family: system-ui, Arial, Helvetica, sans-serif;
+  background: var(--bg);
+  color: #111;
+  display: flex;
+  flex-direction: column;
+}
+main {
+  flex: 1;
+  overflow: auto;
+  padding: 12px 12px 92px;
+}
+nav {
+  display: flex;
+  gap: 0;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: var(--nav);
+  color: #fff;
+  z-index: 10;
+}
+nav button {
+  flex: 1;
+  padding: 12px 8px;
+  border: 0;
+  background: transparent;
+  color: #fff;
+  font-size: 15px;
+  cursor: pointer;
+}
+nav button.active {
+  background: #111;
+  outline: 3px solid #ff0;
+}
+nav button:focus {
+  outline: 2px solid var(--accent);
+}
+h1 {
+  margin: 8px 0 6px;
+}
+.panel {
+  background: #fff;
+  border: 1px solid #e3e7ef;
+  border-radius: 10px;
+  padding: 10px;
+}
+.flex {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.btn {
+  padding: 9px 12px;
+  border: 0;
+  border-radius: 9px;
+  background: #1976d2;
+  color: #fff;
+  cursor: pointer;
+}
+.btn.alt {
+  background: var(--accent);
+  color: #000;
+}
+.btn.ghost {
+  background: transparent;
+  border: 1px solid #cfd6e4;
+  color: #000;
+}
+select, input, button {
+  font-size: 15px;
+}
+label {
+  display: block;
+  margin: 6px 0 2px;
+}
+small, .sub {
+  color: #555;
+}
+.kv {
+  display: flex;
+  justify-content: space-between;
+  border-bottom: 1px dashed #eee;
+  padding: 6px 0;
+}
+.grid {
+  display: grid;
+  gap: 8px;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+}
+.tab {
+  display: none;
+}
+.tab.active {
+  display: block;
+}
+@media (min-width: 720px) {
+  main {
+    padding: 18px 18px 116px;
+  }
+  nav button {
+    font-size: 16px;
+  }
+}
 </style>
 </head>
 <body>
 <main>
   <!-- HOME -->
-  <section id="home" class="tab" role="tabpanel">
+  <section id="home" class="tab active" role="tabpanel" aria-labelledby="home-tab">
     <h1>Home</h1>
     <div id="player-info" class="panel" aria-live="polite"></div>
     <div class="flex">
@@ -39,10 +134,26 @@ small,.sub{color:#555}
     <div class="panel">
       <h2>Bank</h2>
       <div class="flex">
-        <label for="bank-deposit">Deposit</label>
-        <select id="bank-deposit"><option value="">Choose</option><option value="10">$10</option><option value="20">$20</option><option value="50">$50</option><option value="all">All</option></select>
-        <label for="bank-withdraw">Withdraw</label>
-        <select id="bank-withdraw"><option value="">Choose</option><option value="10">$10</option><option value="20">$20</option><option value="50">$50</option><option value="all">All</option></select>
+        <div>
+          <label for="bank-deposit-amount">Deposit</label>
+          <select id="bank-deposit-amount">
+            <option value="">Choose</option>
+            <option value="10">$10</option>
+            <option value="20">$20</option>
+            <option value="50">$50</option>
+            <option value="all">All</option>
+          </select>
+        </div>
+        <div>
+          <label for="bank-withdraw-amount">Withdraw</label>
+          <select id="bank-withdraw-amount">
+            <option value="">Choose</option>
+            <option value="10">$10</option>
+            <option value="20">$20</option>
+            <option value="50">$50</option>
+            <option value="all">All</option>
+          </select>
+        </div>
       </div>
     </div>
     <div class="panel" id="party-panel">
@@ -56,7 +167,7 @@ small,.sub{color:#555}
   </section>
 
   <!-- MAP -->
-  <section id="map" class="tab" role="tabpanel">
+  <section id="map" class="tab" role="tabpanel" aria-labelledby="map-tab">
     <h1>Map</h1>
     <div class="panel">
       <p class="sub">Travel to different locations. Explore and Gather will be affected by your current location.</p>
@@ -66,13 +177,13 @@ small,.sub{color:#555}
   </section>
 
   <!-- INVENTORY -->
-  <section id="inventory" class="tab" role="tabpanel">
+  <section id="inventory" class="tab" role="tabpanel" aria-labelledby="inventory-tab">
     <h1>Inventory</h1>
     <div id="inventory-list" class="panel" aria-live="polite"></div>
   </section>
 
   <!-- EXPLORE -->
-  <section id="explore" class="tab" role="tabpanel">
+  <section id="explore" class="tab" role="tabpanel" aria-labelledby="explore-tab">
     <h1>Explore</h1>
     <div class="panel">
       <p class="sub">Find wild Pokémon. Encounter chances depend on current location.</p>
@@ -82,7 +193,7 @@ small,.sub{color:#555}
   </section>
 
   <!-- GATHER -->
-  <section id="gather" class="tab" role="tabpanel">
+  <section id="gather" class="tab" role="tabpanel" aria-labelledby="gather-tab">
     <h1>Gather</h1>
     <div class="panel">
       <p class="sub">Gather resources from your current location.</p>
@@ -92,7 +203,7 @@ small,.sub{color:#555}
   </section>
 
   <!-- BATTLE -->
-  <section id="battle" class="tab" role="tabpanel">
+  <section id="battle" class="tab" role="tabpanel" aria-labelledby="battle-tab">
     <h1>Battle</h1>
     <div class="flex">
       <button id="start-battle" class="btn alt">Start Wild Battle</button>
@@ -106,44 +217,274 @@ small,.sub{color:#555}
   </section>
 
   <!-- TRADE -->
-  <section id="trade" class="tab" role="tabpanel">
+  <section id="trade" class="tab" role="tabpanel" aria-labelledby="trade-tab">
     <h1>Trade</h1>
     <div class="flex">
       <button id="sell-all-top" class="btn alt">Sell All Sellable Items</button>
     </div>
     <label for="trade-mode">Choose Mode</label>
-    <select id="trade-mode"><option value="buy">Buy Items</option><option value="sell">Sell Items</option></select>
+    <select id="trade-mode">
+      <option value="buy">Buy Items</option>
+      <option value="sell">Sell Items</option>
+    </select>
     <div id="trade-panel" class="panel" style="margin-top:10px"></div>
   </section>
 </main>
 
-<nav>
-  <button class="tab-btn active" data-target="home">Home</button>
-  <button class="tab-btn" data-target="map">Map</button>
-  <button class="tab-btn" data-target="inventory">Inventory</button>
-  <button class="tab-btn" data-target="explore">Explore</button>
-  <button class="tab-btn" data-target="gather">Gather</button>
-  <button class="tab-btn" data-target="battle">Battle</button>
-  <button class="tab-btn" data-target="trade">Trade</button>
+<nav role="tablist">
+  <button id="home-tab" class="tab-btn active" data-target="home" role="tab" aria-controls="home" aria-selected="true">Home</button>
+  <button id="map-tab" class="tab-btn" data-target="map" role="tab" aria-controls="map" aria-selected="false">Map</button>
+  <button id="inventory-tab" class="tab-btn" data-target="inventory" role="tab" aria-controls="inventory" aria-selected="false">Inventory</button>
+  <button id="explore-tab" class="tab-btn" data-target="explore" role="tab" aria-controls="explore" aria-selected="false">Explore</button>
+  <button id="gather-tab" class="tab-btn" data-target="gather" role="tab" aria-controls="gather" aria-selected="false">Gather</button>
+  <button id="battle-tab" class="tab-btn" data-target="battle" role="tab" aria-controls="battle" aria-selected="false">Battle</button>
+  <button id="trade-tab" class="tab-btn" data-target="trade" role="tab" aria-controls="trade" aria-selected="false">Trade</button>
 </nav>
 
 <script>
 // ===== UTILS =====
-const rng = (min,max)=>Math.floor(Math.random()*(max-min+1))+min;
-const beep=(freq=660,dur=120)=>{try{const ctx=new (window.AudioContext||window.webkitAudioContext)();const o=ctx.createOscillator();const g=ctx.createGain();o.type='sine';o.frequency.value=freq;g.gain.value=0.18;o.connect(g);g.connect(ctx.destination);o.start();setTimeout(()=>{o.stop();ctx.close();},dur);}catch(e){}};
+const rng = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
+const beep = (freq = 660, dur = 120) => {
+  if (!window.AudioContext && !window.webkitAudioContext) return;
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const o = ctx.createOscillator();
+    const g = ctx.createGain();
+    o.type = 'sine';
+    o.frequency.setValueAtTime(freq, ctx.currentTime);
+    g.gain.setValueAtTime(0.18, ctx.currentTime);
+    o.connect(g);
+    g.connect(ctx.destination);
+    o.start();
+    setTimeout(() => {
+      o.stop();
+      ctx.close();
+    }, dur);
+  } catch (e) {
+    console.error('AudioContext error:', e);
+  }
+};
 
 // ===== SAVE / PLAYER =====
-const DEFAULT_PLAYER={level:1,xp:0,money:1000,bank:0,inventory:{},gear:{},party:[],box:[],mons:{},badges:0,location:'Forest'};
-let player=loadPlayer();
+const DEFAULT_PLAYER = {
+  level: 1,
+  xp: 0,
+  money: 1000,
+  bank: 0,
+  inventory: {},
+  gear: {},
+  party: [],
+  box: [],
+  mons: {},
+  badges: 0,
+  location: 'Forest'
+};
+let player = loadPlayer();
 
-function loadPlayer(){
-  const s = localStorage.getItem('pkm_player_v8');
-  if(s){try{return JSON.parse(s);}catch(e){}}
+function loadPlayer() {
+  try {
+    const saved = localStorage.getItem('pkm_player_v8');
+    if (saved) return JSON.parse(saved);
+  } catch (e) {
+    console.error('Failed to load player data:', e);
+  }
   localStorage.setItem('pkm_player_v8', JSON.stringify(DEFAULT_PLAYER));
   return structuredClone(DEFAULT_PLAYER);
 }
-function savePlayer(){ localStorage.setItem('pkm_player_v8', JSON.stringify(player)); updateUI(); }
-function resetPlayer(){ if(confirm('Reset save?')){ player=structuredClone(DEFAULT_PLAYER); savePlayer(); location.reload(); } }
-function gainXP(amount){ player.xp+=amount; while(player.xp>=100){player.level++;player.xp-=100;beep(880,140); alert(`Leveled up! Level ${player.level}`);} savePlayer(); }
 
-// ===== POKEDEX (simplified for brevity)
+function savePlayer() {
+  try {
+    localStorage.setItem('pkm_player_v8', JSON.stringify(player));
+    updateUI();
+  } catch (e) {
+    console.error('Failed to save player data:', e);
+  }
+}
+
+function resetPlayer() {
+  if (confirm('Reset save?')) {
+    player = structuredClone(DEFAULT_PLAYER);
+    savePlayer();
+    location.reload();
+  }
+}
+
+function gainXP(amount) {
+  player.xp += amount;
+  while (player.xp >= 100) {
+    player.level++;
+    player.xp -= 100;
+    beep(880, 140);
+    alert(`Leveled up! Level ${player.level}`);
+  }
+  savePlayer();
+}
+
+// ===== UI UPDATES =====
+function updateUI() {
+  // Player Info
+  const playerInfo = document.getElementById('player-info');
+  playerInfo.innerHTML = `
+    <div class="kv"><span>Level</span><span>${player.level}</span></div>
+    <div class="kv"><span>XP</span><span>${player.xp}/100</span></div>
+    <div class="kv"><span>Money</span><span>$${player.money}</span></div>
+    <div class="kv"><span>Bank</span><span>$${player.bank}</span></div>
+    <div class="kv"><span>Location</span><span>${player.location}</span></div>
+    <div class="kv"><span>Badges</span><span>${player.badges}</span></div>
+  `;
+
+  // Party and Box
+  document.getElementById('party-list').innerHTML = player.party.length
+    ? player.party.map(p => `<div>${p.name} (Lv ${p.level})</div>`).join('')
+    : '<p>No Pokémon in party</p>';
+  document.getElementById('box-list').innerHTML = player.box.length
+    ? player.box.map(p => `<div>${p.name} (Lv ${p.level})</div>`).join('')
+    : '<p>No Pokémon in box</p>';
+
+  // Inventory
+  document.getElementById('inventory-list').innerHTML = Object.keys(player.inventory).length
+    ? Object.entries(player.inventory).map(([item, qty]) => `<div class="kv"><span>${item}</span><span>${qty}</span></div>`).join('')
+    : '<p>Inventory empty</p>';
+
+  // Locations
+  const locations = ['Forest', 'Cave', 'Beach', 'Mountain', 'City'];
+  document.getElementById('locations-list').innerHTML = locations.map(loc => `
+    <button class="btn ${player.location === loc ? 'alt' : ''}" onclick="changeLocation('${loc}')">${loc}</button>
+  `).join('');
+}
+
+// ===== TAB NAVIGATION =====
+function setupTabs() {
+  const tabs = document.querySelectorAll('.tab-btn');
+  tabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      tabs.forEach(t => {
+        t.classList.remove('active');
+        t.setAttribute('aria-selected', 'false');
+      });
+      tab.classList.add('active');
+      tab.setAttribute('aria-selected', 'true');
+
+      document.querySelectorAll('.tab').forEach(panel => {
+        panel.classList.remove('active');
+      });
+      document.getElementById(tab.dataset.target).classList.add('active');
+    });
+
+    // Keyboard navigation
+    tab.addEventListener('keydown', e => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        tab.click();
+      }
+    });
+  });
+}
+
+// ===== GAME LOGIC =====
+function changeLocation(location) {
+  player.location = location;
+  document.getElementById('map-log').textContent = `Moved to ${location}!`;
+  savePlayer();
+}
+
+function depositMoney(amount) {
+  if (amount === 'all') amount = player.money;
+  amount = parseInt(amount);
+  if (amount > player.money || amount <= 0) {
+    alert('Invalid deposit amount!');
+    return;
+  }
+  player.money -= amount;
+  player.bank += amount;
+  savePlayer();
+}
+
+function withdrawMoney(amount) {
+  if (amount === 'all') amount = player.bank;
+  amount = parseInt(amount);
+  if (amount > player.bank || amount <= 0) {
+    alert('Invalid withdrawal amount!');
+    return;
+  }
+  player.bank -= amount;
+  player.money += amount;
+  savePlayer();
+}
+
+function catchPokemon() {
+  const pokemonList = [
+    { name: 'Bulbasaur', level: rng(1, 5) },
+    { name: 'Charmander', level: rng(1, 5) },
+    { name: 'Squirtle', level: rng(1, 5) }
+  ];
+  const caught = pokemonList[rng(0, pokemonList.length - 1)];
+  if (player.party.length < 6) {
+    player.party.push(caught);
+    document.getElementById('explore-log').textContent = `Caught ${caught.name} (Lv ${caught.level})!`;
+  } else {
+    player.box.push(caught);
+    document.getElementById('explore-log').textContent = `Caught ${caught.name} (Lv ${caught.level})! Sent to box.`;
+  }
+  savePlayer();
+}
+
+function gatherResource() {
+  const resources = ['Berry', 'Potion', 'Stone'];
+  const resource = resources[rng(0, resources.length - 1)];
+  player.inventory[resource] = (player.inventory[resource] || 0) + 1;
+  gainXP(10);
+  document.getElementById('gather-log').textContent = `Gathered 1 ${resource}!`;
+  savePlayer();
+}
+
+function togglePokedex() {
+  const pokedex = document.getElementById('pokedex-list');
+  pokedex.style.display = pokedex.style.display === 'none' ? 'block' : 'none';
+  pokedex.innerHTML = player.mons.length
+    ? player.mons.map(p => `<div>${p.name}</div>`).join('')
+    : '<p>No Pokémon seen yet</p>';
+}
+
+// ===== EVENT LISTENERS =====
+function setupEventListeners() {
+  document.getElementById('save-manual').addEventListener('click', savePlayer);
+  document.getElementById('reset-game').addEventListener('click', resetPlayer);
+  document.getElementById('open-pokedex').addEventListener('click', togglePokedex);
+  document.getElementById('catch-pokemon').addEventListener('click', catchPokemon);
+  document.getElementById('gather-resource').addEventListener('click', gatherResource);
+  document.getElementById('bank-deposit-amount').addEventListener('change', e => depositMoney(e.target.value));
+  document.getElementById('bank-withdraw-amount').addEventListener('change', e => withdrawMoney(e.target.value));
+  document.getElementById('start-battle').addEventListener('click', () => {
+    document.getElementById('battle-log').textContent = 'Started a wild battle!';
+    document.getElementById('battle-area').style.display = 'block';
+  });
+  document.getElementById('challenge-gym').addEventListener('click', () => {
+    document.getElementById('battle-log').textContent = 'Challenged the gym!';
+    document.getElementById('battle-area').style.display = 'block';
+  });
+  document.getElementById('sell-all-top').addEventListener('click', () => {
+    let total = 0;
+    for (const [item, qty] of Object.entries(player.inventory)) {
+      total += qty * 10; // Example price
+      delete player.inventory[item];
+    }
+    player.money += total;
+    document.getElementById('trade-panel').textContent = `Sold all items for $${total}!`;
+    savePlayer();
+  });
+  document.getElementById('trade-mode').addEventListener('change', e => {
+    const mode = e.target.value;
+    document.getElementById('trade-panel').textContent = `Mode: ${mode}`;
+  });
+}
+
+// ===== INITIALIZATION =====
+document.addEventListener('DOMContentLoaded', () => {
+  setupTabs();
+  setupEventListeners();
+  updateUI();
+});
+</script>
+</body>
+</html>
