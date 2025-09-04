@@ -513,4 +513,496 @@ function updateUI() {
     </div>`).join('') : '<p>No Pokémon in box</p>';
 
   // Inventory
-  const
+  const inventoryList = document.getElementById('inventory-list');
+  inventoryList.innerHTML = Object.keys(player.inventory).length ? Object.entries(player.inventory).map(([item, qty]) => `<div class="kv"><span>${item}</span><span>${qty}</span></div>`).join('') : '<p>Inventory empty</p>';
+
+  // Locations
+  const locationsList = document.getElementById('locations-list');
+  locationsList.innerHTML = locations.map(loc => `
+    <button class="btn ${player.location === loc.name ? 'alt' : ''}" onclick="changeLocation('${loc.name}')">${loc.name}</button>
+  `).join('');
+
+  // Location features for City
+  const features = document.getElementById('location-features');
+  features.innerHTML = '';
+  if (player.location === 'City') {
+    features.innerHTML = `
+      <select id="city-action">
+        <option value="">Choose Action</option>
+        <option value="market">Pokémon Market</option>
+        <option value="poke-center">Poké Center</option>
+      </select>
+      <div id="market-panel" style="display:none">
+        <label for="market-mode">Choose Mode</label>
+        <select id="market-mode">
+          <option value="buy">Purchase Items</option>
+          <option value="sell">Sell Items</option>
+        </select>
+        <div id="market-content" class="panel" style="margin-top:10px" aria-live="polite"></div>
+        <p id="market-log" aria-live="polite"></p>
+      </div>
+      <div id="poke-center-panel" style="display:none">
+        <h3>Poké Center</h3>
+        <div class="flex">
+          <button onclick="healPokemon()">Heal All Pokémon ($50)</button>
+          <button onclick="updatePokeCenter()">Show Upgrade Options</button>
+        </div>
+        <div id="upgrade-list" class="grid" style="margin-top:10px" aria-live="polite"></div>
+      </div>
+    `;
+    const cityAction = document.getElementById('city-action');
+    cityAction.addEventListener('change', handleCityActionChange);
+    const marketMode = document.getElementById('market-mode');
+    marketMode.addEventListener('change', updateMarket);
+  }
+
+  // Trade Panel
+  const tradePanel = document.getElementById('trade-panel');
+  if (tradePanel) {
+    const tradeMode = document.getElementById('trade-mode').value;
+    if (tradeMode === 'buy') {
+      tradePanel.innerHTML = itemsData.map(item => `<div class="kv"><span>${item.name} ($${item.price})</span><button onclick="buyItem('${item.name}', ${item.price})">Buy</button></div>`).join('');
+    } else {
+      tradePanel.innerHTML = Object.entries(player.inventory).map(([item, qty]) => {
+        const price = itemsData.find(i => i.name === item)?.sell || 0;
+        return `<div class="kv"><span>${item} x${qty} ($${price} each)</span><button onclick="sellItem('${item}', ${price})">Sell All</button></div>`;
+      }).join('');
+    }
+  }
+
+  // Pokedex
+  const pokedexList = document.getElementById('pokedex-list');
+  if (pokedexList.style.display !== 'none') {
+    pokedexList.innerHTML = pokemonData.filter(p => player.seen.has(p.id)).map(p => `<div>${p.id}. ${p.name} (${p.type1}${p.type2 ? '/' + p.type2 : ''})</div>`).join('') || '<p>No Pokémon seen yet</p>';
+  }
+
+  // Poké Center Upgrade List
+  const upgradeList = document.getElementById('upgrade-list');
+  if (upgradeList && document.getElementById('poke-center-panel')?.style.display === 'block') {
+    updatePokeCenter();
+  }
+
+  // Battle Pokémon Selector
+  const battlePokemonSelect = document.getElementById('battle-pokemon');
+  if (battlePokemonSelect && document.getElementById('battle-area').style.display === 'block') {
+    battlePokemonSelect.innerHTML = player.party.map((p, i) => `
+      <option value="${i}" ${battleState.playerMon === p ? 'selected' : ''}>
+        ${p.name} (${p.type1}${p.type2 ? '/' + p.type2 : ''}, Lv ${p.level}, HP ${p.hp}/${p.maxHp})
+      </option>
+    `).join('');
+  }
+}
+
+// ===== TAB NAVIGATION =====
+function setupTabs() {
+  const tabs = document.querySelectorAll('.tab-btn');
+  tabs.forEach(tab => {
+    tab.removeEventListener('click', handleTabClick);
+    tab.removeEventListener('keydown', handleTabKeydown);
+    tab.addEventListener('click', handleTabClick);
+    tab.addEventListener('keydown', handleTabKeydown);
+  });
+
+  // Battle Subtabs
+  const battleTabs = document.querySelectorAll('#battle .btn[data-target]');
+  battleTabs.forEach(tab => {
+    tab.removeEventListener('click', handleBattleTabClick);
+    tab.removeEventListener('keydown', handleBattleTabKeydown);
+    tab.addEventListener('click', handleBattleTabClick);
+    tab.addEventListener('keydown', handleBattleTabKeydown);
+  });
+}
+
+function handleTabClick(e) {
+  const tab = e.currentTarget;
+  const tabs = document.querySelectorAll('.tab-btn');
+  tabs.forEach(t => {
+    t.classList.remove('active');
+    t.setAttribute('aria-selected', 'false');
+  });
+  tab.classList.add('active');
+  tab.setAttribute('aria-selected', 'true');
+
+  document.querySelectorAll('.tab').forEach(panel => {
+    panel.classList.remove('active');
+  });
+  const targetPanel = document.getElementById(tab.dataset.target);
+  if (targetPanel) {
+    targetPanel.classList.add('active');
+  } else {
+    console.error(`Target panel ${tab.dataset.target} not found`);
+  }
+  updateUI();
+}
+
+function handleTabKeydown(e) {
+  if (e.key === 'Enter' || e.key === ' ') {
+    e.preventDefault();
+    handleTabClick(e);
+  }
+}
+
+function handleBattleTabClick(e) {
+  const tab = e.currentTarget;
+  const battleTabs = document.querySelectorAll('#battle .btn[data-target]');
+  battleTabs.forEach(t => t.classList.remove('active'));
+  tab.classList.add('active');
+
+  document.querySelectorAll('.battle-subtab').forEach(panel => {
+    panel.classList.remove('active');
+  });
+  const targetPanel = document.getElementById(tab.dataset.target);
+  if (targetPanel) {
+    targetPanel.classList.add('active');
+  } else {
+    console.error(`Target battle subtab ${tab.dataset.target} not found`);
+  }
+}
+
+function handleBattleTabKeydown(e) {
+  if (e.key === 'Enter' || e.key === ' ') {
+    e.preventDefault();
+    handleBattleTabClick(e);
+  }
+}
+
+// ===== GAME LOGIC =====
+function changeLocation(location) {
+  player.location = location;
+  document.getElementById('map-log').textContent = `Moved to ${location}!`;
+  updateUI();
+  savePlayer();
+}
+
+function depositMoney(amount) {
+  if (amount === 'all') amount = player.money;
+  amount = parseInt(amount);
+  if (isNaN(amount) || amount > player.money || amount <= 0) {
+    alert('Invalid deposit amount!');
+    return;
+  }
+  player.money -= amount;
+  player.bank += amount;
+  savePlayer();
+}
+
+function withdrawMoney(amount) {
+  if (amount === 'all') amount = player.bank;
+  amount = parseInt(amount);
+  if (isNaN(amount) || amount > player.bank || amount <= 0) {
+    alert('Invalid withdrawal amount!');
+    return;
+  }
+  player.bank -= amount;
+  player.money += amount;
+  savePlayer();
+}
+
+function catchPokemon() {
+  const loc = locations.find(l => l.name === player.location);
+  if (!loc || loc.encounters.length === 0) {
+    document.getElementById('explore-log').textContent = 'No Pokémon found in this location!';
+    return;
+  }
+  const id = loc.encounters[rng(0, loc.encounters.length - 1)];
+  const base = pokemonData.find(p => p.id === id);
+  if (!base) {
+    document.getElementById('explore-log').textContent = 'Error finding Pokémon!';
+    return;
+  }
+  const caught = { ...base, level: rng(1, player.level + 5), hp: 50, maxHp: 50, moves: [moves[rng(0, moves.length - 1)], moves[rng(0, moves.length - 1)] ] };
+  player.seen.add(id);
+  player.party.push(caught); // Add to party regardless of size
+  document.getElementById('explore-log').textContent = `Caught ${caught.name} (Lv ${caught.level})! Added to party.`;
+  beep(660, 120);
+  savePlayer();
+}
+
+function gatherResource() {
+  const loc = locations.find(l => l.name === player.location);
+  if (!loc) return;
+  const resource = loc.resources[rng(0, loc.resources.length - 1)];
+  player.inventory[resource] = (player.inventory[resource] || 0) + 1;
+  gainXP(10);
+  document.getElementById('gather-log').textContent = `Gathered 1 ${resource}!`;
+  beep(660, 120);
+  savePlayer();
+}
+
+function togglePokedex() {
+  const pokedex = document.getElementById('pokedex-list');
+  pokedex.style.display = pokedex.style.display === 'none' ? 'block' : 'none';
+  updateUI();
+}
+
+let battleState = {};
+
+function startBattle(isGym = false) {
+  if (player.party.length === 0) {
+    alert('No Pokémon in party!');
+    return;
+  }
+  battleState.playerMon = player.party[0];
+  const level = isGym ? player.level + 10 : rng(1, player.level + 5);
+  const id = rng(1, pokemonData.length);
+  const base = pokemonData.find(p => p.id === id);
+  battleState.opponent = { ...base, level, hp: 50 + level * 5, maxHp: 50 + level * 5, moves: [moves[rng(0, moves.length - 1)], moves[rng(0, moves.length - 1)] ], isGym };
+  const battleArea = document.getElementById('battle-area');
+  battleArea.style.display = 'block';
+  updateBattleUI();
+  document.getElementById('battle-log').textContent = `A wild ${battleState.opponent.name} (Lv ${battleState.opponent.level}) appeared!\nYour ${battleState.playerMon.name} (Lv ${battleState.playerMon.level}) is fighting.`;
+  beep(440, 200);
+}
+
+function startGymBattle() {
+  if (player.party.length === 0) {
+    alert('No Pokémon in party!');
+    return;
+  }
+  battleState.playerMon = player.party[0];
+  const level = player.level + 10;
+  const id = rng(1, pokemonData.length);
+  const base = pokemonData.find(p => p.id === id);
+  battleState.opponent = { ...base, level, hp: 50 + level * 5, maxHp: 50 + level * 5, moves: [moves[rng(0, moves.length - 1)], moves[rng(0, moves.length - 1)] ], isGym: true };
+  const battleArea = document.getElementById('battle-area');
+  battleArea.style.display = 'block';
+  updateBattleUI();
+  document.getElementById('battle-log').textContent = `Gym Leader sent out ${battleState.opponent.name} (Lv ${battleState.opponent.level})!\nYour ${battleState.playerMon.name} (Lv ${battleState.playerMon.level}) is fighting.`;
+  beep(440, 200);
+}
+
+function challengeGym() {
+  if (player.badges >= 8) {
+    alert('You have all badges!');
+    return;
+  }
+  startGymBattle();
+}
+
+function updateBattleUI() {
+  const battleStats = document.getElementById('battle-stats');
+  battleStats.innerHTML = `
+    <div class="kv"><span>Opponent: ${battleState.opponent.name} (${battleState.opponent.type1}${battleState.opponent.type2 ? '/' + battleState.opponent.type2 : ''}, Lv ${battleState.opponent.level})</span><span>HP: ${battleState.opponent.hp}/${battleState.opponent.maxHp}</span></div>
+    <div class="kv"><span>Your: ${battleState.playerMon.name} (${battleState.playerMon.type1}${battleState.playerMon.type2 ? '/' + battleState.playerMon.type2 : ''}, Lv ${battleState.playerMon.level})</span><span>HP: ${battleState.playerMon.hp}/${battleState.playerMon.maxHp}</span></div>
+  `;
+  const moveButtons = document.getElementById('move-buttons');
+  moveButtons.innerHTML = battleState.playerMon.moves.map((move, i) => `<button onclick="playerAttack(${i})">${move.name} (${move.type}, Power: ${move.power})</button>`).join('');
+  const battlePokemonSelect = document.getElementById('battle-pokemon');
+  battlePokemonSelect.innerHTML = player.party.map((p, i) => `
+    <option value="${i}" ${battleState.playerMon === p ? 'selected' : ''}>
+      ${p.name} (${p.type1}${p.type2 ? '/' + p.type2 : ''}, Lv ${p.level}, HP ${p.hp}/${p.maxHp})
+    </option>
+  `).join('');
+  battlePokemonSelect.addEventListener('change', (e) => {
+    battleState.playerMon = player.party[parseInt(e.target.value)];
+    updateBattleUI();
+  });
+}
+
+function playerAttack(moveIndex) {
+  const move = battleState.playerMon.moves[moveIndex];
+  const multiplier = getTypeMultiplier(move.type, battleState.opponent.type1) * (battleState.opponent.type2 ? getTypeMultiplier(move.type, battleState.opponent.type2) : 1);
+  const damage = Math.max(1, Math.floor(move.power * multiplier * (battleState.playerMon.level / battleState.opponent.level)));
+  battleState.opponent.hp -= damage;
+  document.getElementById('battle-log').textContent += `\n${battleState.playerMon.name} used ${move.name}! Dealt ${damage} damage.`;
+  if (battleState.opponent.hp <= 0) {
+    endBattle(true);
+    return;
+  }
+  opponentAttack();
+}
+
+function opponentAttack() {
+  const move = battleState.opponent.moves[rng(0, battleState.opponent.moves.length - 1)];
+  const multiplier = getTypeMultiplier(move.type, battleState.playerMon.type1) * (battleState.playerMon.type2 ? getTypeMultiplier(move.type, battleState.playerMon.type2) : 1);
+  const damage = Math.max(1, Math.floor(move.power * multiplier * (battleState.opponent.level / battleState.playerMon.level)));
+  battleState.playerMon.hp -= damage;
+  document.getElementById('battle-log').textContent += `\nOpponent used ${move.name}! Dealt ${damage} damage.`;
+  if (battleState.playerMon.hp <= 0) {
+    endBattle(false);
+    return;
+  }
+  updateBattleUI();
+}
+
+function endBattle(won) {
+  const battleArea = document.getElementById('battle-area');
+  battleArea.style.display = 'none';
+  if (won) {
+    const isGym = battleState.opponent.isGym;
+    const xpGain = isGym ? 150 : 50;
+    const moneyGain = isGym ? 500 : 100;
+    gainXP(xpGain);
+    player.money += moneyGain;
+    if (isGym) {
+      player.badges++;
+      alert(`You won the gym battle! Earned a badge, $${moneyGain}, and ${xpGain} XP.`);
+    } else {
+      alert(`You won the battle! Earned $${moneyGain} and ${xpGain} XP.`);
+    }
+    beep(880, 140);
+  } else {
+    alert('You lost the battle.');
+    beep(220, 200);
+  }
+  savePlayer();
+}
+
+function getTypeMultiplier(attackType, defType) {
+  return typeEffectiveness[attackType]?.[defType] || 1;
+}
+
+function buyItem(item, price) {
+  if (player.money < price) {
+    alert('Not enough money!');
+    return;
+  }
+  player.money -= price;
+  player.inventory[item] = (player.inventory[item] || 0) + 1;
+  const marketLog = document.getElementById('market-log');
+  if (marketLog) {
+    marketLog.textContent = `Bought 1 ${item}!`;
+  }
+  savePlayer();
+}
+
+function sellItem(item, price) {
+  const qty = player.inventory[item] || 0;
+  if (qty <= 0) {
+    alert('No item to sell!');
+    return;
+  }
+  const total = qty * price;
+  player.inventory[item] = 0;
+  delete player.inventory[item];
+  player.money += total;
+  const marketLog = document.getElementById('market-log');
+  if (marketLog) {
+    marketLog.textContent = `Sold all ${item} for $${total}!`;
+  }
+  updateUI();
+  beep(660, 120);
+}
+
+function sellAll() {
+  let total = 0;
+  for (const [item, qty] of Object.entries(player.inventory)) {
+    const price = itemsData.find(i => i.name === item)?.sell || 0;
+    total += qty * price;
+    delete player.inventory[item];
+  }
+  player.money += total;
+  const tradePanel = document.getElementById('trade-panel');
+  if (tradePanel) {
+    tradePanel.textContent = `Sold all items for $${total}!`;
+  }
+  savePlayer();
+}
+
+function handleCityActionChange() {
+  const cityAction = document.getElementById('city-action');
+  const marketPanel = document.getElementById('market-panel');
+  const pokeCenterPanel = document.getElementById('poke-center-panel');
+  marketPanel.style.display = 'none';
+  pokeCenterPanel.style.display = 'none';
+  if (cityAction.value === 'market') {
+    marketPanel.style.display = 'block';
+    updateMarket();
+  } else if (cityAction.value === 'poke-center') {
+    pokeCenterPanel.style.display = 'block';
+    updatePokeCenter();
+  }
+}
+
+function updateMarket() {
+  const mode = document.getElementById('market-mode').value;
+  const content = document.getElementById('market-content');
+  const marketLog = document.getElementById('market-log');
+  marketLog.textContent = '';
+  if (mode === 'buy') {
+    content.innerHTML = itemsData.map(item => `<div class="kv"><span>${item.name} ($${item.price})</span><button onclick="buyItem('${item.name}', ${item.price})">Buy</button></div>`).join('');
+  } else {
+    content.innerHTML = Object.entries(player.inventory).map(([item, qty]) => {
+      const price = itemsData.find(i => i.name === item)?.sell || 0;
+      return `<div class="kv"><span>${item} x${qty} ($${price} each)</span><button onclick="sellItem('${item}', ${price})">Sell All</button></div>`;
+    }).join('');
+  }
+}
+
+function healPokemon() {
+  if (player.money < 50) {
+    alert('Not enough money to heal ($50 required)!');
+    return;
+  }
+  player.money -= 50;
+  player.party.forEach(p => {
+    p.hp = p.maxHp;
+  });
+  player.box.forEach(p => {
+    p.hp = p.maxHp;
+  });
+  alert('All Pokémon healed!');
+  beep(880, 140);
+  savePlayer();
+}
+
+function updatePokeCenter() {
+  const upgradeList = document.getElementById('upgrade-list');
+  if (upgradeList) {
+    upgradeList.innerHTML = [...player.party, ...player.box].map((mon, globalIndex) => {
+      const resource = typeResource[mon.type1] || 'Potion';
+      const locs = locations.filter(l => l.resources.includes(resource)).map(l => l.name).join(', ') || 'Not available';
+      const isParty = globalIndex < player.party.length;
+      const index = isParty ? globalIndex : globalIndex - player.party.length;
+      return `<div>
+        ${mon.name} (${mon.type1}${mon.type2 ? '/' + mon.type2 : ''}, Lv ${mon.level})<br>
+        Requires: ${resource} x1 (found in ${locs})<br>
+        <button onclick="upgradePokemon('${isParty ? 'party' : 'box'}', ${index})">Upgrade</button>
+      </div>`;
+    }).join('') || '<p>No Pokémon to upgrade.</p>';
+  }
+}
+
+function upgradePokemon(storageType, index) {
+  const mon = storageType === 'party' ? player.party[index] : player.box[index];
+  const resource = typeResource[mon.type1] || 'Potion';
+  if ((player.inventory[resource] || 0) < 1) {
+    alert(`Need 1 ${resource} to upgrade!`);
+    return;
+  }
+  player.inventory[resource]--;
+  if (player.inventory[resource] === 0) delete player.inventory[resource];
+  mon.level += 1;
+  mon.maxHp += 10;
+  mon.hp = mon.maxHp;
+  alert(`${mon.name} upgraded to Level ${mon.level}!`);
+  beep(880, 140);
+  savePlayer();
+}
+
+// ===== EVENT LISTENERS =====
+function setupEventListeners() {
+  document.getElementById('save-manual').addEventListener('click', savePlayer);
+  document.getElementById('reset-game').addEventListener('click', resetPlayer);
+  document.getElementById('open-pokedex').addEventListener('click', togglePokedex);
+  document.getElementById('catch-pokemon').addEventListener('click', catchPokemon);
+  document.getElementById('gather-resource').addEventListener('click', gatherResource);
+  document.getElementById('bank-deposit-amount').addEventListener('change', e => depositMoney(e.target.value));
+  document.getElementById('bank-withdraw-amount').addEventListener('change', e => withdrawMoney(e.target.value));
+  document.getElementById('start-battle').addEventListener('click', () => startBattle(false));
+  document.getElementById('challenge-gym').addEventListener('click', challengeGym);
+  document.getElementById('start-gym-battle').addEventListener('click', startGymBattle);
+  document.getElementById('sell-all-top').addEventListener('click', sellAll);
+  const tradeMode = document.getElementById('trade-mode');
+  if (tradeMode) tradeMode.addEventListener('change', updateUI);
+}
+
+// ===== INITIALIZATION =====
+document.addEventListener('DOMContentLoaded', () => {
+  setupTabs();
+  setupEventListeners();
+  updateUI();
+});
+</script>
+</body>
+</html>
