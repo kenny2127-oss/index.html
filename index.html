@@ -139,28 +139,21 @@ small,.sub{color:#555}
 </main>
 
 <nav role="tablist" aria-label="Main tabs">
-  <button id="tab-home" class="tab-btn active" data-target="home" role="tab" aria-controls="home" aria-selected="true">Home</button>
-  <button id="tab-map" class="tab-btn" data-target="map" role="tab" aria-controls="map" aria-selected="false">Map</button>
-  <button id="tab-inventory" class="tab-btn" data-target="inventory" role="tab" aria-controls="inventory" aria-selected="false">Inventory</button>
-  <button id="tab-explore" class="tab-btn" data-target="explore" role="tab" aria-controls="explore" aria-selected="false">Explore</button>
-  <button id="tab-gather" class="tab-btn" data-target="gather" role="tab" aria-controls="gather" aria-selected="false">Gather</button>
-  <button id="tab-battle" class="tab-btn" data-target="battle" role="tab" aria-controls="battle" aria-selected="false">Battle</button>
-  <button id="tab-trade" class="tab-btn" data-target="trade" role="tab" aria-controls="trade" aria-selected="false">Trade</button>
+  <button id="tab-home" class="tab-btn active" data-target="home" role="tab" aria-controls="home">Home</button>
+  <button id="tab-map" class="tab-btn" data-target="map" role="tab" aria-controls="map">Map</button>
+  <button id="tab-inventory" class="tab-btn" data-target="inventory" role="tab" aria-controls="inventory">Inventory</button>
+  <button id="tab-explore" class="tab-btn" data-target="explore" role="tab" aria-controls="explore">Explore</button>
+  <button id="tab-gather" class="tab-btn" data-target="gather" role="tab" aria-controls="gather">Gather</button>
+  <button id="tab-battle" class="tab-btn" data-target="battle" role="tab" aria-controls="battle">Battle</button>
+  <button id="tab-trade" class="tab-btn" data-target="trade" role="tab" aria-controls="trade">Trade</button>
 </nav>
 
 <script>
-/* ===== Tabs Fix: Only current tab shows ===== */
+/* ===== TAB FIX & UI ===== */
 const tabButtons = document.querySelectorAll('nav .tab-btn');
 const tabs = document.querySelectorAll('main .tab');
+let currentTab = 'home';
 
 function showTab(targetId){
-  tabs.forEach(tab => tab.style.display = (tab.id === targetId) ? 'block' : 'none');
-  tabButtons.forEach(btn => {
-    const active = btn.dataset.target === targetId;
-    btn.classList.toggle('active', active);
-    btn.setAttribute('aria-selected', active);
-  });
-}
-
-// Initialize: hide all tabs first, then show home
-tabs.forEach(tab =>
+  currentTab = targetId;
+  tabs.forEach(t => t.style.display = (t.id===targetId
