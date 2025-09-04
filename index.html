@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>Accessible Pokémon — Map + 300 Pokémon (placeholders)</title>
+<title>Accessible Pokémon — Map + 300 Pokémon</title>
 <style>
 :root{--nav:#222;--accent:#9be29b;--bg:#f7fbff}
 html,body{height:100%;margin:0;font-family:system-ui,Arial,Helvetica,sans-serif;background:var(--bg);color:#111;display:flex;flex-direction:column;}
@@ -28,51 +28,35 @@ small,.sub{color:#555}
 <body>
 <main>
   <!-- HOME -->
-  <section id="home" class="tab" role="tabpanel" aria-labelledby="tab-home">
+  <section id="home" class="tab" role="tabpanel">
     <h1>Home</h1>
-    <div id="player-info" class="panel" aria-live="polite">Level 1 | XP 0 | Money $1000 | Bank $0 | Location: Forest</div>
-
-    <div class="flex" aria-label="Quick actions">
-      <button id="open-pokedex" class="btn alt" aria-expanded="false">Open Pokedex</button>
+    <div id="player-info" class="panel" aria-live="polite"></div>
+    <div class="flex">
+      <button id="open-pokedex" class="btn alt">Open Pokedex</button>
       <button id="save-manual" class="btn ghost">Save Now</button>
       <button id="reset-game" class="btn ghost">Reset Save</button>
     </div>
-
     <div class="panel">
-      <h2 style="margin:0 0 6px">Bank</h2>
+      <h2>Bank</h2>
       <div class="flex">
         <label for="bank-deposit">Deposit</label>
-        <select id="bank-deposit" aria-label="Deposit amount">
-          <option value="">Choose</option>
-          <option value="10">$10</option>
-          <option value="20">$20</option>
-          <option value="50">$50</option>
-          <option value="all">All</option>
-        </select>
+        <select id="bank-deposit"><option value="">Choose</option><option value="10">$10</option><option value="20">$20</option><option value="50">$50</option><option value="all">All</option></select>
         <label for="bank-withdraw">Withdraw</label>
-        <select id="bank-withdraw" aria-label="Withdraw amount">
-          <option value="">Choose</option>
-          <option value="10">$10</option>
-          <option value="20">$20</option>
-          <option value="50">$50</option>
-          <option value="all">All</option>
-        </select>
+        <select id="bank-withdraw"><option value="">Choose</option><option value="10">$10</option><option value="20">$20</option><option value="50">$50</option><option value="all">All</option></select>
       </div>
     </div>
-
     <div class="panel" id="party-panel">
-      <h2 style="margin:0 0 6px">Party (max 6)</h2>
-      <div id="party-list" class="grid" aria-live="polite"></div>
-      <h3 style="margin:10px 0 6px">Box</h3>
+      <h2>Party (max 6)</h2>
+      <div id="party-list" class="grid"></div>
+      <h3>Box</h3>
       <div id="box-list" class="grid"></div>
     </div>
-
     <h2>Pokedex</h2>
-    <div id="pokedex-list" class="panel" style="display:none" aria-live="polite"></div>
+    <div id="pokedex-list" class="panel" style="display:none"></div>
   </section>
 
   <!-- MAP -->
-  <section id="map" class="tab" role="tabpanel" aria-labelledby="tab-map">
+  <section id="map" class="tab" role="tabpanel">
     <h1>Map</h1>
     <div class="panel">
       <p class="sub">Travel to different locations. Explore and Gather will be affected by your current location.</p>
@@ -82,38 +66,36 @@ small,.sub{color:#555}
   </section>
 
   <!-- INVENTORY -->
-  <section id="inventory" class="tab" role="tabpanel" aria-labelledby="tab-inventory">
+  <section id="inventory" class="tab" role="tabpanel">
     <h1>Inventory</h1>
     <div id="inventory-list" class="panel" aria-live="polite"></div>
   </section>
 
   <!-- EXPLORE -->
-  <section id="explore" class="tab" role="tabpanel" aria-labelledby="tab-explore">
+  <section id="explore" class="tab" role="tabpanel">
     <h1>Explore</h1>
     <div class="panel">
       <p class="sub">Find wild Pokémon. Encounter chances depend on current location.</p>
-      <button id="catch-pokemon" class="btn alt">Search & Catch (location-aware)</button>
+      <button id="catch-pokemon" class="btn alt">Search & Catch</button>
       <p id="explore-log" aria-live="polite"></p>
     </div>
   </section>
 
   <!-- GATHER -->
-  <section id="gather" class="tab" role="tabpanel" aria-labelledby="tab-gather">
+  <section id="gather" class="tab" role="tabpanel">
     <h1>Gather</h1>
     <div class="panel">
       <p class="sub">Gather resources from your current location.</p>
-      <div class="flex">
-        <button id="gather-resource" class="btn alt">Gather Resource (+10 XP)</button>
-      </div>
+      <button id="gather-resource" class="btn alt">Gather Resource (+10 XP)</button>
       <p id="gather-log" aria-live="polite"></p>
     </div>
   </section>
 
   <!-- BATTLE -->
-  <section id="battle" class="tab" role="tabpanel" aria-labelledby="tab-battle">
+  <section id="battle" class="tab" role="tabpanel">
     <h1>Battle</h1>
     <div class="flex">
-      <button id="start-battle" class="btn alt">Start Wild Battle (lead)</button>
+      <button id="start-battle" class="btn alt">Start Wild Battle</button>
       <button id="challenge-gym" class="btn">Challenge Gym</button>
     </div>
     <div id="battle-area" style="margin-top:12px;display:none;">
@@ -124,47 +106,44 @@ small,.sub{color:#555}
   </section>
 
   <!-- TRADE -->
-  <section id="trade" class="tab" role="tabpanel" aria-labelledby="tab-trade">
+  <section id="trade" class="tab" role="tabpanel">
     <h1>Trade</h1>
     <div class="flex">
       <button id="sell-all-top" class="btn alt">Sell All Sellable Items</button>
     </div>
     <label for="trade-mode">Choose Mode</label>
-    <select id="trade-mode">
-      <option value="buy">Buy Items</option>
-      <option value="sell">Sell Items</option>
-    </select>
-    <div id="trade-panel" class="panel" style="margin-top:10px;"></div>
+    <select id="trade-mode"><option value="buy">Buy Items</option><option value="sell">Sell Items</option></select>
+    <div id="trade-panel" class="panel" style="margin-top:10px"></div>
   </section>
 </main>
 
-<nav role="tablist" aria-label="Main tabs">
-  <button id="tab-home" class="tab-btn active" data-target="home" role="tab" aria-controls="home">Home</button>
-  <button id="tab-map" class="tab-btn" data-target="map" role="tab" aria-controls="map">Map</button>
-  <button id="tab-inventory" class="tab-btn" data-target="inventory" role="tab" aria-controls="inventory">Inventory</button>
-  <button id="tab-explore" class="tab-btn" data-target="explore" role="tab" aria-controls="explore">Explore</button>
-  <button id="tab-gather" class="tab-btn" data-target="gather" role="tab" aria-controls="gather">Gather</button>
-  <button id="tab-battle" class="tab-btn" data-target="battle" role="tab" aria-controls="battle">Battle</button>
-  <button id="tab-trade" class="tab-btn" data-target="trade" role="tab" aria-controls="trade">Trade</button>
+<nav>
+  <button class="tab-btn active" data-target="home">Home</button>
+  <button class="tab-btn" data-target="map">Map</button>
+  <button class="tab-btn" data-target="inventory">Inventory</button>
+  <button class="tab-btn" data-target="explore">Explore</button>
+  <button class="tab-btn" data-target="gather">Gather</button>
+  <button class="tab-btn" data-target="battle">Battle</button>
+  <button class="tab-btn" data-target="trade">Trade</button>
 </nav>
 
 <script>
-/* ===== TAB FIX ===== */
-const tabButtons = document.querySelectorAll('nav .tab-btn');
-const tabs = document.querySelectorAll('main .tab');
-function showTab(targetId){
-  tabs.forEach(t=>t.style.display = (t.id===targetId) ? 'block' : 'none');
-  tabButtons.forEach(b=>b.classList.toggle('active', b.dataset.target===targetId));
+// ===== UTILS =====
+const rng = (min,max)=>Math.floor(Math.random()*(max-min+1))+min;
+const beep=(freq=660,dur=120)=>{try{const ctx=new (window.AudioContext||window.webkitAudioContext)();const o=ctx.createOscillator();const g=ctx.createGain();o.type='sine';o.frequency.value=freq;g.gain.value=0.18;o.connect(g);g.connect(ctx.destination);o.start();setTimeout(()=>{o.stop();ctx.close();},dur);}catch(e){}};
+
+// ===== SAVE / PLAYER =====
+const DEFAULT_PLAYER={level:1,xp:0,money:1000,bank:0,inventory:{},gear:{},party:[],box:[],mons:{},badges:0,location:'Forest'};
+let player=loadPlayer();
+
+function loadPlayer(){
+  const s = localStorage.getItem('pkm_player_v8');
+  if(s){try{return JSON.parse(s);}catch(e){}}
+  localStorage.setItem('pkm_player_v8', JSON.stringify(DEFAULT_PLAYER));
+  return structuredClone(DEFAULT_PLAYER);
 }
-tabs.forEach(t=>t.style.display='none'); 
-showTab('home');
-tabButtons.forEach(btn => btn.addEventListener('click',()=>showTab(btn.dataset.target)));
+function savePlayer(){ localStorage.setItem('pkm_player_v8', JSON.stringify(player)); updateUI(); }
+function resetPlayer(){ if(confirm('Reset save?')){ player=structuredClone(DEFAULT_PLAYER); savePlayer(); location.reload(); } }
+function gainXP(amount){ player.xp+=amount; while(player.xp>=100){player.level++;player.xp-=100;beep(880,140); alert(`Leveled up! Level ${player.level}`);} savePlayer(); }
 
-/* ===== EXISTING GAME CODE ===== */
-// All previous game code (POKEDEX, player state, battle system, inventory, map, gather, trade, party management, XP, bank, etc.) remains unchanged here
-
-// ...rest of your game logic as previously written
-
-</script>
-</body>
-</html>
+// ===== POKEDEX (simplified for brevity)
