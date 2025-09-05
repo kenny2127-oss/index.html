@@ -4,534 +4,797 @@
 ,     <meta charset="UTF-8">
 ,     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 ,     <title>Accessible Pokémon Adventure</title>
-,     <link rel="manifest" href="manifest.json">
-,     <meta name="theme-color" content="#222">
-,     <meta name="description" content="An accessible Pokémon adventure game">
+,     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 ,     <style>
-,         body {
-,             font-family: Arial, sans-serif;
+,         * {
+,             box-sizing: border-box;
 ,             margin: 0;
 ,             padding: 0;
-,             background-color: #f7fbff;
-,             overflow-x: hidden;
+,             -webkit-tap-highlight-color: transparent;
 ,         }
-,         #app {
-,             max-width: 480px;
-,             margin: 0 auto;
-,             padding: 10px;
-,             position: relative;
+,         
+,         body {
+,             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+,             background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d);
+,             color: #333;
 ,             min-height: 100vh;
-,             padding-bottom: 60px;
-,         }
-,         .tab-content {
-,             display: none;
-,             padding: 20px;
-,             border: 1px solid #ccc;
-,             border-radius: 8px;
-,             background: #fff;
-,         }
-,         .tab-content.active {
-,             display: block;
-,         }
-,         .tab-bar {
-,             position: fixed;
-,             bottom: 0;
-,             width: 100%;
-,             max-width: 480px;
-,             display: flex;
-,             background: #222;
-,             border-top: 1px solid #444;
-,         }
-,         .tab-bar button {
-,             flex: 1;
-,             padding: 10px;
-,             background: #222;
-,             color: #fff;
-,             border: none;
-,             cursor: pointer;
-,             font-size: 14px;
-,             outline: none;
-,             transition: background 0.2s;
-,         }
-,         .tab-bar button:hover, .tab-bar button:focus {
-,             background: #444;
-,         }
-,         .tab-bar button.active {
-,             background: #007bff;
-,         }
-,         .map {
-,             display: grid;
-,             grid-template-columns: repeat(10, 30px);
-,             gap: 2px;
-,             margin: 20px 0;
-,         }
-,         .map-cell {
-,             width: 30px;
-,             height: 30px;
-,             border: 1px solid #ccc;
-,             display: flex;
-,             align-items: center;
-,             justify-content: center;
-,             background: #e0e0e0;
-,             cursor: pointer;
-,         }
-,         .map-cell.player {
-,             background: #007bff;
-,             color: #fff;
-,         }
-,         .map-cell.pokemon {
-,             background: #ffcc00;
-,         }
-,         .map-cell.resource {
-,             background: #28a745;
-,         }
-,         .pokemon-list, .inventory-list, .market-list, .trade-list, .boss-list {
-,             list-style: none;
 ,             padding: 0;
-,         }
-,         .pokemon-list li, .inventory-list li, .market-list li, .trade-list li, .boss-list li {
-,             padding: 10px;
-,             border-bottom: 1px solid #ddd;
 ,             display: flex;
-,             justify-content: space-between;
-,             align-items: center;
+,             flex-direction: column;
+,             touch-action: manipulation;
 ,         }
-,         button[aria-label] {
-,             margin: 5px;
-,             padding: 8px 16px;
-,             border-radius: 4px;
-,             cursor: pointer;
-,         }
-,         .modal {
-,             display: none;
-,             position: fixed;
-,             top: 0;
-,             left: 0;
+,         
+,         .container {
+,             max-width: 100%;
 ,             width: 100%;
-,             height: 100%;
-,             background: rgba(0,0,0,0.5);
-,             align-items: center;
-,             justify-content: center;
+,             background: rgba(255, 255, 255, 0.97);
+,             border-radius: 0;
+,             box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+,             overflow: hidden;
+,             flex: 1;
+,             display: flex;
+,             flex-direction: column;
 ,         }
-,         .modal-content {
-,             background: #fff;
+,         
+,         header {
+,             background: #e61e2a;
+,             padding: 15px;
+,             text-align: center;
+,             position: relative;
+,             border-bottom: 5px solid #ffcb05;
+,         }
+,         
+,         h1 {
+,             color: #ffcb05;
+,             text-shadow: 2px 2px 0 #2c70b7;
+,             font-size: 1.8rem;
+,             margin-bottom: 5px;
+,         }
+,         
+,         .tabs {
+,             display: flex;
+,             flex-wrap: nowrap;
+,             overflow-x: auto;
+,             -webkit-overflow-scrolling: touch;
+,             background: #2c70b7;
+,             border-bottom: 3px solid #ffcb05;
+,             padding: 0 5px;
+,         }
+,         
+,         .tab-button {
+,             background: #3d89d4;
+,             color: white;
+,             border: none;
+,             padding: 12px 15px;
+,             cursor: pointer;
+,             font-size: 0.9rem;
+,             font-weight: bold;
+,             flex: 1;
+,             min-width: 80px;
+,             white-space: nowrap;
+,             border-radius: 15px 15px 0 0;
+,             margin: 0 2px;
+,         }
+,         
+,         .tab-button:focus {
+,             background: #1c5ca5;
+,             outline: 3px solid #ffcb05;
+,         }
+,         
+,         .tab-button.active {
+,             background: #1c5ca5;
+,             color: #ffcb05;
+,         }
+,         
+,         .tab-content {
+,             padding: 20px 15px;
+,             flex: 1;
+,             overflow-y: auto;
+,             -webkit-overflow-scrolling: touch;
+,         }
+,         
+,         .tab-pane {
+,             display: none;
+,         }
+,         
+,         .tab-pane.active {
+,             display: block;
+,             animation: fadeIn 0.3s;
+,         }
+,         
+,         @keyframes fadeIn {
+,             from { opacity: 0; }
+,             to { opacity: 1; }
+,         }
+,         
+,         .login-form {
+,             background: #f5f5f5;
 ,             padding: 20px;
+,             border-radius: 15px;
+,             border: 2px solid #2c70b7;
+,             margin-bottom: 20px;
+,         }
+,         
+,         .form-group {
+,             margin-bottom: 15px;
+,         }
+,         
+,         label {
+,             display: block;
+,             margin-bottom: 8px;
+,             font-weight: bold;
+,             color: #2c70b7;
+,         }
+,         
+,         input {
+,             width: 100%;
+,             padding: 12px;
+,             border: 2px solid #ccc;
 ,             border-radius: 8px;
-,             max-width: 400px;
-,             width: 90%;
+,             font-size: 1rem;
+,         }
+,         
+,         input:focus {
+,             border-color: #2c70b7;
+,             outline: none;
+,             box-shadow: 0 0 5px rgba(44, 112, 183, 0.5);
+,         }
+,         
+,         button {
+,             background: #e61e2a;
+,             color: white;
+,             border: none;
+,             padding: 12px 20px;
+,             border-radius: 8px;
+,             cursor: pointer;
+,             font-size: 1rem;
+,             font-weight: bold;
+,             display: block;
+,             width: 100%;
+,             margin: 10px 0;
+,         }
+,         
+,         button:focus {
+,             background: #ff3b47;
+,             outline: 3px solid #ffcb05;
+,         }
+,         
+,         .stats-grid {
+,             display: grid;
+,             grid-template-columns: 1fr;
+,             gap: 15px;
+,             margin-top: 15px;
+,         }
+,         
+,         .stat-card {
+,             background: #f5f5f5;
+,             padding: 15px;
+,             border-radius: 12px;
+,             border-left: 5px solid #2c70b7;
+,         }
+,         
+,         .pokemon-card {
+,             background: #f5f5f5;
+,             padding: 15px;
+,             border-radius: 12px;
+,             margin-bottom: 15px;
+,             border: 2px solid #ffcb05;
+,         }
+,         
+,         .action-button {
+,             display: block;
+,             width: 100%;
+,             margin: 8px 0;
+,             text-align: left;
+,             padding: 15px;
+,             background: #3d89d4;
+,             color: white;
+,             border-radius: 8px;
+,             border: none;
+,             font-size: 1rem;
+,         }
+,         
+,         .inventory-grid {
+,             display: grid;
+,             grid-template-columns: repeat(2, 1fr);
+,             gap: 12px;
+,             margin-top: 15px;
+,         }
+,         
+,         .item-card {
+,             background: #f5f5f5;
+,             padding: 12px;
+,             border-radius: 8px;
+,             text-align: center;
+,             border: 2px solid #2c70b7;
+,         }
+,         
+,         .notification {
+,             position: fixed;
+,             bottom: 20px;
+,             left: 10px;
+,             right: 10px;
+,             background: #333;
+,             color: white;
+,             padding: 15px;
+,             border-radius: 10px;
+,             display: none;
+,             z-index: 1000;
 ,             text-align: center;
 ,         }
-,         .modal.active {
-,             display: flex;
+,         
+,         .progress-bar {
+,             height: 20px;
+,             background: #ddd;
+,             border-radius: 10px;
+,             margin: 10px 0;
+,             overflow: hidden;
 ,         }
-,         .sr-only {
+,         
+,         .progress {
+,             height: 100%;
+,             background: #4caf50;
+,             border-radius: 10px;
+,             width: 65%;
+,         }
+,         
+,         .screen-reader-text {
 ,             position: absolute;
+,             left: -10000px;
+,             top: auto;
 ,             width: 1px;
 ,             height: 1px;
-,             padding: 0;
-,             margin: -1px;
 ,             overflow: hidden;
-,             clip: rect(0, 0, 0, 0);
-,             border: 0;
 ,         }
+,         
+,         .map-grid {
+,             display: grid;
+,             grid-template-columns: 1fr;
+,             gap: 15px;
+,             margin-top: 15px;
+,         }
+,         
+,         .location-card {
+,             background: #f5f5f5;
+,             padding: 20px;
+,             border-radius: 12px;
+,             text-align: center;
+,             border: 2px solid #2c70b7;
+,         }
+,         
+,         .location-card:focus {
+,             transform: translateY(-5px);
+,             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+,             outline: 3px solid #ffcb05;
+,         }
+,         
+,         .resource-list {
+,             display: flex;
+,             flex-wrap: wrap;
+,             gap: 10px;
+,             margin: 10px 0;
+,         }
+,         
+,         .resource-item {
+,             background: #2c70b7;
+,             color: white;
+,             padding: 8px 12px;
+,             border-radius: 20px;
+,             font-size: 0.9rem;
+,         }
+,         
+,         .icon-button {
+,             display: flex;
+,             align-items: center;
+,             justify-content: center;
+,             width: 50px;
+,             height: 50px;
+,             background: #e61e2a;
+,             color: white;
+,             border-radius: 50%;
+,             position: fixed;
+,             bottom: 80px;
+,             right: 20px;
+,             z-index: 100;
+,             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+,         }
+,         
+,         .icon-button:focus {
+,             outline: 3px solid #ffcb05;
+,         }
+,         
+,         /* Mobile-specific optimizations */
 ,         @media (max-width: 480px) {
-,             .tab-bar button {
-,                 font-size: 12px;
+,             .tab-button {
+,                 padding: 10px 12px;
+,                 font-size: 0.8rem;
+,                 min-width: 70px;
 ,             }
-,             .map {
-,                 grid-template-columns: repeat(10, 25px);
+,             
+,             h1 {
+,                 font-size: 1.5rem;
 ,             }
-,             .map-cell {
-,                 width: 25px;
-,                 height: 25px;
+,             
+,             .tab-content {
+,                 padding: 15px 10px;
+,             }
+,             
+,             .inventory-grid {
+,                 grid-template-columns: 1fr;
+,             }
+,         }
+,         
+,         @media (min-width: 481px) and (max-width: 768px) {
+,             .inventory-grid {
+,                 grid-template-columns: repeat(3, 1fr);
+,             }
+,         }
+,         
+,         /* High contrast mode for visually impaired users */
+,         @media (prefers-contrast: high) {
+,             .stat-card, .pokemon-card, .item-card, .location-card, .login-form {
+,                 border-width: 3px;
+,                 border-color: black;
+,             }
+,             
+,             .tab-button {
+,                 border: 2px solid black;
+,             }
+,         }
+,         
+,         /* Reduce motion for users who prefer it */
+,         @media (prefers-reduced-motion: reduce) {
+,             * {
+,                 animation-duration: 0.01ms !important;
+,                 animation-iteration-count: 1 !important;
+,                 transition-duration: 0.01ms !important;
 ,             }
 ,         }
 ,     </style>
 , </head>
 , <body>
-,     <div id="app" role="main">
-,         <div id="home" class="tab-content active" role="region" aria-labelledby="home-tab">
-,             <h1 id="home-tab">Welcome to Pokémon Adventure</h1>
-,             <p>Level: <span id="player-level">1</span> | XP: <span id="player-xp">0</span>/100</p>
-,             <p>Party Size: <span id="party-size">0</span></p>
-,             <p>Resources: <span id="resources">0</span></p>
-,             <p>Use the tabs below to explore, gather resources, manage your inventory, trade, or fight bosses.</p>
+,     <div class="container">
+,         <header>
+,             <h1>Pokémon Adventure</h1>
+,             <p>An accessible game for everyone</p>
+,         </header>
+,         
+,         <div class="tabs" role="tablist" aria-label="Game Sections">
+,             <button class="tab-button active" role="tab" aria-selected="true" aria-controls="home-tab" id="home-btn">
+,                 <i class="fas fa-home"></i> Home
+,             </button>
+,             <button class="tab-button" role="tab" aria-selected="false" aria-controls="map-tab" id="map-btn">
+,                 <i class="fas fa-map"></i> Map
+,             </button>
+,             <button class="tab-button" role="tab" aria-selected="false" aria-controls="explore-tab" id="explore-btn">
+,                 <i class="fas fa-binoculars"></i> Explore
+,             </button>
+,             <button class="tab-button" role="tab" aria-selected="false" aria-controls="battle-tab" id="battle-btn">
+,                 <i class="fas fa-fist-raised"></i> Battle
+,             </button>
+,             <button class="tab-button" role="tab" aria-selected="false" aria-controls="market-tab" id="market-btn">
+,                 <i class="fas fa-shopping-cart"></i> Market
+,             </button>
+,             <button class="tab-button" role="tab" aria-selected="false" aria-controls="inventory-tab" id="inventory-btn">
+,                 <i class="fas fa-backpack"></i> Inventory
+,             </button>
+,             <button class="tab-button" role="tab" aria-selected="false" aria-controls="trade-tab" id="trade-btn">
+,                 <i class="fas fa-exchange-alt"></i> Trade
+,             </button>
 ,         </div>
-,         <div id="explore" class="tab-content" role="region" aria-labelledby="explore-tab">
-,             <h1 id="explore-tab">Explore</h1>
-,             <div id="map" role="grid" aria-label="Game map"></div>
-,             <p>Move with arrow keys or click cells to explore. Find Pokémon and resources!</p>
-,         </div>
-,         <div id="gather" class="tab-content" role="region" aria-labelledby="gather-tab">
-,             <h1 id="gather-tab">Gather Resources</h1>
-,             <p>Resources: <span id="gather-resources">0</span></p>
-,             <button id="gather-btn" aria-label="Gather resources">Gather</button>
-,         </div>
-,         <div id="inventory" class="tab-content" role="region" aria-labelledby="inventory-tab">
-,             <h1 id="inventory-tab">Inventory</h1>
-,             <ul id="inventory-list" class="inventory-list" role="list"></ul>
-,         </div>
-,         <div id="market" class="tab-content" role="region" aria-labelledby="market-tab">
-,             <h1 id="market-tab">Market</h1>
-,             <ul id="market-list" class="market-list" role="list"></ul>
-,         </div>
-,         <div id="trade" class="tab-content" role="region" aria-labelledby="trade-tab">
-,             <h1 id="trade-tab">Trade</h1>
-,             <ul id="trade-list" class="trade-list" role="list"></ul>
-,         </div>
-,         <div id="boss" class="tab-content" role="region" aria-labelledby="boss-tab">
-,             <h1 id="boss-tab">Boss Fights</h1>
-,             <ul id="boss-list" class="boss-list" role="list"></ul>
-,         </div>
-,         <nav class="tab-bar" role="tablist">
-,             <button id="home-btn" role="tab" aria-selected="true" aria-controls="home" class="active">Home</button>
-,             <button id="explore-btn" role="tab" aria-selected="false" aria-controls="explore">Explore</button>
-,             <button id="gather-btn-tab" role="tab" aria-selected="false" aria-controls="gather">Gather</button>
-,             <button id="inventory-btn" role="tab" aria-selected="false" aria-controls="inventory">Inventory</button>
-,             <button id="market-btn" role="tab" aria-selected="false" aria-controls="market">Market</button>
-,             <button id="trade-btn" role="tab" aria-selected="false" aria-controls="trade">Trade</button>
-,             <button id="boss-btn" role="tab" aria-selected="false" aria-controls="boss">Boss</button>
-,         </nav>
-,         <div id="modal" class="modal" role="dialog" aria-labelledby="modal-title">
-,             <div class="modal-content">
-,                 <h2 id="modal-title">Action Result</h2>
-,                 <p id="modal-message"></p>
-,                 <button id="modal-close" aria-label="Close dialog">Close</button>
+,         
+,         <div class="tab-content">
+,             <!-- Home Tab -->
+,             <div class="tab-pane active" id="home-tab" role="tabpanel" aria-labelledby="home-btn">
+,                 <h2>Welcome to Pokémon Adventure!</h2>
+,                 <p>This is an accessible Pokémon game designed for blind and visually impaired players.</p>
+,                 
+,                 <div class="login-form">
+,                     <h3>Login to Your Account</h3>
+,                     <div class="form-group">
+,                         <label for="username">Username:</label>
+,                         <input type="text" id="username" aria-required="true" placeholder="Enter your username">
+,                     </div>
+,                     <div class="form-group">
+,                         <label for="password">Password:</label>
+,                         <input type="password" id="password" aria-required="true" placeholder="Enter your password">
+,                     </div>
+,                     <button id="login-btn">Login</button>
+,                     <p style="margin-top: 15px; text-align: center;">Don't have an account? <button id="register-btn" style="display: inline; padding: 5px 10px;">Register</button></p>
+,                 </div>
+,                 
+,                 <div class="stats-grid">
+,                     <div class="stat-card">
+,                         <h3>Player Stats</h3>
+,                         <p>Level: 5</p>
+,                         <p>Experience: 65/100</p>
+,                         <div class="progress-bar">
+,                             <div class="progress" role="progressbar" aria-valuenow="65" aria-valuemin="0" aria-valuemax="100"></div>
+,                         </div>
+,                         <p>Poké Dollars: 1,250</p>
+,                     </div>
+,                     
+,                     <div class="stat-card">
+,                         <h3>Your Pokémon</h3>
+,                         <div class="pokemon-card">
+,                             <h4>Pikachu</h4>
+,                             <p>Level: 7</p>
+,                             <p>Health: 42/42</p>
+,                             <p>Status: Healthy</p>
+,                         </div>
+,                         <div class="pokemon-card">
+,                             <h4>Charmander</h4>
+,                             <p>Level: 5</p>
+,                             <p>Health: 35/35</p>
+,                             <p>Status: Healthy</p>
+,                         </div>
+,                     </div>
+,                     
+,                     <div class="stat-card">
+,                         <h3>Your House</h3>
+,                         <p>Level: 2</p>
+,                         <p>Upgrade Progress: 45%</p>
+,                         <div class="progress-bar">
+,                             <div class="progress" style="width: 45%; background: #ff9800;" role="progressbar" aria-valuenow="45" aria-valuemin="0" aria-valuemax="100"></div>
+,                         </div>
+,                         <p>Next upgrade requires:</p>
+,                         <ul>
+,                             <li>Wood: 50/100</li>
+,                             <li>Stone: 30/80</li>
+,                             <li>Berries: 15/50</li>
+,                         </ul>
+,                     </div>
+,                 </div>
+,             </div>
+,             
+,             <!-- Map Tab -->
+,             <div class="tab-pane" id="map-tab" role="tabpanel" aria-labelledby="map-btn">
+,                 <h2>World Map</h2>
+,                 <p>Select a location to travel to:</p>
+,                 
+,                 <div class="map-grid">
+,                     <div class="location-card" tabindex="0" role="button" aria-label="Your Property - Upgrade your house and gather basic resources">
+,                         <h3><i class="fas fa-home"></i> Your Property</h3>
+,                         <p>Upgrade your house and gather basic resources</p>
+,                         <div class="resource-list">
+,                             <span class="resource-item">Wood</span>
+,                             <span class="resource-item">Berries</span>
+,                         </div>
+,                     </div>
+,                     
+,                     <div class="location-card" tabindex="0" role="button" aria-label="Forest - Find Grass-type Pokémon and gather wood">
+,                         <h3><i class="fas fa-tree"></i> Forest</h3>
+,                         <p>Find Grass-type Pokémon and gather wood</p>
+,                         <div class="resource-list">
+,                             <span class="resource-item">Pikachu</span>
+,                             <span class="resource-item">Wood</span>
+,                             <span class="resource-item">Berries</span>
+,                         </div>
+,                     </div>
+,                     
+,                     <div class="location-card" tabindex="0" role="button" aria-label="Mountains - Find Rock-type Pokémon and gather stone">
+,                         <h3><i class="fas fa-mountain"></i> Mountains</h3>
+,                         <p>Find Rock-type Pokémon and gather stone</p>
+,                         <div class="resource-list">
+,                             <span class="resource-item">Geodude</span>
+,                             <span class="resource-item">Stone</span>
+,                             <span class="resource-item">Minerals</span>
+,                         </div>
+,                     </div>
+,                     
+,                     <div class="location-card" tabindex="0" role="button" aria-label="Beach - Find Water-type Pokémon and gather pearls">
+,                         <h3><i class="fas fa-water"></i> Beach</h3>
+,                         <p>Find Water-type Pokémon and gather pearls</p>
+,                         <div class="resource-list">
+,                             <span class="resource-item">Tentacool</span>
+,                             <span class="resource-item">Pearls</span>
+,                             <span class="resource-item">Shells</span>
+,                         </div>
+,                     </div>
+,                 </div>
+,             </div>
+,             
+,             <!-- Explore Tab -->
+,             <div class="tab-pane" id="explore-tab" role="tabpanel" aria-labelledby="explore-btn">
+,                 <h2>Explore the Wild</h2>
+,                 <p>You are currently in the Forest. What would you like to do?</p>
+,                 
+,                 <button class="action-button" aria-label="Search for wild Pokémon">
+,                     <i class="fas fa-search"></i> Search for Pokémon
+,                 </button>
+,                 <button class="action-button" aria-label="Gather wood from the forest">
+,                     <i class="fas fa-tree"></i> Gather Wood
+,                 </button>
+,                 <button class="action-button" aria-label="Gather berries from bushes">
+,                     <i class="fas fa-apple-alt"></i> Gather Berries
+,                 </button>
+,                 
+,                 <div class="stats-grid">
+,                     <div class="stat-card">
+,                         <h3>Recent Activity</h3>
+,                         <p><i class="fas fa-shield-alt"></i> You found a Potion!</p>
+,                         <p><i class="fas fa-tree"></i> You gathered 10 Wood!</p>
+,                         <p><i class="fas fa-bolt"></i> You encountered a wild Pikachu!</p>
+,                     </div>
+,                     
+,                     <div class="stat-card">
+,                         <h3>Location Resources</h3>
+,                         <p>Available in Forest:</p>
+,                         <div class="resource-list">
+,                             <span class="resource-item">Wood: Common</span>
+,                             <span class="resource-item">Berries: Common</span>
+,                             <span class="resource-item">Mushrooms: Rare</span>
+,                         </div>
+,                     </div>
+,                 </div>
+,             </div>
+,             
+,             <!-- Battle Tab -->
+,             <div class="tab-pane" id="battle-tab" role="tabpanel" aria-labelledby="battle-btn">
+,                 <h2>Battle Arena</h2>
+,                 <p>Battle against wild Pokémon to earn experience and loot.</p>
+,                 
+,                 <button class="action-button" aria-label="Battle against Wild Pokémon - Easy difficulty">
+,                     <i class="fas fa-paw"></i> Wild Pokémon (Easy)
+,                 </button>
+,                 <button class="action-button" aria-label="Battle against Trainer - Medium difficulty">
+,                     <i class="fas fa-user"></i> Trainer Battle (Medium)
+,                 </button>
+,                 <button class="action-button" aria-label="Battle against Gym Leader - Hard difficulty">
+,                     <i class="fas fa-crown"></i> Gym Leader (Hard)
+,                 </button>
+,                 
+,                 <div class="pokemon-card">
+,                     <h3>Current Battle</h3>
+,                     <p>Opponent: Wild Pidgey</p>
+,                     <p>Health: 30/30</p>
+,                     <p>Your Pokémon: Pikachu - Health: 42/42</p>
+,                     
+,                     <button class="action-button" aria-label="Use Thunder Shock attack">
+,                         <i class="fas fa-bolt"></i> Thunder Shock
+,                     </button>
+,                     <button class="action-button" aria-label="Use Quick Attack">
+,                         <i class="fas fa-running"></i> Quick Attack
+,                     </button>
+,                     <button class="action-button" aria-label="Use Potion">
+,                         <i class="fas fa-plus-circle"></i> Use Potion
+,                     </button>
+,                     <button class="action-button" aria-label="Attempt to run away">
+,                         <i class="fas fa-running"></i> Run Away
+,                     </button>
+,                 </div>
+,             </div>
+,             
+,             <!-- Market Tab -->
+,             <div class="tab-pane" id="market-tab" role="tabpanel" aria-labelledby="market-btn">
+,                 <h2>Poké Market</h2>
+,                 <p>Buy and sell items here.</p>
+,                 
+,                 <div class="tabs" style="background: #f5f5f5; border-bottom: 2px solid #2c70b7; margin-bottom: 15px;">
+,                     <button class="tab-button active" style="background: #f5f5f5; color: #2c70b7;">Buy</button>
+,                     <button class="tab-button" style="background: #f5f5f5; color: #2c70b7;">Sell</button>
+,                 </div>
+,                 
+,                 <div class="inventory-grid">
+,                     <div class="item-card">
+,                         <h4><i class="fas fa-flask"></i> Potion</h4>
+,                         <p>Restores 20 HP</p>
+,                         <p>Price: $200</p>
+,                         <button aria-label="Buy Potion for 200 Poke Dollars">Buy</button>
+,                     </div>
+,                     <div class="item-card">
+,                         <h4><i class="fas fa-circle"></i> Poké Ball</h4>
+,                         <p>Catches Pokémon</p>
+,                         <p>Price: $300</p>
+,                         <button aria-label="Buy Poke Ball for 300 Poke Dollars">Buy</button>
+,                     </div>
+,                     <div class="item-card">
+,                         <h4><i class="fas fa-certificate"></i> Great Ball</h4>
+,                         <p>Better catch rate</p>
+,                         <p>Price: $600</p>
+,                         <button aria-label="Buy Great Ball for 600 Poke Dollars">Buy</button>
+,                     </div>
+,                     <div class="item-card">
+,                         <h4><i class="fas fa-apple-alt"></i> Berries</h4>
+,                         <p>Various uses</p>
+,                         <p>Price: $50</p>
+,                         <button aria-label="Buy Berries for 50 Poke Dollars">Buy</button>
+,                     </div>
+,                 </div>
+,             </div>
+,             
+,             <!-- Inventory Tab -->
+,             <div class="tab-pane" id="inventory-tab" role="tabpanel" aria-labelledby="inventory-btn">
+,                 <h2>Your Inventory</h2>
+,                 <p>You have 1,250 Poké Dollars</p>
+,                 
+,                 <h3>Items</h3>
+,                 <div class="inventory-grid">
+,                     <div class="item-card">
+,                         <h4><i class="fas fa-flask"></i> Potion</h4>
+,                         <p>Quantity: 3</p>
+,                         <button aria-label="Use Potion">Use</button>
+,                     </div>
+,                     <div class="item-card">
+,                         <h4><i class="fas fa-circle"></i> Poké Ball</h4>
+,                         <p>Quantity: 5</p>
+,                         <button aria-label="Use Poke Ball">Use</button>
+,                     </div>
+,                     <div class="item-card">
+,                         <h4><i class="fas fa-apple-alt"></i> Berries</h4>
+,                         <p>Quantity: 12</p>
+,                         <button aria-label="Use Berries">Use</button>
+,                     </div>
+,                     <div class="item-card">
+,                         <h4><i class="fas fa-candy-cane"></i> Rare Candy</h4>
+,                         <p>Quantity: 1</p>
+,                         <button aria-label="Use Rare Candy">Use</button>
+,                     </div>
+,                 </div>
+,                 
+,                 <h3>Resources</h3>
+,                 <div class="inventory-grid">
+,                     <div class="item-card">
+,                         <h4><i class="fas fa-tree"></i> Wood</h4>
+,                         <p>Quantity: 25</p>
+,                     </div>
+,                     <div class="item-card">
+,                         <h4><i class="fas fa-mountain"></i> Stone</h4>
+,                         <p>Quantity: 18</p>
+,                     </div>
+,                     <div class="item-card">
+,                         <h4><i class="fas fa-apple-alt"></i> Berries</h4>
+,                         <p>Quantity: 12</p>
+,                     </div>
+,                 </div>
+,             </div>
+,             
+,             <!-- Trade Tab -->
+,             <div class="tab-pane" id="trade-tab" role="tabpanel" aria-labelledby="trade-btn">
+,                 <h2>Trade with Friends</h2>
+,                 <p>Enter a 6-digit trade code to connect with a friend.</p>
+,                 
+,                 <div class="form-group">
+,                     <label for="trade-code">Trade Code:</label>
+,                     <input type="text" id="trade-code" maxlength="6" placeholder="Enter 6-digit code">
+,                 </div>
+,                 
+,                 <button>Connect</button>
+,                 
+,                 <div class="stats-grid" style="margin-top: 20px;">
+,                     <div class="stat-card">
+,                         <h3>Your Pokémon for Trade</h3>
+,                         <div class="pokemon-card">
+,                             <h4>Pidgey</h4>
+,                             <p>Level: 4</p>
+,                             <button aria-label="Select Pidgey for trade">Select</button>
+,                         </div>
+,                         <div class="pokemon-card">
+,                             <h4>Rattata</h4>
+,                             <p>Level: 3</p>
+,                             <button aria-label="Select Rattata for trade">Select</button>
+,                         </div>
+,                     </div>
+,                     
+,                     <div class="stat-card">
+,                         <h3>Friend's Pokémon</h3>
+,                         <p>Not connected</p>
+,                     </div>
+,                 </div>
 ,             </div>
 ,         </div>
+,         
+,         <div class="icon-button" tabindex="0" role="button" aria-label="Accessibility help">
+,             <i class="fas fa-universal-access"></i>
+,         </div>
 ,     </div>
+,     
+,     <div class="notification" id="notification" aria-live="polite">
+,         Message goes here
+,     </div>
+,     
+,     <span class="screen-reader-text" id="screen-reader-announcement" aria-live="polite"></span>
+, 
 ,     <script>
-,         // PWA Service Worker Registration
-,         if ('serviceWorker' in navigator) {
-,             window.addEventListener('load', () => {
-,                 navigator.serviceWorker.register('sw.js').catch(err => console.error('Service Worker Error:', err));
-,             });
-,         }
-, 
-,         // Game Data
-,         const pokemonList = [
-,             // Sample of 300 Pokémon (abridged for brevity; full list in actual implementation)
-,             { name: 'Bulbasaur', level: 1, xp: 0, type: 'Grass' },
-,             { name: 'Charmander', level: 1, xp: 0, type: 'Fire' },
-,             { name: 'Squirtle', level: 1, xp: 0, type: 'Water' },
-,             // ... (297 more Pokémon)
-,         ].slice(0, 300);
-,         const bosses = [
-,             { name: 'Mewtwo', level: 50, health: 1000 },
-,             { name: 'Rayquaza', level: 60, health: 1200 },
-,             { name: 'Groudon', level: 55, health: 1100 },
-,         ];
-,         const marketItems = [
-,             { name: 'Potion', cost: 10 },
-,             { name: 'Pokeball', cost: 5 },
-,             { name: 'Rare Candy', cost: 50 },
-,         ];
-,         const tradeOffers = [
-,             { offer: 'Pikachu', wants: 'Eevee' },
-,             { offer: 'Charizard', wants: 'Blastoise' },
-,         ];
-, 
-,         // Game State
-,         let player = {
-,             level: 1,
-,             xp: 0,
-,             resources: 0,
-,             party: [],
-,             inventory: [],
-,             position: { x: 0, y: 0 }
-,         };
-, 
-,         // Audio Context for Accessibility
-,         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-,         function playSound(frequency, duration) {
-,             const oscillator = audioCtx.createOscillator();
-,             oscillator.type = 'sine';
-,             oscillator.frequency.setValueAtTime(frequency, audioCtx.currentTime);
-,             oscillator.connect(audioCtx.destination);
-,             oscillator.start();
-,             oscillator.stop(audioCtx.currentTime + duration);
-,         }
-, 
-,         // Tab Navigation
-,         const tabs = ['home', 'explore', 'gather', 'inventory', 'market', 'trade', 'boss'];
-,         const tabButtons = document.querySelectorAll('.tab-bar button');
-,         tabButtons.forEach(btn => {
-,             btn.addEventListener('click', () => {
-,                 switchTab(btn.id.replace('-btn', ''));
-,                 playSound(440, 0.1); // Audio cue for tab switch
-,             });
-,         });
-, 
-,         function switchTab(tabId) {
-,             document.querySelectorAll('.tab-content').forEach(content => {
-,                 content.classList.remove('active');
-,                 content.setAttribute('aria-hidden', 'true');
-,             });
-,             document.querySelectorAll('.tab-bar button').forEach(btn => {
-,                 btn.classList.remove('active');
-,                 btn.setAttribute('aria-selected', 'false');
-,             });
-,             document.getElementById(tabId).classList.add('active');
-,             document.getElementById(tabId).setAttribute('aria-hidden', 'false');
-,             document.getElementById(`${tabId}-btn`).classList.add('active');
-,             document.getElementById(`${tabId}-btn`).setAttribute('aria-selected', 'true');
-,             document.getElementById(`${tabId}-btn`).focus();
-,         }
-, 
-,         // Map Generation
-,         const mapSize = 10;
-,         const map = [];
-,         for (let y = 0; y < mapSize; y++) {
-,             map[y] = [];
-,             for (let x = 0; x < mapSize; x++) {
-,                 map[y][x] = Math.random() < 0.1 ? 'pokemon' : Math.random() < 0.2 ? 'resource' : 'empty';
-,             }
-,         }
-,         map[0][0] = 'player';
-, 
-,         function renderMap() {
-,             const mapDiv = document.getElementById('map');
-,             mapDiv.innerHTML = '';
-,             for (let y = 0; y < mapSize; y++) {
-,                 for (let x = 0; x < mapSize; x++) {
-,                     const cell = document.createElement('div');
-,                     cell.className = 'map-cell';
-,                     cell.setAttribute('role', 'gridcell');
-,                     cell.setAttribute('aria-label', `Cell ${x},${y}: ${map[y][x]}`);
-,                     if (map[y][x] === 'player') cell.classList.add('player');
-,                     else if (map[y][x] === 'pokemon') cell.classList.add('pokemon');
-,                     else if (map[y][x] === 'resource') cell.classList.add('resource');
-,                     cell.tabIndex = 0;
-,                     cell.addEventListener('click', () => handleMapClick(x, y));
-,                     cell.addEventListener('keypress', e => {
-,                         if (e.key === 'Enter' || e.key === ' ') handleMapClick(x, y);
+,         document.addEventListener('DOMContentLoaded', function() {
+,             // Tab switching functionality
+,             const tabButtons = document.querySelectorAll('.tab-button');
+,             const tabPanes = document.querySelectorAll('.tab-pane');
+,             
+,             tabButtons.forEach(button => {
+,                 button.addEventListener('click', () => {
+,                     const tabId = button.id.replace('-btn', '-tab');
+,                     
+,                     // Update buttons
+,                     tabButtons.forEach(btn => {
+,                         btn.classList.remove('active');
+,                         btn.setAttribute('aria-selected', 'false');
 ,                     });
-,                     mapDiv.appendChild(cell);
-,                 }
-,             }
-,         }
-, 
-,         function handleMapClick(x, y) {
-,             const oldX = player.position.x;
-,             const oldY = player.position.y;
-,             if (Math.abs(x - oldX) + Math.abs(y - oldY) === 1) {
-,                 map[oldY][oldX] = 'empty';
-,                 map[y][x] = 'player';
-,                 player.position = { x, y };
-,                 if (Math.random() < 0.3) {
-,                     encounterPokemon();
-,                 } else if (Math.random() < 0.5) {
-,                     gatherResource();
-,                 }
-,                 renderMap();
-,                 playSound(880, 0.1); // Audio cue for move
-,             }
-,         }
-, 
-,         // Game Mechanics
-,         function encounterPokemon() {
-,             const pokemon = pokemonList[Math.floor(Math.random() * pokemonList.length)];
-,             if (Math.random() < 0.5) {
-,                 player.party.push({ ...pokemon });
-,                 showModal(`Caught ${pokemon.name}! Added to your party.`);
-,                 playSound(660, 0.2); // Audio cue for catch
-,                 updateInventory();
-,             } else {
-,                 showModal(`Failed to catch ${pokemon.name}!`);
-,                 playSound(220, 0.2); // Audio cue for fail
-,             }
-,         }
-, 
-,         function gatherResource() {
-,             player.resources += 10;
-,             showModal('Gathered 10 resources!');
-,             playSound(550, 0.2); // Audio cue for resource
-,             updateUI();
-,         }
-, 
-,         function levelUp() {
-,             if (player.xp >= 100) {
-,                 player.level++;
-,                 player.xp -= 100;
-,                 showModal(`Leveled up to ${player.level}!`);
-,                 playSound(770, 0.3); // Audio cue for level up
-,                 updateUI();
-,             }
-,         }
-, 
-,         // UI Updates
-,         function updateUI() {
-,             document.getElementById('player-level').textContent = player.level;
-,             document.getElementById('player-xp').textContent = player.xp;
-,             document.getElementById('party-size').textContent = player.party.length;
-,             document.getElementById('resources').textContent = player.resources;
-,             document.getElementById('gather-resources').textContent = player.resources;
-,         }
-, 
-,         function updateInventory() {
-,             const inventoryList = document.getElementById('inventory-list');
-,             inventoryList.innerHTML = '';
-,             player.party.forEach((pokemon, i) => {
-,                 const li = document.createElement('li');
-,                 li.setAttribute('role', 'listitem');
-,                 li.innerHTML = `${pokemon.name} (Lv ${pokemon.level}, ${pokemon.type}) 
-,                     <button aria-label="Level up ${pokemon.name}" onclick="levelUpPokemon(${i})">Level Up</button>`;
-,                 inventoryList.appendChild(li);
+,                     button.classList.add('active');
+,                     button.setAttribute('aria-selected', 'true');
+,                     
+,                     // Update panes
+,                     tabPanes.forEach(pane => {
+,                         pane.classList.remove('active');
+,                     });
+,                     document.getElementById(tabId).classList.add('active');
+,                     
+,                     // Announce tab change for screen readers
+,                     const announcement = document.getElementById('screen-reader-announcement');
+,                     announcement.textContent = `Switched to ${button.textContent.trim()} tab`;
+,                 });
 ,             });
-,         }
-, 
-,         function updateMarket() {
-,             const marketList = document.getElementById('market-list');
-,             marketList.innerHTML = '';
-,             marketItems.forEach((item, i) => {
-,                 const li = document.createElement('li');
-,                 li.setAttribute('role', 'listitem');
-,                 li.innerHTML = `${item.name} - ${item.cost} resources 
-,                     <button aria-label="Buy ${item.name}" onclick="buyItem(${i})">Buy</button>`;
-,                 marketList.appendChild(li);
+,             
+,             // Login button functionality
+,             document.getElementById('login-btn').addEventListener('click', () => {
+,                 showNotification('Login successful! Welcome back, Trainer.');
 ,             });
-,         }
-, 
-,         function updateTrade() {
-,             const tradeList = document.getElementById('trade-list');
-,             tradeList.innerHTML = '';
-,             tradeOffers.forEach((offer, i) => {
-,                 const li = document.createElement('li');
-,                 li.setAttribute('role', 'listitem');
-,                 li.innerHTML = `Offer: ${offer.offer} for ${offer.wants} 
-,                     <button aria-label="Trade for ${offer.offer}" onclick="makeTrade(${i})">Trade</button>`;
-,                 tradeList.appendChild(li);
+,             
+,             // Register button functionality
+,             document.getElementById('register-btn').addEventListener('click', () => {
+,                 showNotification('Registration feature coming soon!');
 ,             });
-,         }
-, 
-,         function updateBosses() {
-,             const bossList = document.getElementById('boss-list');
-,             bossList.innerHTML = '';
-,             bosses.forEach((boss, i) => {
-,                 const li = document.createElement('li');
-,                 li.setAttribute('role', 'listitem');
-,                 li.innerHTML = `${boss.name} (Lv ${boss.level}, HP ${boss.health}) 
-,                     <button aria-label="Fight ${boss.name}" onclick="fightBoss(${i})">Fight</button>`;
-,                 bossList.appendChild(li);
+,             
+,             // Location selection functionality
+,             const locationCards = document.querySelectorAll('.location-card');
+,             locationCards.forEach(card => {
+,                 card.addEventListener('click', () => {
+,                     showNotification(`Traveling to ${card.querySelector('h3').textContent}`);
+,                 });
 ,             });
-,         }
-, 
-,         function levelUpPokemon(index) {
-,             const pokemon = player.party[index];
-,             if (player.resources >= 20) {
-,                 pokemon.level++;
-,                 player.resources -= 20;
-,                 showModal(`${pokemon.name} leveled up to ${pokemon.level}!`);
-,                 playSound(770, 0.3); // Audio cue for Pokémon level up
-,                 updateInventory();
-,                 updateUI();
-,             } else {
-,                 showModal('Not enough resources!');
-,                 playSound(220, 0.2); // Audio cue for error
+,             
+,             // Function to show notifications
+,             function showNotification(message) {
+,                 const notification = document.getElementById('notification');
+,                 notification.textContent = message;
+,                 notification.style.display = 'block';
+,                 
+,                 // Announce for screen readers
+,                 const announcement = document.getElementById('screen-reader-announcement');
+,                 announcement.textContent = message;
+,                 
+,                 setTimeout(() => {
+,                     notification.style.display = 'none';
+,                 }, 3000);
 ,             }
-,         }
-, 
-,         function buyItem(index) {
-,             const item = marketItems[index];
-,             if (player.resources >= item.cost) {
-,                 player.inventory.push(item);
-,                 player.resources -= item.cost;
-,                 showModal(`Bought ${item.name}!`);
-,                 playSound(660, 0.2); // Audio cue for purchase
-,                 updateUI();
-,             } else {
-,                 showModal('Not enough resources!');
-,                 playSound(220, 0.2); // Audio cue for error
-,             }
-,         }
-, 
-,         function makeTrade(index) {
-,             const offer = tradeOffers[index];
-,             const hasPokemon = player.party.some(p => p.name === offer.wants);
-,             if (hasPokemon) {
-,                 player.party = player.party.filter(p => p.name !== offer.wants);
-,                 player.party.push({ name: offer.offer, level: 1, xp: 0, type: 'Unknown' });
-,                 showModal(`Traded for ${offer.offer}!`);
-,                 playSound(660, 0.2); // Audio cue for trade
-,                 updateInventory();
-,             } else {
-,                 showModal(`You need a ${offer.wants} to trade!`);
-,                 playSound(220, 0.2); // Audio cue for error
-,             }
-,         }
-, 
-,         function fightBoss(index) {
-,             const boss = bosses[index];
-,             const partyStrength = player.party.reduce((sum, p) => sum + p.level, 0);
-,             if (partyStrength > boss.level) {
-,                 player.xp += 50;
-,                 showModal(`Defeated ${boss.name}! Gained 50 XP.`);
-,                 playSound(880, 0.3); // Audio cue for victory
-,                 levelUp();
-,             } else {
-,                 showModal(`Lost to ${boss.name}! Try leveling up your party.`);
-,                 playSound(220, 0.2); // Audio cue for loss
-,             }
-,             updateUI();
-,         }
-, 
-,         // Modal
-,         function showModal(message) {
-,             const modal = document.getElementById('modal');
-,             document.getElementById('modal-message').textContent = message;
-,             modal.classList.add('active');
-,             modal.setAttribute('aria-hidden', 'false');
-,             document.getElementById('modal-close').focus();
-,         }
-, 
-,         document.getElementById('modal-close').addEventListener('click', () => {
-,             const modal = document.getElementById('modal');
-,             modal.classList.remove('active');
-,             modal.setAttribute('aria-hidden', 'true');
-,             playSound(440, 0.1); // Audio cue for modal close
+,             
+,             // Simulate game actions
+,             const actionButtons = document.querySelectorAll('.action-button');
+,             actionButtons.forEach(button => {
+,                 button.addEventListener('click', () => {
+,                     const actionText = button.textContent.trim();
+,                     let message = '';
+,                     
+,                     if (actionText.includes('Search for Pokémon')) {
+,                         message = 'You encountered a wild Pikachu!';
+,                     } else if (actionText.includes('Gather Wood')) {
+,                         message = 'You gathered 5 wood! +10 experience';
+,                     } else if (actionText.includes('Gather Berries')) {
+,                         message = 'You gathered 3 berries! +10 experience';
+,                     } else if (actionText.includes('Wild Pokémon')) {
+,                         message = 'Starting battle with wild Pokémon';
+,                     } else if (actionText.includes('Trainer Battle')) {
+,                         message = 'Starting battle with Trainer';
+,                     } else if (actionText.includes('Gym Leader')) {
+,                         message = 'Starting battle with Gym Leader';
+,                     } else {
+,                         message = `Action: ${button.getAttribute('aria-label')}`;
+,                     }
+,                     
+,                     showNotification(message);
+,                 });
+,             });
+,             
+,             // Initialize ARIA live region for screen readers
+,             const liveRegion = document.getElementById('screen-reader-announcement');
+,             liveRegion.setAttribute('aria-live', 'polite');
+,             liveRegion.setAttribute('aria-atomic', 'true');
+,             
+,             // Accessibility help button
+,             document.querySelector('.icon-button').addEventListener('click', () => {
+,                 showNotification('Accessibility help: This game is designed for screen readers. Use swipe gestures to navigate.');
+,             });
 ,         });
-, 
-,         // Gather Resources
-,         document.getElementById('gather-btn').addEventListener('click', () => {
-,             player.resources += 10;
-,             player.xp += 10;
-,             showModal('Gathered 10 resources and 10 XP!');
-,             playSound(550, 0.2); // Audio cue for gather
-,             levelUp();
-,             updateUI();
-,         });
-, 
-,         // Keyboard Navigation for Map
-,         document.addEventListener('keydown', e => {
-,             const { x, y } = player.position;
-,             let newX = x, newY = y;
-,             if (e.key === 'ArrowUp' && y > 0) newY--;
-,             else if (e.key === 'ArrowDown' && y < mapSize - 1) newY++;
-,             else if (e.key === 'ArrowLeft' && x > 0) newX--;
-,             else if (e.key === 'ArrowRight' && x < mapSize - 1) newX++;
-,             if (newX !== x || newY !== y) {
-,                 handleMapClick(newX, newY);
-,             }
-,         });
-, 
-,         // Initialize
-,         renderMap();
-,         updateUI();
-,         updateInventory();
-,         updateMarket();
-,         updateTrade();
-,         updateBosses();
-, 
-,         // PWA Manifest (inline for simplicity)
-,         const manifest = {
-,             name: "Accessible Pokémon Game",
-,             short_name: "Pokémon Game",
-,             description: "An accessible Pokémon adventure game",
-,             start_url: "./",
-,             scope: "./",
-,             display: "standalone",
-,             background_color: "#f7fbff",
-,             theme_color: "#222",
-,             icons: [
-,                 {
-,                     src:,  "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAYAAABS3GwHAAACFElEQVR4nO3SMQEAIAzAsIP/0s1mYAHBFc2/AACg/z8BAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAAD, g/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAA, Dg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AA, ADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8A, AADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w8AAADg/w
+,     </script>
+, </body>
+, </html>, In list
