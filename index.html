@@ -4,10 +4,8 @@
 ,     <meta charset="UTF-8">
 ,     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 ,     <meta name="theme-color" content="#e61e2a">
-,     <meta name="description" content="An accessible Pokémon game for blind and visually impaired players">
 ,     <title>Pokémon Adventure</title>
 ,     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-,     <link rel="manifest" href="manifest.json">
 ,     <style>
 ,         * {
 ,             box-sizing: border-box;
@@ -29,7 +27,7 @@
 ,         }
 ,         
 ,         body {
-,             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+,             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 ,             background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d);
 ,             color: var(--text);
 ,             min-height: 100vh;
@@ -40,22 +38,18 @@
 ,         }
 ,         
 ,         .app-container {
-,             max-width: 100%;
 ,             width: 100%;
 ,             background: var(--background);
-,             border-radius: 0;
-,             overflow: hidden;
 ,             flex: 1;
 ,             display: flex;
 ,             flex-direction: column;
-,             margin-bottom: 60px; /* Space for bottom nav */
+,             margin-bottom: 60px;
 ,         }
 ,         
 ,         header {
 ,             background: var(--primary);
 ,             padding: 15px;
 ,             text-align: center;
-,             position: relative;
 ,             border-bottom: 5px solid var(--accent);
 ,         }
 ,         
@@ -263,7 +257,6 @@
 ,             font-size: 0.9rem;
 ,         }
 ,         
-,         /* Bottom Navigation */
 ,         .bottom-nav {
 ,             position: fixed;
 ,             bottom: 0;
@@ -304,7 +297,6 @@
 ,             border-radius: 8px;
 ,         }
 ,         
-,         /* Install Button */
 ,         .install-btn {
 ,             position: fixed;
 ,             top: 15px;
@@ -325,7 +317,6 @@
 ,             outline: 3px solid var(--secondary);
 ,         }
 ,         
-,         /* Mobile-specific optimizations */
 ,         @media (max-width: 480px) {
 ,             h1 {
 ,                 font-size: 1.5rem;
@@ -354,42 +345,6 @@
 ,                 grid-template-columns: repeat(3, 1fr);
 ,             }
 ,         }
-,         
-,         /* High contrast mode for visually impaired users */
-,         @media (prefers-contrast: high) {
-,             :root {
-,                 --background: #ffffff;
-,                 --card-bg: #f8f9fa;
-,                 --text: #000000;
-,             }
-,             
-,             .stat-card, .pokemon-card, .item-card, .location-card, .login-form {
-,                 border-width: 3px;
-,                 border-color: black;
-,             }
-,         }
-,         
-,         /* Reduce motion for users who prefer it */
-,         @media (prefers-reduced-motion: reduce) {
-,             * {
-,                 animation-duration: 0.01ms !important;
-,                 animation-iteration-count: 1 !important;
-,                 transition-duration: 0.01ms !important;
-,             }
-,         }
-,         
-,         /* Dark mode support */
-,         @media (prefers-color-scheme: dark) {
-,             :root {
-,                 --background: #121212;
-,                 --card-bg: #1e1e1e;
-,                 --text: #f8f9fa;
-,             }
-,             
-,             body {
-,                 background: linear-gradient(135deg, #0d1b4d, #801919, #d49c1f);
-,             }
-,         }
 ,     </style>
 , </head>
 , <body>
@@ -403,8 +358,7 @@
 ,         </header>
 ,         
 ,         <div class="tab-content">
-,             <!-- Home Tab -->
-,             <div class="tab-pane active" id="home-tab" role="tabpanel" aria-label="Home">
+,             <div class="tab-pane active" id="home-tab">
 ,                 <h2 class="screen-reader-text">Home Screen</h2>
 ,                 <p>This is an accessible Pokémon game designed for blind and visually impaired players.</p>
 ,                 
@@ -466,8 +420,7 @@
 ,                 </div>
 ,             </div>
 ,             
-,             <!-- Map Tab -->
-,             <div class="tab-pane" id="map-tab" role="tabpanel" aria-label="Map">
+,             <div class="tab-pane" id="map-tab">
 ,                 <h2>World Map</h2>
 ,                 <p>Select a location to travel to:</p>
 ,                 
@@ -513,8 +466,7 @@
 ,                 </div>
 ,             </div>
 ,             
-,             <!-- Explore Tab -->
-,             <div class="tab-pane" id="explore-tab" role="tabpanel" aria-label="Explore">
+,             <div class="tab-pane" id="explore-tab">
 ,                 <h2>Explore the Wild</h2>
 ,                 <p>You are currently in the Forest. What would you like to do?</p>
 ,                 
@@ -548,8 +500,7 @@
 ,                 </div>
 ,             </div>
 ,             
-,             <!-- Battle Tab -->
-,             <div class="tab-pane" id="battle-tab" role="tabpanel" aria-label="Battle">
+,             <div class="tab-pane" id="battle-tab">
 ,                 <h2>Battle Arena</h2>
 ,                 <p>Battle against wild Pokémon to earn experience and loot.</p>
 ,                 
@@ -584,14 +535,13 @@
 ,                 </div>
 ,             </div>
 ,             
-,             <!-- Market Tab -->
-,             <div class="tab-pane" id="market-tab" role="tabpanel" aria-label="Market">
+,             <div class="tab-pane" id="market-tab">
 ,                 <h2>Poké Market</h2>
 ,                 <p>Buy and sell items here.</p>
 ,                 
-,                 <div class="tabs" style="background: var(--card-bg); border-bottom: 2px solid var(--secondary); margin-bottom: 15px;">
-,                     <button class="action-button active" style="background: var(--card-bg); color: var(--secondary);">Buy</button>
-,                     <button class="action-button" style="background: var(--card-bg); color: var(--secondary);">Sell</button>
+,                 <div style="display: flex; margin-bottom: 15px;">
+,                     <button class="action-button active" style="margin-right: 10px;">Buy</button>
+,                     <button class="action-button">Sell</button>
 ,                 </div>
 ,                 
 ,                 <div class="inventory-grid">
@@ -622,8 +572,7 @@
 ,                 </div>
 ,             </div>
 ,             
-,             <!-- Inventory Tab -->
-,             <div class="tab-pane" id="inventory-tab" role="tabpanel" aria-label="Inventory">
+,             <div class="tab-pane" id="inventory-tab">
 ,                 <h2>Your Inventory</h2>
 ,                 <p>You have 1,250 Poké Dollars</p>
 ,                 
@@ -668,8 +617,7 @@
 ,                 </div>
 ,             </div>
 ,             
-,             <!-- Trade Tab -->
-,             <div class="tab-pane" id="trade-tab" role="tabpanel" aria-label="Trade">
+,             <div class="tab-pane" id="trade-tab">
 ,                 <h2>Trade with Friends</h2>
 ,                 <p>Enter a 6-digit trade code to connect with a friend.</p>
 ,                 
@@ -704,8 +652,7 @@
 ,         </div>
 ,     </div>
 ,     
-,     <!-- Bottom Navigation -->
-,     <nav class="bottom-nav" role="navigation" aria-label="Main navigation">
+,     <nav class="bottom-nav" aria-label="Main navigation">
 ,         <button class="nav-item active" id="nav-home" aria-label="Home">
 ,             <i class="fas fa-home"></i>
 ,             <span>Home</span>
@@ -736,46 +683,11 @@
 ,         </button>
 ,     </nav>
 ,     
-,     <div class="notification" id="notification" aria-live="polite">
-,         Message goes here
-,     </div>
+,     <div class="notification" id="notification">Message goes here</div>
 ,     
 ,     <span class="screen-reader-text" id="screen-reader-announcement" aria-live="polite"></span>
 , 
 ,     <script>
-,         // Manifest for PWA
-,         const manifest = {
-,             "name": "Pokémon Adventure",
-,             "short_name": "Pokémon",
-,             "description": "An accessible Pokémon game for blind and visually impaired players",
-,             "start_url": "/",
-,             "display": "standalone",
-,             "background_color": "#e61e2a",
-,             "theme_color": "#e61e2a",
-,             "icons": [
-,                 {
-,                     "src": "https://via.placeholder.com/192x192.png?text=P",
-,                     "sizes": "192x192",
-,                     "type": "image/png"
-,                 },
-,                 {
-,                     "src": "https://via.placeholder.com/512x512.png?text=P",
-,                     "sizes": "512x512",
-,                     "type": "image/png"
-,                 }
-,             ]
-,         };
-,         
-,         // Create a blob and URL for the manifest
-,         const blob = new Blob([JSON.stringify(manifest)], {type: 'application/json'});
-,         const manifestURL = URL.createObjectURL(blob);
-,         
-,         // Add the manifest link to the document head
-,         const link = document.createElement('link');
-,         link.rel = 'manifest';
-,         link.href = manifestURL;
-,         document.head.appendChild(link);
-,         
 ,         document.addEventListener('DOMContentLoaded', function() {
 ,             // Tab switching functionality
 ,             const navItems = document.querySelectorAll('.nav-item');
@@ -783,21 +695,15 @@
 ,             
 ,             navItems.forEach(item => {
 ,                 item.addEventListener('click', () => {
-,                     const tabId = `#${item.id.replace('nav-', '')}-tab`;
+,                     const tabId = `${item.id.replace('nav-', '')}-tab`;
 ,                     
 ,                     // Update nav items
-,                     navItems.forEach(nav => {
-,                         nav.classList.remove('active');
-,                         nav.setAttribute('aria-selected', 'false');
-,                     });
+,                     navItems.forEach(nav => nav.classList.remove('active'));
 ,                     item.classList.add('active');
-,                     item.setAttribute('aria-selected', 'true');
 ,                     
 ,                     // Update panes
-,                     tabPanes.forEach(pane => {
-,                         pane.classList.remove('active');
-,                     });
-,                     document.querySelector(tabId).classList.add('active');
+,                     tabPanes.forEach(pane => pane.classList.remove('active'));
+,                     document.getElementById(tabId).classList.add('active');
 ,                     
 ,                     // Announce tab change for screen readers
 ,                     const announcement = document.getElementById('screen-reader-announcement');
@@ -875,17 +781,12 @@
 ,             const installButton = document.getElementById('installButton');
 ,             
 ,             window.addEventListener('beforeinstallprompt', (e) => {
-,                 // Prevent the mini-infobar from appearing on mobile
 ,                 e.preventDefault();
-,                 // Stash the event so it can be triggered later
 ,                 deferredPrompt = e;
-,                 // Show the install button
 ,                 installButton.style.display = 'block';
 ,                 
 ,                 installButton.addEventListener('click', () => {
-,                     // Show the install prompt
 ,                     deferredPrompt.prompt();
-,                     // Wait for the user to respond to the prompt
 ,                     deferredPrompt.userChoice.then((choiceResult) => {
 ,                         if (choiceResult.outcome === 'accepted') {
 ,                             showNotification('Pokémon Adventure installed successfully!');
@@ -897,13 +798,11 @@
 ,                 });
 ,             });
 ,             
-,             // Check if app is already installed
 ,             window.addEventListener('appinstalled', () => {
 ,                 installButton.style.display = 'none';
 ,                 showNotification('Thank you for installing Pokémon Adventure!');
 ,             });
 ,             
-,             // Check if in standalone mode (already installed)
 ,             if (window.matchMedia('(display-mode: standalone)').matches) {
 ,                 installButton.style.display = 'none';
 ,             }
