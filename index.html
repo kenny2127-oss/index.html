@@ -1,25 +1,40 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
-</head>
-<body>
-    <header>
-        <h1>Welcome to My Page</h1>
-    </header>
-    <main>
-        <p>This is the main content of the page.</p>
-    </main>
-    <footer>
-        <nav>
-            <ul>
-                <li><a href="#">Home</a></li>
-                <li><a href="#">About</a></li>
-                <li><a href="#">Contact</a></li>
-            </ul>
-        </nav>
-    </footer>
-</body>
-</html>
+import random
+
+# Define a list of available Pokémon
+pokemon = ["Bulbasaur", "Charmander", "Squirtle", "Pikachu", "Eevee"]
+
+# Assign the player a random Pokémon
+player_pokemon = random.choice(pokemon)
+
+# Assign the opponent a random Pokémon (excluding the player's Pokémon)
+opponent_pokemon = random.choice([p for p in pokemon if p != player_pokemon])
+
+# Print the player's Pokémon
+print("You have chosen", player_pokemon)
+
+# Print the opponent's Pokémon
+print("Your opponent has chosen", opponent_pokemon)
+
+# Perform a basic battle simulation
+while True:
+    player_attack = input("Choose your attack (1-4): ")
+
+    # Determine the outcome of the attack
+    if player_attack == "1":
+        print("You used a powerful attack!")
+        print("The opponent's HP is now 50%.")
+    elif player_attack == "2":
+        print("You used a weak attack!")
+        print("The opponent's HP is now 75%.")
+    elif player_attack == "3":
+        print("You used a healing move!")
+        print("Your HP is now 100%.")
+    elif player_attack == "4":
+        print("You used a special move!")
+        print("You have defeated the opponent!")
+        break
+    else:
+        print("Invalid attack choice. Please try again.")
+
+# Print the result of the battle
+print("Congratulations, you have won the battle!")
