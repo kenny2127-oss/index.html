@@ -6,7 +6,6 @@
 ,     <meta name="theme-color" content="#e61e2a">
 ,     <title>Pokémon Adventure</title>
 ,     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-,     <link rel="manifest" href="manifest.json">
 ,     <style>
 ,         * {
 ,             box-sizing: border-box;
@@ -32,6 +31,7 @@
 ,             background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d);
 ,             color: var(--text);
 ,             min-height: 100vh;
+,             padding: 0;
 ,             display: flex;
 ,             flex-direction: column;
 ,             touch-action: manipulation;
@@ -51,7 +51,6 @@
 ,             padding: 15px;
 ,             text-align: center;
 ,             border-bottom: 5px solid var(--accent);
-,             position: relative;
 ,         }
 ,         
 ,         h1 {
@@ -134,12 +133,6 @@
 ,             outline: 3px solid var(--accent);
 ,         }
 ,         
-,         .inline-button {
-,             display: inline;
-,             width: auto;
-,             padding: 5px 10px;
-,         }
-,         
 ,         .stats-grid {
 ,             display: grid;
 ,             grid-template-columns: 1fr;
@@ -147,24 +140,19 @@
 ,             margin-top: 15px;
 ,         }
 ,         
-,         .stat-card, .pokemon-card, .item-card, .location-card {
+,         .stat-card {
 ,             background: var(--card-bg);
 ,             padding: 15px;
 ,             border-radius: 12px;
-,             margin-bottom: 15px;
-,         }
-,         
-,         .stat-card {
 ,             border-left: 5px solid var(--secondary);
 ,         }
 ,         
 ,         .pokemon-card {
+,             background: var(--card-bg);
+,             padding: 15px;
+,             border-radius: 12px;
+,             margin-bottom: 15px;
 ,             border: 2px solid var(--accent);
-,         }
-,         
-,         .item-card, .location-card {
-,             border: 2px solid var(--secondary);
-,             text-align: center;
 ,         }
 ,         
 ,         .action-button {
@@ -185,6 +173,14 @@
 ,             grid-template-columns: repeat(2, 1fr);
 ,             gap: 12px;
 ,             margin-top: 15px;
+,         }
+,         
+,         .item-card {
+,             background: var(--card-bg);
+,             padding: 12px;
+,             border-radius: 8px;
+,             text-align: center;
+,             border: 2px solid var(--secondary);
 ,         }
 ,         
 ,         .notification {
@@ -213,6 +209,7 @@
 ,             height: 100%;
 ,             background: var(--success);
 ,             border-radius: 10px;
+,             width: 65%;
 ,         }
 ,         
 ,         .screen-reader-text {
@@ -229,6 +226,14 @@
 ,             grid-template-columns: 1fr;
 ,             gap: 15px;
 ,             margin-top: 15px;
+,         }
+,         
+,         .location-card {
+,             background: var(--card-bg);
+,             padding: 20px;
+,             border-radius: 12px;
+,             text-align: center;
+,             border: 2px solid var(--secondary);
 ,         }
 ,         
 ,         .location-card:focus {
@@ -293,7 +298,7 @@
 ,         }
 ,         
 ,         .install-btn {
-,             position: absolute;
+,             position: fixed;
 ,             top: 15px;
 ,             right: 15px;
 ,             background: var(--accent);
@@ -304,23 +309,12 @@
 ,             font-weight: bold;
 ,             cursor: pointer;
 ,             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+,             z-index: 1000;
 ,             display: none;
 ,         }
 ,         
 ,         .install-btn:focus {
 ,             outline: 3px solid var(--secondary);
-,         }
-,         
-,         .market-tabs {
-,             display: flex;
-,             margin-bottom: 15px;
-,         }
-,         
-,         .market-tabs .action-button {
-,             margin-right: 10px;
-,             width: auto;
-,             flex: 1;
-,             text-align: center;
 ,         }
 ,         
 ,         @media (max-width: 480px) {
@@ -364,7 +358,7 @@
 ,         </header>
 ,         
 ,         <div class="tab-content">
-,             <div class="tab-pane active" id="home-tab" role="tabpanel" aria-labelledby="nav-home">
+,             <div class="tab-pane active" id="home-tab">
 ,                 <h2 class="screen-reader-text">Home Screen</h2>
 ,                 <p>This is an accessible Pokémon game designed for blind and visually impaired players.</p>
 ,                 
@@ -379,7 +373,7 @@
 ,                         <input type="password" id="password" aria-required="true" placeholder="Enter your password">
 ,                     </div>
 ,                     <button id="login-btn">Login</button>
-,                     <p style="margin-top: 15px; text-align: center;">Don't have an account? <button id="register-btn" class="inline-button">Register</button></p>
+,                     <p style="margin-top: 15px; text-align: center;">Don't have an account? <button id="register-btn" style="display: inline; padding: 5px 10px;">Register</button></p>
 ,                 </div>
 ,                 
 ,                 <div class="stats-grid">
@@ -388,7 +382,7 @@
 ,                         <p>Level: 5</p>
 ,                         <p>Experience: 65/100</p>
 ,                         <div class="progress-bar">
-,                             <div class="progress" role="progressbar" aria-valuenow="65" aria-valuemin="0" aria-valuemax="100" style="width: 65%"></div>
+,                             <div class="progress" role="progressbar" aria-valuenow="65" aria-valuemin="0" aria-valuemax="100"></div>
 ,                         </div>
 ,                         <p>Poké Dollars: 1,250</p>
 ,                     </div>
@@ -414,7 +408,7 @@
 ,                         <p>Level: 2</p>
 ,                         <p>Upgrade Progress: 45%</p>
 ,                         <div class="progress-bar">
-,                             <div class="progress" role="progressbar" aria-valuenow="45" aria-valuemin="0" aria-valuemax="100" style="width: 45%; background: var(--warning);"></div>
+,                             <div class="progress" style="width: 45%; background: var(--warning);" role="progressbar" aria-valuenow="45" aria-valuemin="0" aria-valuemax="100"></div>
 ,                         </div>
 ,                         <p>Next upgrade requires:</p>
 ,                         <ul>
@@ -426,7 +420,7 @@
 ,                 </div>
 ,             </div>
 ,             
-,             <div class="tab-pane" id="map-tab" role="tabpanel" aria-labelledby="nav-map">
+,             <div class="tab-pane" id="map-tab">
 ,                 <h2>World Map</h2>
 ,                 <p>Select a location to travel to:</p>
 ,                 
@@ -472,48 +466,228 @@
 ,                 </div>
 ,             </div>
 ,             
-,             <!-- Other tab content remains similar but with improved structure -->
+,             <div class="tab-pane" id="explore-tab">
+,                 <h2>Explore the Wild</h2>
+,                 <p>You are currently in the Forest. What would you like to do?</p>
+,                 
+,                 <button class="action-button" aria-label="Search for wild Pokémon">
+,                     <i class="fas fa-search"></i> Search for Pokémon
+,                 </button>
+,                 <button class="action-button" aria-label="Gather wood from the forest">
+,                     <i class="fas fa-tree"></i> Gather Wood
+,                 </button>
+,                 <button class="action-button" aria-label="Gather berries from bushes">
+,                     <i class="fas fa-apple-alt"></i> Gather Berries
+,                 </button>
+,                 
+,                 <div class="stats-grid">
+,                     <div class="stat-card">
+,                         <h3>Recent Activity</h3>
+,                         <p><i class="fas fa-shield-alt"></i> You found a Potion!</p>
+,                         <p><i class="fas fa-tree"></i> You gathered 10 Wood!</p>
+,                         <p><i class="fas fa-bolt"></i> You encountered a wild Pikachu!</p>
+,                     </div>
+,                     
+,                     <div class="stat-card">
+,                         <h3>Location Resources</h3>
+,                         <p>Available in Forest:</p>
+,                         <div class="resource-list">
+,                             <span class="resource-item">Wood: Common</span>
+,                             <span class="resource-item">Berries: Common</span>
+,                             <span class="resource-item">Mushrooms: Rare</span>
+,                         </div>
+,                     </div>
+,                 </div>
+,             </div>
 ,             
+,             <div class="tab-pane" id="battle-tab">
+,                 <h2>Battle Arena</h2>
+,                 <p>Battle against wild Pokémon to earn experience and loot.</p>
+,                 
+,                 <button class="action-button" aria-label="Battle against Wild Pokémon - Easy difficulty">
+,                     <i class="fas fa-paw"></i> Wild Pokémon (Easy)
+,                 </button>
+,                 <button class="action-button" aria-label="Battle against Trainer - Medium difficulty">
+,                     <i class="fas fa-user"></i> Trainer Battle (Medium)
+,                 </button>
+,                 <button class="action-button" aria-label="Battle against Gym Leader - Hard difficulty">
+,                     <i class="fas fa-crown"></i> Gym Leader (Hard)
+,                 </button>
+,                 
+,                 <div class="pokemon-card">
+,                     <h3>Current Battle</h3>
+,                     <p>Opponent: Wild Pidgey</p>
+,                     <p>Health: 30/30</p>
+,                     <p>Your Pokémon: Pikachu - Health: 42/42</p>
+,                     
+,                     <button class="action-button" aria-label="Use Thunder Shock attack">
+,                         <i class="fas fa-bolt"></i> Thunder Shock
+,                     </button>
+,                     <button class="action-button" aria-label="Use Quick Attack">
+,                         <i class="fas fa-running"></i> Quick Attack
+,                     </button>
+,                     <button class="action-button" aria-label="Use Potion">
+,                         <i class="fas fa-plus-circle"></i> Use Potion
+,                     </button>
+,                     <button class="action-button" aria-label="Attempt to run away">
+,                         <i class="fas fa-running"></i> Run Away
+,                     </button>
+,                 </div>
+,             </div>
+,             
+,             <div class="tab-pane" id="market-tab">
+,                 <h2>Poké Market</h2>
+,                 <p>Buy and sell items here.</p>
+,                 
+,                 <div style="display: flex; margin-bottom: 15px;">
+,                     <button class="action-button active" style="margin-right: 10px;">Buy</button>
+,                     <button class="action-button">Sell</button>
+,                 </div>
+,                 
+,                 <div class="inventory-grid">
+,                     <div class="item-card">
+,                         <h4><i class="fas fa-flask"></i> Potion</h4>
+,                         <p>Restores 20 HP</p>
+,                         <p>Price: $200</p>
+,                         <button aria-label="Buy Potion for 200 Poke Dollars">Buy</button>
+,                     </div>
+,                     <div class="item-card">
+,                         <h4><i class="fas fa-circle"></i> Poké Ball</h4>
+,                         <p>Catches Pokémon</p>
+,                         <p>Price: $300</p>
+,                         <button aria-label="Buy Poke Ball for 300 Poke Dollars">Buy</button>
+,                     </div>
+,                     <div class="item-card">
+,                         <h4><i class="fas fa-certificate"></i> Great Ball</h4>
+,                         <p>Better catch rate</p>
+,                         <p>Price: $600</p>
+,                         <button aria-label="Buy Great Ball for 600 Poke Dollars">Buy</button>
+,                     </div>
+,                     <div class="item-card">
+,                         <h4><i class="fas fa-apple-alt"></i> Berries</h4>
+,                         <p>Various uses</p>
+,                         <p>Price: $50</p>
+,                         <button aria-label="Buy Berries for 50 Poke Dollars">Buy</button>
+,                     </div>
+,                 </div>
+,             </div>
+,             
+,             <div class="tab-pane" id="inventory-tab">
+,                 <h2>Your Inventory</h2>
+,                 <p>You have 1,250 Poké Dollars</p>
+,                 
+,                 <h3>Items</h3>
+,                 <div class="inventory-grid">
+,                     <div class="item-card">
+,                         <h4><i class="fas fa-flask"></i> Potion</h4>
+,                         <p>Quantity: 3</p>
+,                         <button aria-label="Use Potion">Use</button>
+,                     </div>
+,                     <div class="item-card">
+,                         <h4><i class="fas fa-circle"></i> Poké Ball</h4>
+,                         <p>Quantity: 5</p>
+,                         <button aria-label="Use Poke Ball">Use</button>
+,                     </div>
+,                     <div class="item-card">
+,                         <h4><i class="fas fa-apple-alt"></i> Berries</h4>
+,                         <p>Quantity: 12</p>
+,                         <button aria-label="Use Berries">Use</button>
+,                     </div>
+,                     <div class="item-card">
+,                         <h4><i class="fas fa-candy-cane"></i> Rare Candy</h4>
+,                         <p>Quantity: 1</p>
+,                         <button aria-label="Use Rare Candy">Use</button>
+,                     </div>
+,                 </div>
+,                 
+,                 <h3>Resources</h3>
+,                 <div class="inventory-grid">
+,                     <div class="item-card">
+,                         <h4><i class="fas fa-tree"></i> Wood</h4>
+,                         <p>Quantity: 25</p>
+,                     </div>
+,                     <div class="item-card">
+,                         <h4><i class="fas fa-mountain"></i> Stone</h4>
+,                         <p>Quantity: 18</p>
+,                     </div>
+,                     <div class="item-card">
+,                         <h4><i class="fas fa-apple-alt"></i> Berries</h4>
+,                         <p>Quantity: 12</p>
+,                     </div>
+,                 </div>
+,             </div>
+,             
+,             <div class="tab-pane" id="trade-tab">
+,                 <h2>Trade with Friends</h2>
+,                 <p>Enter a 6-digit trade code to connect with a friend.</p>
+,                 
+,                 <div class="form-group">
+,                     <label for="trade-code">Trade Code:</label>
+,                     <input type="text" id="trade-code" maxlength="6" placeholder="Enter 6-digit code">
+,                 </div>
+,                 
+,                 <button>Connect</button>
+,                 
+,                 <div class="stats-grid" style="margin-top: 20px;">
+,                     <div class="stat-card">
+,                         <h3>Your Pokémon for Trade</h3>
+,                         <div class="pokemon-card">
+,                             <h4>Pidgey</h4>
+,                             <p>Level: 4</p>
+,                             <button aria-label="Select Pidgey for trade">Select</button>
+,                         </div>
+,                         <div class="pokemon-card">
+,                             <h4>Rattata</h4>
+,                             <p>Level: 3</p>
+,                             <button aria-label="Select Rattata for trade">Select</button>
+,                         </div>
+,                     </div>
+,                     
+,                     <div class="stat-card">
+,                         <h3>Friend's Pokémon</h3>
+,                         <p>Not connected</p>
+,                     </div>
+,                 </div>
+,             </div>
 ,         </div>
 ,     </div>
 ,     
 ,     <nav class="bottom-nav" aria-label="Main navigation">
-,         <button class="nav-item active" id="nav-home" aria-label="Home" aria-controls="home-tab" role="tab" aria-selected="true">
+,         <button class="nav-item active" id="nav-home" aria-label="Home">
 ,             <i class="fas fa-home"></i>
 ,             <span>Home</span>
 ,         </button>
-,         <button class="nav-item" id="nav-map" aria-label="Map" aria-controls="map-tab" role="tab" aria-selected="false">
+,         <button class="nav-item" id="nav-map" aria-label="Map">
 ,             <i class="fas fa-map"></i>
 ,             <span>Map</span>
 ,         </button>
-,         <button class="nav-item" id="nav-explore" aria-label="Explore" aria-controls="explore-tab" role="tab" aria-selected="false">
+,         <button class="nav-item" id="nav-explore" aria-label="Explore">
 ,             <i class="fas fa-binoculars"></i>
 ,             <span>Explore</span>
 ,         </button>
-,         <button class="nav-item" id="nav-battle" aria-label="Battle" aria-controls="battle-tab" role="tab" aria-selected="false">
+,         <button class="nav-item" id="nav-battle" aria-label="Battle">
 ,             <i class="fas fa-fist-raised"></i>
 ,             <span>Battle</span>
 ,         </button>
-,         <button class="nav-item" id="nav-market" aria-label="Market" aria-controls="market-tab" role="tab" aria-selected="false">
+,         <button class="nav-item" id="nav-market" aria-label="Market">
 ,             <i class="fas fa-shopping-cart"></i>
 ,             <span>Market</span>
 ,         </button>
-,         <button class="nav-item" id="nav-inventory" aria-label="Inventory" aria-controls="inventory-tab" role="tab" aria-selected="false">
+,         <button class="nav-item" id="nav-inventory" aria-label="Inventory">
 ,             <i class="fas fa-backpack"></i>
 ,             <span>Inventory</span>
 ,         </button>
-,         <button class="nav-item" id="nav-trade" aria-label="Trade" aria-controls="trade-tab" role="tab" aria-selected="false">
+,         <button class="nav-item" id="nav-trade" aria-label="Trade">
 ,             <i class="fas fa-exchange-alt"></i>
 ,             <span>Trade</span>
 ,         </button>
 ,     </nav>
 ,     
-,     <div class="notification" id="notification" aria-live="polite">Message goes here</div>
+,     <div class="notification" id="notification">Message goes here</div>
 ,     
 ,     <span class="screen-reader-text" id="screen-reader-announcement" aria-live="polite"></span>
 , 
 ,     <script>
-,         // JavaScript remains largely the same with proper tab navigation
 ,         document.addEventListener('DOMContentLoaded', function() {
 ,             // Tab switching functionality
 ,             const navItems = document.querySelectorAll('.nav-item');
@@ -524,12 +698,8 @@
 ,                     const tabId = `${item.id.replace('nav-', '')}-tab`;
 ,                     
 ,                     // Update nav items
-,                     navItems.forEach(nav => {
-,                         nav.classList.remove('active');
-,                         nav.setAttribute('aria-selected', 'false');
-,                     });
+,                     navItems.forEach(nav => nav.classList.remove('active'));
 ,                     item.classList.add('active');
-,                     item.setAttribute('aria-selected', 'true');
 ,                     
 ,                     // Update panes
 ,                     tabPanes.forEach(pane => pane.classList.remove('active'));
@@ -541,7 +711,101 @@
 ,                 });
 ,             });
 ,             
-,             // Rest of the JavaScript code...
+,             // Login button functionality
+,             document.getElementById('login-btn').addEventListener('click', () => {
+,                 showNotification('Login successful! Welcome back, Trainer.');
+,             });
+,             
+,             // Register button functionality
+,             document.getElementById('register-btn').addEventListener('click', () => {
+,                 showNotification('Registration feature coming soon!');
+,             });
+,             
+,             // Location selection functionality
+,             const locationCards = document.querySelectorAll('.location-card');
+,             locationCards.forEach(card => {
+,                 card.addEventListener('click', () => {
+,                     showNotification(`Traveling to ${card.querySelector('h3').textContent}`);
+,                 });
+,             });
+,             
+,             // Function to show notifications
+,             function showNotification(message) {
+,                 const notification = document.getElementById('notification');
+,                 notification.textContent = message;
+,                 notification.style.display = 'block';
+,                 
+,                 // Announce for screen readers
+,                 const announcement = document.getElementById('screen-reader-announcement');
+,                 announcement.textContent = message;
+,                 
+,                 setTimeout(() => {
+,                     notification.style.display = 'none';
+,                 }, 3000);
+,             }
+,             
+,             // Simulate game actions
+,             const actionButtons = document.querySelectorAll('.action-button');
+,             actionButtons.forEach(button => {
+,                 button.addEventListener('click', () => {
+,                     const actionText = button.textContent.trim();
+,                     let message = '';
+,                     
+,                     if (actionText.includes('Search for Pokémon')) {
+,                         message = 'You encountered a wild Pikachu!';
+,                     } else if (actionText.includes('Gather Wood')) {
+,                         message = 'You gathered 5 wood! +10 experience';
+,                     } else if (actionText.includes('Gather Berries')) {
+,                         message = 'You gathered 3 berries! +10 experience';
+,                     } else if (actionText.includes('Wild Pokémon')) {
+,                         message = 'Starting battle with wild Pokémon';
+,                     } else if (actionText.includes('Trainer Battle')) {
+,                         message = 'Starting battle with Trainer';
+,                     } else if (actionText.includes('Gym Leader')) {
+,                         message = 'Starting battle with Gym Leader';
+,                     } else {
+,                         message = `Action: ${button.getAttribute('aria-label')}`;
+,                     }
+,                     
+,                     showNotification(message);
+,                 });
+,             });
+,             
+,             // Initialize ARIA live region for screen readers
+,             const liveRegion = document.getElementById('screen-reader-announcement');
+,             liveRegion.setAttribute('aria-live', 'polite');
+,             liveRegion.setAttribute('aria-atomic', 'true');
+,             
+,             // PWA Installation
+,             let deferredPrompt;
+,             const installButton = document.getElementById('installButton');
+,             
+,             window.addEventListener('beforeinstallprompt', (e) => {
+,                 e.preventDefault();
+,                 deferredPrompt = e;
+,                 installButton.style.display = 'block';
+,                 
+,                 installButton.addEventListener('click', () => {
+,                     deferredPrompt.prompt();
+,                     deferredPrompt.userChoice.then((choiceResult) => {
+,                         if (choiceResult.outcome === 'accepted') {
+,                             showNotification('Pokémon Adventure installed successfully!');
+,                         } else {
+,                             showNotification('App installation canceled');
+,                         }
+,                         deferredPrompt = null;
+,                     });
+,                 });
+,             });
+,             
+,             window.addEventListener('appinstalled', () => {
+,                 installButton.style.display = 'none';
+,                 showNotification('Thank you for installing Pokémon Adventure!');
+,             });
+,             
+,             if (window.matchMedia('(display-mode: standalone)').matches) {
+,                 installButton.style.display = 'none';
+,             }
 ,         });
 ,     </script>
 , </body>
