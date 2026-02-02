@@ -1,25 +1,29 @@
-<!DOCTYPE html> <html lang="en"> <head>     <meta charset="UTF-8">     <meta name="viewport" content="width=device-width, initial-scale=1.0">     <title>Survive the Wild: Mobile</title>     <style>         body { font-family: sans-serif; background: #121212; color: white; padding: 20px; }         .stat-box { border: 1px solid #444; padding: 10px; margin-bottom: 10px; border-radius: 8px; }         button {              width: 100%; padding: 20px; margin: 10px 0;              font-size: 1.2rem; background: #2e7d32; color: white; border: none; border-radius: 8px;         }         #log { background: #000; padding: 15px; height: 100px; overflow-y: scroll; border: 1px solid #333; }     </style> </head> <body>
+<!DOCTYPE html> <html lang="en"> <head>     <meta charset="UTF-8">     <meta name="viewport" content="width=device-width, initial-scale=1.0">     <title>Survive the Wild: Mobile</title>     <style>         body { font-family: sans-serif; background: #121212; color: white; padding: 20px; line-height: 1.6; }         .stat-box {              display: grid; grid-template-columns: 1fr 1fr; gap: 10px;             border: 2px solid #444; padding: 15px; margin-bottom: 15px; border-radius: 12px; background: #1a1a1a;         }         .stat { font-weight: bold; font-size: 1.1rem; }         #log {              background: #000; padding: 15px; height: 120px; overflow-y: scroll;              border: 1px solid #333; margin-bottom: 20px; border-radius: 8px; font-size: 0.9rem;         }         button {              width: 100%; padding: 18px; margin: 8px 0;              font-size: 1.1rem; font-weight: bold; border: none; border-radius: 10px;             background: #2e7d32; color: white; transition: background 0.2s;         }         button:active { background: #1b5e20; }         .btn-utility { background: #455a64; }         .btn-danger { background: #c62828; }         h1 { text-align: center; color: #81c784; }     </style> </head> <body>
 
     <h1>Wilderness Survival</h1>
 
-    <div class="stat-box" role="status">         <p id="hunger-display">Hunger: 100%</p>         <p id="thirst-display">Thirst: 100%</p>     </div>
+    <div class="stat-box" role="status">         <div id="hp-display" class="stat">Health: 100%</div>         <div id="hunger-display" class="stat">Hunger: 100%</div>         <div id="thirst-display" class="stat">Thirst: 100%</div>         <div id="sticks-display" class="stat">Sticks: 0</div>     </div>
 
-    <div id="log" aria-live="polite">         You are standing in a dense forest. It is cold.     </div>
+    <div id="log" aria-live="polite">         Welcome survivor. The forest is quiet... too quiet.     </div>
 
-    <hr>
+    <button onclick="search()">Search Area for Sticks</button>     <button onclick="craftFirewood()">Process Wood (Needs 3 Sticks)</button>     <button onclick="buildFire()">Start Campfire (Needs 1 Firewood)</button>     <button onclick="findWater()" class="btn-utility">Look for Water</button>     <button onclick="checkStats()" class="btn-utility">Check Status & Inventory</button>
 
-    <button onclick="search()">Search Area</button>     <button onclick="findWater()">Look for Water</button>     <button onclick="checkStats()">Check Vitals</button>
+    <script>         // Game Variables         let health = 100;         let hunger = 100;         let thirst = 100;         let inventory = {             sticks: 0,             firewood: 0         };
 
-    <script>         let hunger = 100;         let thirst = 100;         let log = document.getElementById('log');
+        // The Game Loop (Runs every 5 seconds)         setInterval(() => {             // Stats decay             hunger = Math.max(0, hunger - 2);             thirst = Math.max(0, thirst - 3);
 
-        // This makes the stats drop every 5 seconds         setInterval(() => {             hunger -= 2;             thirst -= 3;             updateDisplay();             if(hunger < 20) notify("You are feeling very hungry.");         }, 5000);
+            // Health Logic: Starvation or Dehydration             if (hunger <= 0 || thirst <= 0) {                 health = Math.max(0, health - 5);                 if (health <= 0) {                     notify("You have succumbed to the wild. Game Over.");                     location.reload(); // Restarts the game                 } else {                     notify("You are dying. Find food or water immediately!");                 }             }             updateUI();         }, 5000);
 
-        function updateDisplay() {             document.getElementById('hunger-display').innerText = "Hunger: " + hunger + "%";             document.getElementById('thirst-display').innerText = "Thirst: " + thirst + "%";         }
+        function updateUI() {             document.getElementById('hp-display').innerText = "Health: " + health + "%";             document.getElementById('hunger-display').innerText = "Hunger: " + hunger + "%";             document.getElementById('thirst-display').innerText = "Thirst: " + thirst + "%";             document.getElementById('sticks-display').innerText = "Sticks: " + inventory.sticks;         }
 
-        function notify(message) {             log.innerText = message;             // This is the magic for VoiceOver: it forces the phone to speak the message             const msg = new SpeechSynthesisUtterance(message);             window.speechSynthesis.speak(msg);         }
+        function notify(message) {             const logDiv = document.getElementById('log');             logDiv.innerHTML = message + "<br>" + logDiv.innerHTML; // Adds new message to top                          // VoiceOver / TTS support             const msg = new SpeechSynthesisUtterance(message);             window.speechSynthesis.speak(msg);         }
 
-        function search() {             if (Math.random() > 0.5) {                 notify("You found some dry wood!");             } else {                 notify("You found nothing but dirt.");             }         }
+        function search() {             let found = Math.floor(Math.random() * 3);             if (found > 0) {                 inventory.sticks += found;                 notify("Found " + found + " sticks. Total: " + inventory.sticks);             } else {                 notify("You searched but found nothing useful.");             }             updateUI();         }
 
-        function findWater() {             thirst = Math.min(thirst + 20, 100);             notify("You found a small stream and drank. Thirst improved.");             updateDisplay();         }
+        function findWater() {             thirst = Math.min(100, thirst + 25);             notify("You found a muddy puddle and drank. Thirst is better.");             updateUI();         }
 
-        function checkStats() {             notify("Your hunger is at " + hunger + " percent and thirst is at " + thirst + " percent.");         }     </script> </body> </html>
+        function craftFirewood() {             if (inventory.sticks >= 3) {                 inventory.sticks -= 3;                 inventory.firewood += 1;                 notify("You processed sticks into firewood. You have " + inventory.firewood + " now.");             } else {                 notify("Not enough sticks. You need 3.");             }             updateUI();         }
+
+        function buildFire() {             if (inventory.firewood >= 1) {                 inventory.firewood -= 1;                 health = Math.min(100, health + 10);                 notify("The fire roars to life. You feel warmer and regain some health.");             } else {                 notify("You need firewood to start a fire.");             }             updateUI();         }
+
+        function checkStats() {             notify("Status: Health " + health + "%, Hunger " + hunger + "%, Thirst " + thirst + "%. You have " + inventory.sticks + " sticks and " + inventory.firewood + " firewood.");         }     </script> </body> </html>
