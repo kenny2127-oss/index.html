@@ -1,37 +1,49 @@
-<!DOCTYPE html> <html lang="en"> <head>     <meta charset="UTF-8">     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">     <meta name="apple-mobile-web-app-capable" content="yes">     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">     <title>Survive the Wild: Mobile</title>     <style>         :root { --green: #2e7d32; --bg: #121212; --card: #1e1e1e; }         * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; touch-action: manipulation; }                  body {              font-family: -apple-system, system-ui, sans-serif;              background-color: var(--bg); color: #e0e0e0;              margin: 0; padding: 20px; padding-top: 60px;             display: flex; flex-direction: column; align-items: center;         }
+<!DOCTYPE html> <html lang="en"> <head> <meta charset="UTF-8"> <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"> <title>Survive the Wild: Robust Edition</title> <style>     /* CSS SECTION */     body {         background-color: #121212;         color: #ffffff;         font-family: Arial, sans-serif;         padding: 15px;         margin: 0;         text-align: center;         touch-action: manipulation; /* Improves touch response */     }
 
-        .stat-box {              display: grid; grid-template-columns: 1fr 1fr; gap: 10px; width: 100%;             max-width: 400px; padding: 15px; background: var(--card);              border-radius: 15px; border: 1px solid #333; margin-bottom: 15px;         }
+    /* The Status Box */     .status-container {         border: 2px solid #333;         background-color: #1e1e1e;         padding: 15px;         border-radius: 10px;         margin-bottom: 20px;         display: grid;         grid-template-columns: 1fr 1fr;         gap: 10px;         font-size: 1.1rem;         font-weight: bold;     }
 
-        #log {              width: 100%; max-width: 400px; height: 140px; background: #000;              border-radius: 10px; padding: 15px; overflow-y: auto;              font-size: 1.1rem; color: #a5d6a7; border: 1px solid #444; margin-bottom: 15px;         }
+    /* The Log Box */     .log-box {         width: 100%;         height: 150px;         background-color: #000;         border: 1px solid #555;         overflow-y: scroll;         text-align: left;         padding: 10px;         margin-bottom: 20px;         font-family: monospace;         color: #4caf50;         border-radius: 5px;     }
 
-        button {              width: 100%; max-width: 400px; padding: 20px; margin: 8px 0;             font-size: 1.2rem; font-weight: bold; color: white;             background: var(--green); border: none; border-radius: 12px;             cursor: pointer; display: block;             box-shadow: 0 4px 0 #1b5e20;         }
+    /* Buttons */     button {         display: block;         width: 100%;         padding: 25px; /* Large touch target */         margin-bottom: 15px;         font-size: 1.3rem;         font-weight: bold;         color: white;         background-color: #2e7d32;         border: none;         border-radius: 10px;         cursor: pointer;         /* iOS Specific Fixes */         -webkit-appearance: none;         touch-action: manipulation;     }
 
-        button:active { transform: translateY(2px); box-shadow: 0 2px 0 #1b5e20; background: #388e3c; }
+    /* Visual Feedback when tapping */     button:active {         background-color: #66bb6a;         transform: scale(0.98);     }
 
-        /* Important for iOS: Ensures buttons are recognized as interactive */         [role="button"], button { cursor: pointer !important; }
+    .btn-craft { background-color: #1565c0; }     .btn-fire { background-color: #d84315; }     .btn-test { background-color: #616161; font-size: 1rem; padding: 10px; }
 
-        #overlay {             position: fixed; top: 0; left: 0; width: 100%; height: 100%;             background: var(--bg); z-index: 9999; display: flex;              flex-direction: column; align-items: center; justify-content: center;         }         .hidden { display: none !important; }     </style> </head> <body>
+</style> </head> <body>
 
-    <div id="overlay">         <h1 style="color:var(--green)">SURVIVE THE WILD</h1>         <p style="text-align:center; padding: 20px;">Optimized for VoiceOver & Mobile</p>         <button id="start-btn" style="width: 80%;">START SURVIVAL</button>     </div>
+<h1>Survive the Wild</h1>
 
-    <div class="stat-box" role="status" aria-label="Survival Vitals">         <div id="hp">Health: 100%</div>         <div id="hunger">Hunger: 100%</div>         <div id="thirst">Thirst: 100%</div>         <div id="inv-count">Sticks: 0</div>     </div>
+<button class="btn-test" onclick="alert('System is working!')">Tap to Test System</button>
 
-    <div id="log" aria-live="polite">Welcome, survivor.</div>
+<div class="status-container" role="status" aria-live="polite">     <div id="hp-txt">Health: 100%</div>     <div id="hunger-txt">Hunger: 100%</div>     <div id="thirst-txt">Thirst: 100%</div>     <div id="inv-txt">Wood: 0</div> </div>
 
-    <button class="action-btn" data-type="search">Search Area</button>     <button class="action-btn" data-type="craft">Craft Firewood (3 Sticks)</button>     <button class="action-btn" data-type="fire">Start Fire (1 Wood)</button>     <button class="action-btn" data-type="status" style="background:#455a64;">Check Backpack</button>
+<div id="game-log" class="log-box" aria-live="assertive">     Game Loaded. Use buttons to survive. </div>
 
-    <script>         let state = { hp: 100, hunger: 100, thirst: 100, sticks: 0, wood: 0, active: false };
+<button onclick="gameAction('search')">Search for Wood</button> <button class="btn-craft" onclick="gameAction('craft')">Craft Firewood (Need 3 Wood)</button> <button class="btn-fire" onclick="gameAction('fire')">Build Fire (Need 1 Firewood)</button> <button style="background:#555" onclick="gameAction('status')">Check Backpack</button>
 
-        const notify = (msg) => {             const log = document.getElementById('log');             log.innerHTML = `> ${msg}<br>${log.innerHTML}`;             window.speechSynthesis.cancel();             const utterance = new SpeechSynthesisUtterance(msg);             utterance.rate = 1.1;             window.speechSynthesis.speak(utterance);         };
+<script>     // Game State Variables     var health = 100;     var hunger = 100;     var thirst = 100;     var wood = 0;     var firewood = 0;          // Main Game Loop (Runs every 1 second)     setInterval(function() {         // Decrease stats         hunger = hunger - 1;         thirst = thirst - 1;
 
-        const updateUI = () => {             document.getElementById('hp').innerText = `Health: ${state.hp}%`;             document.getElementById('hunger').innerText = `Hunger: ${state.hunger}%`;             document.getElementById('thirst').innerText = `Thirst: ${state.thirst}%`;             document.getElementById('inv-count').innerText = `Sticks: ${state.sticks}`;         };
+        // Cap values at 0         if (hunger < 0) hunger = 0;         if (thirst < 0) thirst = 0;
 
-        // Unified Interaction Handler         const handleInteraction = (e, action) => {             e.preventDefault();             if (!state.active && action !== 'start') return;
+        // Damage logic         if (hunger === 0 || thirst === 0) {             health = health - 2;         }
 
-            if (action === 'start') {                 state.active = true;                 document.getElementById('overlay').classList.add('hidden');                 notify("The journey begins. You are in a cold forest.");                 startTimer();             } else if (action === 'search') {                 let found = Math.floor(Math.random() * 3);                 state.sticks += found;                 notify(found > 0 ? `Found ${found} sticks.` : "Found nothing.");             } else if (action === 'craft') {                 if (state.sticks >= 3) {                     state.sticks -= 3; state.wood++;                     notify("Processed sticks into firewood.");                 } else notify("Need 3 sticks to craft wood.");             } else if (action === 'fire') {                 if (state.wood >= 1) {                     state.wood--; state.hp = Math.min(100, state.hp + 20);                     notify("Fire started! You feel warmer.");                 } else notify("No firewood available.");             } else if (action === 'status') {                 notify(`Stats: HP ${state.hp}, Hunger ${state.hunger}. Inventory: ${state.sticks} sticks, ${state.wood} wood.`);             }             updateUI();         };
+        // Update the screen text         updateScreen();
 
-        const startTimer = () => {             setInterval(() => {                 state.hunger = Math.max(0, state.hunger - 2);                 state.thirst = Math.max(0, state.thirst - 3);                 if (state.hunger === 0 || state.thirst === 0) state.hp = Math.max(0, state.hp - 5);                 updateUI();             }, 7000);         };
+    }, 2000); // 2000ms = 2 seconds
 
-        // Attach listeners to Start Button         const sBtn = document.getElementById('start-btn');         ['touchstart', 'click'].forEach(ev => sBtn.addEventListener(ev, (e) => handleInteraction(e, 'start'), {passive: false}));
+    // The Logic Controller     function gameAction(actionType) {                  if (actionType === 'search') {             // 50% chance to find wood             if (Math.random() > 0.5) {                 wood = wood + 1;                 logMessage("Found 1 piece of wood.");             } else {                 logMessage("You searched but found nothing.");             }         }                   else if (actionType === 'craft') {             if (wood >= 3) {                 wood = wood - 3;                 firewood = firewood + 1;                 logMessage("Crafted Firewood. Total: " + firewood);             } else {                 logMessage("Not enough wood! You need 3 pieces.");             }         }
 
-        // Attach listeners to Action Buttons         document.querySelectorAll('.action-btn').forEach(btn => {             const type = btn.getAttribute('data-type');             ['touchstart', 'click'].forEach(ev => btn.addEventListener(ev, (e) => handleInteraction(e, type), {passive: false}));         });     </script> </body> </html> 
+        else if (actionType === 'fire') {             if (firewood >= 1) {                 firewood = firewood - 1;                 health = health + 20;                 if (health > 100) health = 100;                 logMessage("Fire built! Warmth restores health.");             } else {                 logMessage("You need Firewood to build a fire.");             }         }
+
+        else if (actionType === 'status') {             logMessage("Backpack: " + wood + " Wood, " + firewood + " Firewood.");         }
+
+        updateScreen();     }
+
+    // Helper to update the text on screen     function updateScreen() {         document.getElementById('hp-txt').innerText = "Health: " + health + "%";         document.getElementById('hunger-txt').innerText = "Hunger: " + hunger + "%";         document.getElementById('thirst-txt').innerText = "Thirst: " + thirst + "%";         document.getElementById('inv-txt').innerText = "Wood: " + wood;     }
+
+    // Helper to write to the log box AND speak     function logMessage(text) {         // 1. Update visual log         var logBox = document.getElementById('game-log');         logBox.innerHTML = "> " + text + "<br>" + logBox.innerHTML;
+
+        // 2. Speak the text (VoiceOver)         // We wrap this in a try/catch so if audio fails, the game doesn't crash         try {             window.speechSynthesis.cancel();             var speech = new SpeechSynthesisUtterance(text);             window.speechSynthesis.speak(speech);         } catch(e) {             console.log("Audio Error: " + e);         }     } </script>
+
+</body> </html> 
