@@ -34,4 +34,4 @@
 
         // Attach listeners to Start Button         const sBtn = document.getElementById('start-btn');         ['touchstart', 'click'].forEach(ev => sBtn.addEventListener(ev, (e) => handleInteraction(e, 'start'), {passive: false}));
 
-        // Attach listeners to Action Buttons         document.querySelectorAll('.action-btn').forEach(btn => {             const type = btn.getAttribute('data-type');             ['touchstart', 'click'].forEach(ev => btn.addEventListener(ev, (e) => handleInteraction(e, type), {passive: false}));         });     </script> </body> </html>
+        // Attach listeners to Action Buttons         document.querySelectorAll('.action-btn').forEach(btn => {             const type = btn.getAttribute('data-type');             ['touchstart', 'click'].forEach(ev => btn.addEventListener(ev, (e) => handleInteraction(e, type), {passive: false}));         });     </script> </body> </html> 
