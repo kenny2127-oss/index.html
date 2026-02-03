@@ -1,33 +1,29 @@
-<!DOCTYPE html> <html lang="en"> <head> <meta charset="UTF-8"> <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"> <title>Survive Fixed</title> <style>     /* BASIC STYLES */     body { background: #121212; color: #fff; font-family: sans-serif; padding: 20px; text-align: center; }          /* STATS GRID */     .stats {         display: grid; grid-template-columns: 1fr 1fr; gap: 10px;         background: #222; padding: 15px; border-radius: 10px;         border: 2px solid #444; margin-bottom: 20px;     }          /* LOG BOX */     #log-display {         background: #000; height: 120px; overflow-y: scroll;         border: 1px solid #666; padding: 10px; text-align: left;         color: #0f0; font-family: monospace; margin-bottom: 20px;     }
+<!DOCTYPE html> <html lang="en"> <head> <meta charset="UTF-8"> <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"> <title>Survive: Instant Edition</title> <style>     body { background: #121212; color: white; font-family: system-ui, -apple-system; padding: 20px; text-align: center; }          .stats {         display: grid; grid-template-columns: 1fr 1fr; gap: 10px;         background: #1e1e1e; padding: 15px; border-radius: 15px;         border: 2px solid #333; margin-bottom: 20px; font-size: 1.2rem;     }          #log {         background: #000; height: 150px; overflow-y: scroll;         border: 1px solid #444; padding: 12px; text-align: left;         color: #81c784; font-family: monospace; margin-bottom: 20px;         font-size: 1.1rem;     }
 
-    /* BUTTONS */     button {         width: 100%; padding: 25px; margin: 10px 0;         font-size: 1.2rem; font-weight: bold; color: white;         background: #2e7d32; border: none; border-radius: 12px;         touch-action: manipulation; /* Fixes iOS tap delay */     }          button:active { background: #66bb6a; } /* Visual Flash on tap */ </style> </head> <body>
+    button {         width: 100%; padding: 25px; margin: 10px 0;         font-size: 1.4rem; font-weight: bold; color: white;         background: #2e7d32; border: none; border-radius: 15px;         /* This prevents the "gray box" highlight on iOS */         -webkit-tap-highlight-color: transparent;      }          button:active { background: #4caf50; }     .btn-blue { background: #1565c0; }     .btn-orange { background: #e65100; } </style> </head> <body>
 
 <h1>Survive the Wild</h1>
 
-<div id="debug-msg" style="color: yellow; margin-bottom: 10px;">System: Ready</div>
+<div class="stats">     <div id="disp-wood">Sticks: 0</div>     <div id="disp-firewood">Firewood: 0</div>     <div id="disp-hp">HP: 100%</div>     <div id="disp-hunger">Hunger: 100%</div> </div>
 
-<div class="stats" role="status">     <div id="wood-stat">Wood: 0</div>     <div id="fire-stat">Firewood: 0</div>     <div id="hp-stat">Health: 100</div>     <div id="hunger-stat">Hunger: 100</div> </div>
+<div id="log" aria-live="assertive">Standing in the brush...</div>
 
-<div id="log-display" aria-live="polite">Tap a button to start...</div>
+<button ontouchstart="doSearch()" onclick="doSearch()">Search for Wood</button> <button class="btn-blue" ontouchstart="doCraft()" onclick="doCraft()">Craft Firewood (3 Sticks)</button> <button class="btn-orange" ontouchstart="doFire()" onclick="doFire()">Build Fire (1 Firewood)</button> <button style="background:#555" ontouchstart="doStatus()" onclick="doStatus()">Check Backpack</button>
 
-<button onclick="playRound('search')">Search for Wood</button> <button onclick="playRound('craft')">Craft Firewood (Needs 3 Wood)</button> <button onclick="playRound('fire')" style="background:#d84315">Build Fire</button>
+<script>     var sticks = 0;     var firewood = 0;     var hp = 100;     var hunger = 100;
 
-<script>     // 1. GAME VARIABLES     var wood = 0;     var firewood = 0;     var health = 100;     var hunger = 100;
+    // This makes the iPhone speak IMMEDIATELY     function speak(text) {         window.speechSynthesis.cancel(); // Stop current speaking         var msg = new SpeechSynthesisUtterance(text);         msg.rate = 1.2; // Slightly faster for better feel         window.speechSynthesis.speak(msg);                  // Also update the visual log         var logBox = document.getElementById('log');         logBox.innerHTML = "> " + text + "<br>" + logBox.innerHTML;     }
 
-    // 2. THE MAIN FUNCTION     // We attach this to window to make sure the HTML can see it     window.playRound = function(action) {                  // DEBUG: Flash the text so you know the button worked         document.getElementById('debug-msg').innerText = "Processing: " + action;
+    function updateUI() {         document.getElementById('disp-wood').innerText = "Sticks: " + sticks;         document.getElementById('disp-firewood').innerText = "Firewood: " + firewood;         document.getElementById('disp-hp').innerText = "HP: " + hp + "%";         document.getElementById('disp-hunger').innerText = "Hunger: " + hunger + "%";     }
 
-        // LOGIC         var message = "";
+    // ACTION: SEARCH     function doSearch() {         var found = Math.floor(Math.random() * 5) + 8; // Randomly find between 8 and 12 sticks         sticks += found;         speak("You found " + found + " sticks on the ground and picked them up. You now have " + sticks + " sticks total.");         updateUI();     }
 
-        if (action === 'search') {             // Simple logic: Always find wood for this test             wood = wood + 1;             message = "You found wood! Total: " + wood;         }                   else if (action === 'craft') {             if (wood >= 3) {                 wood = wood - 3;                 firewood = firewood + 1;                 message = "You crafted Firewood.";             } else {                 message = "Not enough wood (Need 3).";             }         }                  else if (action === 'fire') {             if (firewood >= 1) {                 firewood = firewood - 1;                 health = 100;                 message = "Fire built! Health restored.";             } else {                 message = "You need firewood.";             }         }
+    // ACTION: CRAFT     function doCraft() {         if (sticks >= 3) {             sticks -= 3;             firewood += 1;             speak("You snapped 3 sticks together to create 1 firewood. You have " + firewood + " firewood now.");         } else {             speak("You don't have enough sticks. You need 3, but you only have " + sticks + ".");         }         updateUI();     }
 
-        // 3. UPDATE SCREEN FIRST (So it doesn't freeze)         updateScreen(message);
+    // ACTION: FIRE     function doFire() {         if (firewood >= 1) {             firewood -= 1;             hp = 100;             speak("You started a roaring fire. The heat warms your bones and restores your health to 100 percent.");         } else {             speak("You cannot start a fire without firewood. Go search and craft some first.");         }         updateUI();     }
 
-        // 4. ATTEMPT AUDIO LAST (Safe Mode)         try {             window.speechSynthesis.cancel();             var speech = new SpeechSynthesisUtterance(message);             window.speechSynthesis.speak(speech);         } catch (error) {             console.log("Audio failed, but game continues.");         }     };
+    // ACTION: STATUS     function doStatus() {         speak("Status report. Health is at " + hp + " percent. Hunger is " + hunger + " percent. You are carrying " + sticks + " sticks and " + firewood + " firewood.");     }
 
-    function updateScreen(msg) {         // Update variables         document.getElementById('wood-stat').innerText = "Wood: " + wood;         document.getElementById('fire-stat').innerText = "Firewood: " + firewood;         document.getElementById('hp-stat').innerText = "Health: " + health;                  // Update Log         var log = document.getElementById('log-display');         log.innerHTML = "> " + msg + "<br>" + log.innerHTML;     }
+    // Survival Timer     setInterval(function() {         if (hunger > 0) hunger -= 1;         if (hunger <= 0) hp -= 2;         updateUI();     }, 5000);
 
-    // Auto-Hunger Timer     setInterval(function() {         if (hunger > 0) hunger--;         document.getElementById('hunger-stat').innerText = "Hunger: " + hunger;     }, 2000);
-
-</script>
-
-</body> </html> 
+</script> </body> </html> 
