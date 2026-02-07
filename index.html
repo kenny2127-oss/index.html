@@ -1,44 +1,56 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>Survive the Wild – Audio Edition</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8">
+<title>Survive the Wild – Mobile Audio</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<style>
+  body {
+    margin: 0;
+    height: 100vh;
+    background: black;
+    color: white;
+    font-size: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+</style>
 </head>
 <body>
-<button id="start">Start Game</button>
+<div id="screen">Tap to start</div>
 
 <script>
 const speech = window.speechSynthesis;
+let lastMessage = "";
+let menuIndex = 0;
+let started = false;
 
 const game = {
   day: 1,
   health: 100,
   hunger: 0,
   thirst: 0,
-  inventory: { food: 1, wood: 0 },
-  menuIndex: 0,
-  lastMessage: ""
+  inventory: { food: 1, wood: 0 }
 };
 
 const menu = [
   { label: "Explore", action: explore },
   { label: "Forage", action: forage },
   { label: "Rest", action: rest },
-  { label: "Check inventory", action: checkInventory }
+  { label: "Check inventory", action: inventory }
 ];
 
 function speak(text) {
   speech.cancel();
-  const u = new SpeechSynthesisUtterance(text);
-  game.lastMessage = text;
-  speech.speak(u);
+  lastMessage = text;
+  speech.speak(new SpeechSynthesisUtterance(text));
 }
 
-function statusReport() {
+function status() {
   speak(
     `Day ${game.day}. Health ${game.health}. Hunger ${game.hunger}. Thirst ${game.thirst}. 
-    ${menu[game.menuIndex].label}.`
+    ${menu[menuIndex].label}.`
   );
 }
 
@@ -51,11 +63,9 @@ function nextTurn() {
 
   if (game.health <= 0) {
     speak("You collapse from exhaustion. Game over.");
-    document.removeEventListener("keydown", handleInput);
     return;
   }
-
-  statusReport();
+  status();
 }
 
 function explore() {
@@ -65,10 +75,10 @@ function explore() {
     speak("You find edible berries.");
   } else if (r < 0.7) {
     game.inventory.wood++;
-    speak("You gather some wood.");
+    speak("You gather wood.");
   } else {
     game.health -= 10;
-    speak("You injure yourself while exploring.");
+    speak("You are injured while exploring.");
   }
   nextTurn();
 }
@@ -76,7 +86,7 @@ function explore() {
 function forage() {
   game.inventory.food++;
   game.hunger = Math.max(0, game.hunger - 20);
-  speak("You forage and eat some food.");
+  speak("You forage and eat.");
   nextTurn();
 }
 
@@ -86,34 +96,50 @@ function rest() {
   nextTurn();
 }
 
-function checkInventory() {
+function inventory() {
   speak(`Inventory. Food ${game.inventory.food}. Wood ${game.inventory.wood}.`);
 }
 
-function handleInput(e) {
-  if (e.key === "ArrowUp") {
-    game.menuIndex = (game.menuIndex - 1 + menu.length) % menu.length;
-    speak(menu[game.menuIndex].label);
+let touchStartY = 0;
+let lastTap = 0;
+let fingers = 0;
+
+document.body.addEventListener("touchstart", e => {
+  fingers = e.touches.length;
+  touchStartY = e.touches[0].clientY;
+});
+
+document.body.addEventListener("touchend", e => {
+  const now = Date.now();
+
+  if (!started) {
+    started = true;
+    speak("Welcome to Survive the Wild. Swipe to navigate. Double tap to choose.");
+    return;
   }
 
-  if (e.key === "ArrowDown") {
-    game.menuIndex = (game.menuIndex + 1) % menu.length;
-    speak(menu[game.menuIndex].label);
+  if (fingers === 2) {
+    speak(lastMessage);
+    return;
   }
 
-  if (e.key === "Enter") {
-    menu[game.menuIndex].action();
+  const dy = e.changedTouches[0].clientY - touchStartY;
+
+  if (Math.abs(dy) > 40) {
+    if (dy < 0) {
+      menuIndex = (menuIndex - 1 + menu.length) % menu.length;
+    } else {
+      menuIndex = (menuIndex + 1) % menu.length;
+    }
+    speak(menu[menuIndex].label);
+    return;
   }
 
-  if (e.key.toLowerCase() === "r") {
-    speak(game.lastMessage);
+  if (now - lastTap < 400) {
+    menu[menuIndex].action();
   }
-}
 
-document.getElementById("start").addEventListener("click", () => {
-  document.getElementById("start").remove();
-  document.addEventListener("keydown", handleInput);
-  speak("Welcome to Survive the Wild. Use arrow keys to navigate. Press enter to choose.");
+  lastTap = now;
 });
 </script>
 </body>
